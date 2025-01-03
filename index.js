@@ -2,7 +2,7 @@ import { createServer } from 'http';
 import { run } from './helper.js';
 
 const hostname = '127.0.0.1';
-const port = 4000;
+const port = process.env.PORT || 4000;
 
 const server = createServer(async (req, res) => {
     res.statusCode = 200;
