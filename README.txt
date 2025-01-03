@@ -1,0 +1,1 @@
+En enkel tjänst som hämtar data from SMHI för utvalda surfplatser och visar när surf's up i kalendern (ics)
