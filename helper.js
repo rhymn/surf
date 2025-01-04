@@ -1,7 +1,7 @@
 import * as ics from 'ics';
 
 export const surfable = (windSpeed, windDirection, spot) => {
-    if (windSpeed < 5) {
+    if (windSpeed < 5 || windSpeed > 9) {
         return false;
     }
     // speed is ok
@@ -23,7 +23,15 @@ const spotToLonLat = (spot) => {
     return [spot.lon, spot.lat];
 }
 
-export const getWindData = async (lon, lat) => {
+const getSunData = async (lon, lat) => {
+    const url = `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lon}&formatted=0`
+
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+}
+
+const getWindData = async (lon, lat) => {
     const url = `https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/${lon}/lat/${lat}/data.json`
 
     const response = await fetch(url);
@@ -45,7 +53,7 @@ const spots = [
     }
 ]
 
-const parsedWindData = function(windData, spot) {
+const parsedWindData = function(windData, spot, sunrise, sunset) {
     const timeSeries = windData.timeSeries;
     const parsedData = [];
 
@@ -54,6 +62,19 @@ const parsedWindData = function(windData, spot) {
         const windDirection = time.parameters.find(param => param.name === "wd").values[0];
 
         if (!surfable(windSpeed, windDirection, spot)) {
+            return;
+        }
+
+        const minuteOfDay = (new Date(time.validTime)).getHours() * 60 + (new Date(time.validTime)).getMinutes();
+
+        const sunriseAsMinuteOfDay = (new Date(sunrise)).getHours() * 60 + (new Date(sunrise)).getMinutes() - 60;
+        const sunsetAsMinuteOfDay = (new Date(sunset)).getHours() * 60 + (new Date(sunset)).getMinutes() + 60;
+        
+        const beforeSunrise = minuteOfDay < sunriseAsMinuteOfDay;
+        const afterSunset = minuteOfDay > sunsetAsMinuteOfDay;
+        const itsTooDark = beforeSunrise || afterSunset;
+
+        if (itsTooDark) {
             return;
         }
 
@@ -87,7 +108,10 @@ export const run = async function() {
     const spot = spots[0];
     const lonLat = spotToLonLat(spot);
     const wind = await getWindData(lonLat[0], lonLat[1]);
-    const parsed = parsedWindData(wind, spot);
+    const sun = await getSunData(lonLat[0], lonLat[1]);
+    const sunrise = sun.results.sunrise;
+    const sunset = sun.results.sunset;
+    const parsed = parsedWindData(wind, spot, sunrise, sunset);
 
     const icsFile = icsFromArray(parsed);
 
