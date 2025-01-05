@@ -1,7 +1,10 @@
 import * as ics from 'ics';
 
+const minWindSpeed = 5;
+const maxWindSpeed = 9;
+
 export const surfable = (windSpeed, windDirection, spot) => {
-    if (windSpeed < 5 || windSpeed > 9) {
+    if (windSpeed < minWindSpeed || windSpeed > maxWindSpeed) {
         return false;
     }
     // speed is ok
@@ -14,13 +17,8 @@ export const surfable = (windSpeed, windDirection, spot) => {
         return false;
     }
     // direction is ok
-
     
     return true
-}
-
-const spotToLonLat = (spot) => {
-    return [spot.lon, spot.lat];
 }
 
 const getSunData = async (lon, lat) => {
@@ -28,7 +26,11 @@ const getSunData = async (lon, lat) => {
 
     const response = await fetch(url);
     const data = await response.json();
-    return data;
+
+    return {
+        sunrise: data.results.sunrise,
+        sunset: data.results.sunset
+    };
 }
 
 const getWindData = async (lon, lat) => {
@@ -112,11 +114,12 @@ const wantedSpot = 0;
 
 export const run = async function() {
     const spot = spots[wantedSpot];
-    const lonLat = spotToLonLat(spot);
-    const wind = await getWindData(lonLat[0], lonLat[1]);
-    const sun = await getSunData(lonLat[0], lonLat[1]);
-    const sunrise = sun.results.sunrise;
-    const sunset = sun.results.sunset;
+
+    const wind = await getWindData(spot.lon, spot.lat);
+    const {sunrise, sunset} = await getSunData(spot.lon, spot.lat);
+    
+    // const sunrise = sun.results.sunrise;
+    // const sunset = sun.results.sunset;
     const parsed = parsedWindData(wind, spot, sunrise, sunset);
 
     const icsFile = icsFromArray(parsed);
