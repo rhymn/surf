@@ -53,6 +53,20 @@ const spots = [
     }
 ]
 
+const itsTooDark = (time, sunrise, sunset) => {
+    const minuteOfDay = (new Date(time)).getHours() * 60 + (new Date(time)).getMinutes();
+
+    const timeOfSunriseAsMinuteOfDay = (new Date(sunrise)).getHours() * 60 + (new Date(sunrise)).getMinutes() - 60;
+    const timeOfSunsetAsMinuteOfDay = (new Date(sunset)).getHours() * 60 + (new Date(sunset)).getMinutes() + 60;
+
+    
+    const isBeforeSunrise = minuteOfDay < timeOfSunriseAsMinuteOfDay;
+    const isAfterSunset = minuteOfDay > timeOfSunsetAsMinuteOfDay;
+    console.log(minuteOfDay, timeOfSunriseAsMinuteOfDay, timeOfSunsetAsMinuteOfDay, isBeforeSunrise, isAfterSunset);
+
+    return isBeforeSunrise || isAfterSunset;
+}
+
 const parsedWindData = function(windData, spot, sunrise, sunset) {
     const timeSeries = windData.timeSeries;
     const parsedData = [];
@@ -65,16 +79,7 @@ const parsedWindData = function(windData, spot, sunrise, sunset) {
             return;
         }
 
-        const minuteOfDay = (new Date(time.validTime)).getHours() * 60 + (new Date(time.validTime)).getMinutes();
-
-        const sunriseAsMinuteOfDay = (new Date(sunrise)).getHours() * 60 + (new Date(sunrise)).getMinutes() - 60;
-        const sunsetAsMinuteOfDay = (new Date(sunset)).getHours() * 60 + (new Date(sunset)).getMinutes() + 60;
-        
-        const beforeSunrise = minuteOfDay < sunriseAsMinuteOfDay;
-        const afterSunset = minuteOfDay > sunsetAsMinuteOfDay;
-        const itsTooDark = beforeSunrise || afterSunset;
-
-        if (itsTooDark) {
+        if(itsTooDark(time.validTime, sunrise, sunset)) {
             return;
         }
 
@@ -96,16 +101,17 @@ const parsedWindData = function(windData, spot, sunrise, sunset) {
                 lat: spot.lat,
                 lon: spot.lon,
             },
-            productId: "Davids surfkalender"
+            productId: `Surfkalender för ${spot.name}`
          });
-
     });
 
     return parsedData;
 }
 
+const wantedSpot = 0;
+
 export const run = async function() {
-    const spot = spots[0];
+    const spot = spots[wantedSpot];
     const lonLat = spotToLonLat(spot);
     const wind = await getWindData(lonLat[0], lonLat[1]);
     const sun = await getSunData(lonLat[0], lonLat[1]);
@@ -117,7 +123,6 @@ export const run = async function() {
 
     return icsFile
 }
-
 
 const icsFromArray = (dataArray) => {
     const {error, value} = ics.createEvents(dataArray);
