@@ -118,8 +118,6 @@ export const run = async function() {
     const wind = await getWindData(spot.lon, spot.lat);
     const {sunrise, sunset} = await getSunData(spot.lon, spot.lat);
     
-    // const sunrise = sun.results.sunrise;
-    // const sunset = sun.results.sunset;
     const parsed = parsedWindData(wind, spot, sunrise, sunset);
 
     const icsFile = icsFromArray(parsed);
