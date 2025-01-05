@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: surf
+    env: node
+    buildCommand: npm install
+    startCommand: node index.js
+    plan: free
+    branch: main
+    rootDir: surf
+    pullRequestPreviewsEnabled: true
+    region: frankfurt
