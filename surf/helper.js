@@ -35,9 +35,11 @@ const getSunData = async (lon, lat) => {
 
 const getWindData = async (lon, lat) => {
     const url = `https://opendata-download-metfcst.smhi.se/api/category/pmp3g/version/2/geotype/point/lon/${lon}/lat/${lat}/data.json`
+    // console.log(url)
 
     const response = await fetch(url);
     const data = await response.json();
+    // console.log(data)
     return data;
 }
 
@@ -64,7 +66,7 @@ const itsTooDark = (time, sunrise, sunset) => {
     
     const isBeforeSunrise = minuteOfDay < timeOfSunriseAsMinuteOfDay;
     const isAfterSunset = minuteOfDay > timeOfSunsetAsMinuteOfDay;
-    console.log(minuteOfDay, timeOfSunriseAsMinuteOfDay, timeOfSunsetAsMinuteOfDay, isBeforeSunrise, isAfterSunset);
+    // console.log(minuteOfDay, timeOfSunriseAsMinuteOfDay, timeOfSunsetAsMinuteOfDay, isBeforeSunrise, isAfterSunset);
 
     return isBeforeSunrise || isAfterSunset;
 }
@@ -119,6 +121,7 @@ export const run = async function() {
     const {sunrise, sunset} = await getSunData(spot.lon, spot.lat);
     
     const parsed = parsedWindData(wind, spot, sunrise, sunset);
+    console.log(parsed);
 
     const icsFile = icsFromArray(parsed);
 
