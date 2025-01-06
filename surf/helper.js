@@ -99,6 +99,7 @@ const parsedWindData = function(windData, spot, sunrise, sunset) {
         parsedData.push({ 
             title: `${windSpeed} m/s, ${windDirection}°`,
             start: [year, month, day, hour, minute],
+            startInputType: 'utc',
             duration: { hours: duration },
             location: spot.name,
             geo: {
@@ -121,8 +122,8 @@ export const run = async function() {
     const {sunrise, sunset} = await getSunData(spot.lon, spot.lat);
     
     const parsed = parsedWindData(wind, spot, sunrise, sunset);
-    console.log(parsed);
 
+    console.log(parsed);
     const icsFile = icsFromArray(parsed);
 
     return icsFile
