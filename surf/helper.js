@@ -1,23 +1,22 @@
 import * as ics from 'ics';
 
-const WIND_SPEED_MIN = 5;
-const WIND_SPEED_MAX = 9;
 
-export const surfable = (windSpeed, windDirection, spot) => {
+const isWithinWindSpeedRange = (windSpeed, spot) => {
+    const WIND_SPEED_MIN = 5;
+    const WIND_SPEED_MAX = 9;
+
     const minWindSpeed = spot.minWindSpeed || WIND_SPEED_MIN;
     const maxWindSpeed = spot.maxWindSpeed || WIND_SPEED_MAX;
 
-    if (windSpeed < minWindSpeed || windSpeed > maxWindSpeed) {
-        return false;
-    }
-    // speed is ok
-    
+    return windSpeed >= minWindSpeed && windSpeed <= maxWindSpeed;
+}
+
+export const surfable = (windSpeed, windDirection, spot) => {
     if (spot.windDirection && (windDirection < spot.windDirection[0] || windDirection > spot.windDirection[1])) {
         return false;
     }
-    // direction is ok
     
-    return true
+    return isWithinWindSpeedRange(windSpeed, spot)
 }
 
 const getSunData = async (lon, lat) => {
