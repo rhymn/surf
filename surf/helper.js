@@ -1,19 +1,18 @@
 import * as ics from 'ics';
 
-const minWindSpeed = 5;
-const maxWindSpeed = 9;
+const WIND_SPEED_MIN = 5;
+const WIND_SPEED_MAX = 9;
 
 export const surfable = (windSpeed, windDirection, spot) => {
+    const minWindSpeed = spot.minWindSpeed || WIND_SPEED_MIN;
+    const maxWindSpeed = spot.maxWindSpeed || WIND_SPEED_MAX;
+
     if (windSpeed < minWindSpeed || windSpeed > maxWindSpeed) {
         return false;
     }
     // speed is ok
-
-    if(!spot.windDirection) {
-        return true;
-    }
     
-    if (windDirection < spot.windDirection[0] || windDirection > spot.windDirection[1]) {
+    if (spot.windDirection && (windDirection < spot.windDirection[0] || windDirection > spot.windDirection[1])) {
         return false;
     }
     // direction is ok
