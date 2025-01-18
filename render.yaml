@@ -9,3 +9,14 @@ services:
     rootDir: surf
     pullRequestPreviewsEnabled: true
     region: frankfurt
+
+  - type: web
+    name: monsters-and-trees
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    plan: free
+    branch: main
+    rootDir: chat-easy
+    pullRequestPreviewsEnabled: true
+    region: frankfurt
