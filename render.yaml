@@ -20,3 +20,14 @@ services:
     rootDir: monsters-and-trees
     pullRequestPreviewsEnabled: true
     region: frankfurt
+
+  - type: web
+    name: simple-chat
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    plan: free
+    branch: main
+    rootDir: simple-chat
+    pullRequestPreviewsEnabled: true
+    region: frankfurt
