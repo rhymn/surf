@@ -17,6 +17,6 @@ services:
     startCommand: node server.js
     plan: free
     branch: main
-    rootDir: chat-easy
+    rootDir: monsters-and-trees
     pullRequestPreviewsEnabled: true
     region: frankfurt
