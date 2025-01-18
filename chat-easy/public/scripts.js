@@ -4,8 +4,8 @@ const ctx = canvas.getContext('2d');
 
 const sphereRadius = 12.5; // Radius of the sphere (half of 25)
 const squareSize = 25; // Size of the square
-const virtualWidth = 3000; // Virtual area width
-const virtualHeight = 3000; // Virtual area height
+let virtualWidth = 3000; // Virtual area width (default value)
+let virtualHeight = 3000; // Virtual area height (default value)
 let sphereX = virtualWidth / 2; // Initial x position of the sphere
 let sphereY = virtualHeight / 2; // Initial y position of the sphere
 
@@ -20,15 +20,29 @@ let userColor = 'red'; // Default color
 
 // Tree SVG data URL
 const treeSVG = 'data:image/svg+xml;base64,' + btoa(`
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+    <rect x="112" y="128" width="32" height="64" fill="#8B4513"/>
+    <circle cx="128" cy="96" r="64" fill="#228B22"/>
+</svg>
+`);
+
+// Monster SVG data URL
+const monsterSVG = 'data:image/svg+xml;base64,' + btoa(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <rect x="28" y="32" width="8" height="16" fill="#8B4513"/>
-  <circle cx="32" cy="24" r="16" fill="#228B22"/>
+  <circle cx="32" cy="32" r="30" fill="#FF0000"/>
+  <circle cx="22" cy="24" r="5" fill="#FFFFFF"/>
+  <circle cx="42" cy="24" r="5" fill="#FFFFFF"/>
+  <circle cx="22" cy="24" r="2" fill="#000000"/>
+  <circle cx="42" cy="24" r="2" fill="#000000"/>
+  <path d="M 22 40 Q 32 50 42 40" stroke="#000000" stroke-width="2" fill="none"/>
 </svg>
 `);
 
 let trees = [];
+let monsters = [];
 let otherUsers = {};
 let treeImages = [];
+let monsterImages = [];
 
 // Create the overlay window
 const overlay = document.createElement('div');
@@ -45,7 +59,8 @@ document.body.appendChild(overlay);
 
 // Function to update the overlay window
 function updateOverlay() {
-    overlay.innerHTML = '<strong>Connected Users:</strong><br>';
+    const numberOfUsers = Object.keys(otherUsers).length + 1; // Add 1 for the current user
+    overlay.innerHTML = `<strong>Connected Users: ${numberOfUsers} </strong><br>`;
     overlay.innerHTML += `<div style="color: ${userColor};">
         (${Math.round(sphereX)}, ${Math.round(sphereY)})
     </div>`;
@@ -86,6 +101,45 @@ socket.on('initializeTrees', (serverTrees) => {
         return img;
     });
     drawScene();
+});
+
+// Listen for monster positions from the server
+socket.on('initializeMonsters', (serverMonsters) => {
+    monsters = serverMonsters;
+    monsterImages = monsters.map(() => {
+        const img = new Image();
+        img.src = monsterSVG;
+        return img;
+    });
+    drawScene();
+});
+
+// Listen for virtual dimensions from the server
+socket.on('setVirtualDimensions', (data) => {
+    virtualWidth = data.virtualWidth;
+    virtualHeight = data.virtualHeight;
+    drawScene();
+});
+
+// Listen for starting position from the server
+socket.on('setStartPosition', (position) => {
+    sphereX = position.x;
+    sphereY = position.y;
+    drawScene();
+});
+
+// Listen for all users' positions from the server
+socket.on('updateAllUsers', (users) => {
+    otherUsers = users;
+    drawScene();
+    updateOverlay();
+});
+
+// Listen for user disconnection
+socket.on('removeUser', (id) => {
+    delete otherUsers[id];
+    drawScene();
+    updateOverlay();
 });
 
 // Function to draw the user's sphere on the canvas
@@ -129,10 +183,22 @@ function drawOtherSquare(x, y, color) {
 
 // Function to draw trees on the canvas
 function drawTrees() {
+    const treeSize = 64;
     trees.forEach((tree, index) => {
         const img = treeImages[index];
         if (img.complete) {
-            ctx.drawImage(img, tree.x, tree.y, 32, 32); // Draw the tree at the specified position
+            ctx.drawImage(img, tree.x, tree.y, treeSize, treeSize); // Draw the tree at the specified position with double size
+        }
+    });
+}
+
+// Function to draw monsters on the canvas
+function drawMonsters() {
+    const monsterSize = 32;
+    monsters.forEach((monster, index) => {
+        const img = monsterImages[index];
+        if (img.complete) {
+            ctx.drawImage(img, monster.x, monster.y, monsterSize, monsterSize); // Draw the monster at the specified position
         }
     });
 }
@@ -154,6 +220,9 @@ function drawScene() {
 
     // Draw the trees
     drawTrees();
+
+    // Draw the monsters
+    drawMonsters();
 
     // Draw the user's sphere
     drawSphere();

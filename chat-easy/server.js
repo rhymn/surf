@@ -30,14 +30,32 @@ function getRandomColor() {
     }
     return color;
 }
-    
+
+// Function to generate a random position within the virtual area
+function getRandomPosition() {
+    return {
+        x: Math.random() * virtualWidth,
+        y: Math.random() * virtualHeight
+    };
+}
+
 // Generate random positions for trees
-const virtualWidth = 10000; // Virtual area width
-const virtualHeight = 10000; // Virtual area height
+const virtualWidth = 3000; // Virtual area width
+const virtualHeight = 3000; // Virtual area height
 const numTrees = 50;
 const trees = [];
 for (let i = 0; i < numTrees; i++) {
     trees.push({
+        x: Math.random() * virtualWidth,
+        y: Math.random() * virtualHeight
+    });
+}
+
+// Generate random positions for monsters
+const numMonsters = 20;
+const monsters = [];
+for (let i = 0; i < numMonsters; i++) {
+    monsters.push({
         x: Math.random() * virtualWidth,
         y: Math.random() * virtualHeight
     });
@@ -49,8 +67,12 @@ app.use(express.static('public'));
 io.on('connection', (socket) => {
     console.log('A user connected');
     const userColor = getRandomColor();
+    const startPosition = getRandomPosition();
     socket.emit('assignColor', userColor);
     socket.emit('initializeTrees', trees);
+    socket.emit('initializeMonsters', monsters);
+    socket.emit('setVirtualDimensions', { virtualWidth, virtualHeight });
+    socket.emit('setStartPosition', startPosition);
 
     socket.on('sendCoordinates', async (data) => {
         // console.log('Coordinates received:', data);
@@ -59,11 +81,12 @@ io.on('connection', (socket) => {
         // await updateCoordinatesInDatabase(data.x, data.y);
 
         // Broadcast the coordinates and color to all connected clients
-        socket.broadcast.emit('updateCoordinates', { x: data.x, y: data.y, color: userColor });
+        socket.broadcast.emit('updateCoordinates', { id: socket.id, x: data.x, y: data.y, color: data.color });
     });
 
     socket.on('disconnect', () => {
         console.log('A user disconnected');
+        socket.broadcast.emit('removeUser', socket.id);
     });
 });
 
