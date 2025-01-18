@@ -40,6 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
         messages.forEach((message) => {
             const messageElement = document.createElement('div');
             messageElement.textContent = `${message.username}: ${message.message}`;
+            messageElement.classList.add('message', message.username === userName ? 'user' : 'other');
             messagesDiv.appendChild(messageElement);
         });
         messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to the newest message
@@ -48,7 +49,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Listen for messages from the server
     socket.on('message', (message) => {
         const messageElement = document.createElement('div');
-        messageElement.textContent = message;
+        const [sender, ...msgParts] = message.split(': ');
+        const msg = msgParts.join(': ');
+        if (sender === userName) {
+            messageElement.textContent = msg;
+            messageElement.classList.add('message', 'user');
+        } else {
+            messageElement.textContent = `${sender}: ${msg}`;
+            messageElement.classList.add('message', 'other');
+        }
         messagesDiv.appendChild(messageElement);
         if (!userScrolled) {
             messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to the newest message
@@ -59,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Send a message to the server
     function sendMessage(message) {
-        socket.emit('message', message);
+        socket.emit('message', `${userName}: ${message}`);
     }
 
     // Listen for form submission
