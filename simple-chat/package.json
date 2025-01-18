@@ -10,6 +10,7 @@
   "description": "",
   "dependencies": {
     "express": "^4.21.2",
+    "pg-promise": "^11.10.2",
     "socket.io": "^4.8.1"
   }
 }
