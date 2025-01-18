@@ -6,16 +6,6 @@
     <title>Simple Chat</title>
     <script src="/socket.io/socket.io.js"></script>
     <script src="client.js"></script>
-</head>
-<body>
-    <div class="chat-container">
-        <div class="messages" id="messages"></div>
-        <form id="chat-form">
-            <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off" required />
-            <button type="submit">Send</button>
-        </form>
-    </div>
-
     <style>
         body, html {
             height: 100%;
@@ -25,18 +15,17 @@
         .chat-container {
             display: flex;
             flex-direction: column;
-            height: 100vh;
+            height: calc(100vh - 50px); /* Adjust height to leave space for the menu */
         }
         .messages {
             flex: 1;
-            padding: 10px;
             overflow-y: auto;
-            border-bottom: 1px solid #ccc;
+            padding: 10px;
         }
         #chat-form {
             display: flex;
             padding: 10px;
-            border-top: 1px solid #ccc;
+            background-color: #f1f1f1;
         }
         #message-input {
             flex: 1;
@@ -45,7 +34,7 @@
             border-radius: 4px;
         }
         button {
-            padding: 10px 20px;
+            padding: 10px;
             border: none;
             background-color: #007bff;
             color: white;
@@ -56,7 +45,61 @@
         button:hover {
             background-color: #0056b3;
         }
+        .menu-container {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px;
+        }
+        .menu-content {
+            display: none;
+            position: fixed;
+            bottom: 50px;
+            width: 100%;
+            background-color: #f9f9f9;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+        .menu-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            text-align: left;
+        }
+        .menu-content a:hover {
+            background-color: #ddd;
+        }
     </style>
-    
+</head>
+<body>
+    <div class="chat-container">
+        <div class="messages" id="messages"></div>
+        <form id="chat-form">
+            <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off" required />
+            <button type="submit">Send</button>
+        </form>
+    </div>
+    <div class="menu-container">
+        <button id="menu-button">Menu</button>
+    </div>
+    <div class="menu-content" id="menu-content">
+        <a href="#home">Home</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+    </div>
+    <script>
+        document.getElementById('menu-button').addEventListener('click', () => {
+            const menuContent = document.getElementById('menu-content');
+            if (menuContent.style.display === 'block') {
+                menuContent.style.display = 'none';
+            } else {
+                menuContent.style.display = 'block';
+            }
+        });
+    </script>
 </body>
 </html>

@@ -1,6 +1,7 @@
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
+// const { saveMessage, getMessages } = require('./db');
 
 const app = express();
 const server = http.createServer(app);
@@ -26,6 +27,13 @@ io.on('connection', (socket) => {
     socket.join(room);
     console.log(`User joined room: ${room}`);
 
+    // Fetch and send previous messages to the new user
+    // getMessages(room).then(messages => {
+    //     socket.emit('previousMessages', messages);
+    // }).catch(error => {
+    //     console.error('Error fetching messages:', error);
+    // });
+
     // Handle new user
     socket.on('newUser', (userName) => {
         users[socket.id] = userName;
@@ -34,8 +42,12 @@ io.on('connection', (socket) => {
 
     // Handle chat messages
     socket.on('message', (msg) => {
+        const userName = users[socket.id];
         console.log(`Message received: ${msg}`);
         io.to(room).emit('message', msg);
+        // saveMessage(room, userName, msg).catch(error => {
+        //     console.error('Error saving message:', error);
+        // });
     });
 
     socket.on('disconnect', () => {
