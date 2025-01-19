@@ -1,142 +1,150 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Chat</title>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="client.js"></script>
-    <style>
-        body, html {
-            height: 100%;
-            margin: 0;
-            font-family: Arial, sans-serif;
-        }
-        .chat-container {
-            display: flex;
-            flex-direction: column;
-            height: calc(100vh - 50px); /* Adjust height to leave space for the menu */
-        }
-        .messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-        }
-        .message {
-            padding: 10px;
-            margin: 5px 0;
-            border-radius: 10px;
-            max-width: 60%;
-        }
-        .message.user {
-            background-color: #007bff;
-            color: white;
-            margin-left: auto;
-            text-align: right;
-        }
-        .message.other {
-            background-color: #f1f1f1;
-            color: black;
-            margin-right: auto;
-            text-align: left;
-        }
-        #chat-form {
-            display: flex;
-            padding: 10px;
-            background-color: #f1f1f1;
-        }
-        #message-input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        button {
-            padding: 10px;
-            border: none;
-            background-color: #007bff;
-            color: white;
-            cursor: pointer;
-            border-radius: 4px;
-            margin-left: 10px;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .menu-container {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background-color: #333;
-            color: white;
-            text-align: center;
-            padding: 10px;
-        }
-        dialog {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-            padding: 20px;
-            text-align: center;
-        }
-        .close-btn {
-            position: absolute;
-            top: 10px;
-            right: 20px;
-            font-size: 30px;
-            cursor: pointer;
-        }
-    </style>
-</head>
-<body>
-    <div class="chat-container">
-        <div class="messages" id="messages"></div>
-        <form id="chat-form">
-            <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off" required />
-            <button type="submit">Send</button>
-        </form>
-    </div>
-    <div class="menu-container">
-        <button id="menu-button">Menu</button>
-    </div>
-    <dialog id="menu-modal">
-        <span class="close-btn" id="close-btn">&times;</span>
-        <h1>Simple Chat</h1>
-        
-        <p>Simple chat is a URL based chat for anyone and any device, no signup needed. Simply share the URL with anyone you'd like to chat with.</p>
-
-        <a href="mailto:simple-chat.extinct538@passinbox.com">Contact</a>
-        <a href="#" id="create-room">Create a new random chat room</a>
-        <a href="#" id="copy-url">Copy URL</a>
-    </dialog>
-    <script>
-        const menuButton = document.getElementById('menu-button');
-        const menuModal = document.getElementById('menu-modal');
-        const closeButton = document.getElementById('close-btn');
-        const copyUrlButton = document.getElementById('copy-url');
-
-        menuButton.addEventListener('click', () => {
-            menuModal.showModal();
-        });
-
-        closeButton.addEventListener('click', () => {
-            menuModal.close();
-        });
-
-        window.addEventListener('click', (event) => {
-            if (event.target === menuModal) {
-                menuModal.close();
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Simple Chat</title>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="client.js"></script>
+        <style>
+            body, html {
+                height: 100%;
+                margin: 0;
+                font-family: Arial, sans-serif;
             }
-        });
+            .chat-container {
+                display: flex;
+                flex-direction: column;
+                height: calc(100vh - 50px); /* Adjust height to leave space for the menu */
+            }
+            .messages {
+                flex: 1;
+                overflow-y: auto;
+                padding: 10px;
+            }
+            .message {
+                padding: 10px;
+                margin: 5px 0;
+                border-radius: 10px;
+                max-width: 60%;
+            }
+            .message.user {
+                background-color: #007bff;
+                color: white;
+                margin-left: auto;
+                text-align: right;
+            }
+            .message.other {
+                background-color: #f1f1f1;
+                color: black;
+                margin-right: auto;
+                text-align: left;
+            }
+            #chat-form {
+                display: flex;
+                padding: 10px;
+                background-color: #f1f1f1;
+                position: fixed;
+                bottom: 0;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            #message-input {
+                flex: 1;
+                padding: 10px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+            }
+            button {
+                padding: 10px;
+                border: none;
+                background-color: #007bff;
+                color: white;
+                cursor: pointer;
+                border-radius: 4px;
+                margin-left: 10px;
+            }
+            button:hover {
+                background-color: #0056b3;
+            }
+            .menu-container {
+                display: none; /* Hide the original menu container */
+            }
+            dialog {
+                border: none;
+                border-radius: 10px;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+                padding: 20px;
+                text-align: center;
+            }
+            .close-btn {
+                position: absolute;
+                top: 10px;
+                right: 20px;
+                font-size: 30px;
+                cursor: pointer;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="chat-container">
+            <div class="messages" id="messages"></div>
+            <form id="chat-form">
+                <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off" required />
+                <button type="submit">Send</button>
+                <button type="button" id="menu-button">
+                    <span>&#9776;</span>
+                </button>
+            </form>
+        </div>
+        <dialog id="menu-modal">
+            <span class="close-btn" id="close-btn">&times;</span>
+            <h1>Simple Chat</h1>
+            
+            <p>Simple chat is a URL based chat for anyone and any device, no signup needed. Simply share the URL with anyone you'd like to chat with.</p>
 
-        copyUrlButton.addEventListener('click', (event) => {
-            event.preventDefault();
-            navigator.clipboard.writeText(window.location.href).then(() => {
-                alert('URL copied to clipboard');
-            }).catch(err => {
-                console.error('Failed to copy URL: ', err);
+            <a href="mailto:simple-chat.extinct538@passinbox.com">Contact</a>
+            <a href="#" id="create-room">Create a new random chat room</a>
+            <a href="#" id="copy-url">Copy URL</a>
+        </dialog>
+        <script>
+            const menuButton = document.getElementById('menu-button');
+            const menuModal = document.getElementById('menu-modal');
+            const closeButton = document.getElementById('close-btn');
+            const copyUrlButton = document.getElementById('copy-url');
+
+            menuButton.addEventListener('click', () => {
+                menuModal.showModal();
             });
-        });
-    </script>
-</body>
+
+            closeButton.addEventListener('click', () => {
+                menuModal.close();
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target === menuModal) {
+                    menuModal.close();
+                }
+            });
+
+            copyUrlButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    alert('URL copied to clipboard');
+                }).catch(err => {
+                    console.error('Failed to copy URL: ', err);
+                });
+            });
+
+            // Adjust chat container height on iOS
+            function adjustChatContainerHeight() {
+                const chatContainer = document.querySelector('.chat-container');
+                chatContainer.style.height = `${window.innerHeight - 50}px`;
+            }
+
+            window.addEventListener('resize', adjustChatContainerHeight);
+            window.addEventListener('orientationchange', adjustChatContainerHeight);
+            adjustChatContainerHeight();
+        </script>
+    </body>
 </html>
