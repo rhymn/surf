@@ -12,7 +12,6 @@ app.use(express.static('public'));
 
 app.get('/:groupName', (req, res) => {
     res.sendFile(__dirname + '/public/index.html');
-    // res.send(`Welcome to group: ${req.params.groupName}`);
 });
 
 // Store usernames
