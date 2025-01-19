@@ -144,15 +144,4 @@ document.addEventListener('DOMContentLoaded', () => {
         sendMessage(message);
         messageInput.value = '';
     });
-
-    // Toggle menu
-    const menuButton = document.getElementById('menu-button');
-    const menuContent = document.getElementById('menu-content');
-    menuButton.addEventListener('click', () => {
-        if (menuContent.style.display === 'block') {
-            menuContent.style.display = 'none';
-        } else {
-            menuContent.style.display = 'block';
-        }
-    });
 });
