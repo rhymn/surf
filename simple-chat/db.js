@@ -1,5 +1,6 @@
 const pgp = require('pg-promise')();
-const db = pgp('postgres://username:password@localhost:5432/chatdb'); // Update with your database credentials
+const databaseUrl = process.env.DATABASE_URL || 'postgres://username:password@localhost:5432/chatdb';
+const db = pgp(databaseUrl);
 
 // Create messages table if it doesn't exist
 db.none(`
