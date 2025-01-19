@@ -31,3 +31,15 @@ services:
     rootDir: simple-chat
     pullRequestPreviewsEnabled: true
     region: frankfurt
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: db
+          property: connectionString
+
+databases:
+  - name: db
+    plan: free
+    databaseName: private
+    ipAllowList: [] # Only allow internal connections
+    region: frankfurt # Default: oregon
