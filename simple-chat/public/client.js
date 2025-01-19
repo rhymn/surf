@@ -1,5 +1,3 @@
-let userName;
-
 const notify = (msg) => {
     return;
     // Send a notification
@@ -12,19 +10,15 @@ const notify = (msg) => {
     }        
 }
 
+const getUsername = () => {
+    return localStorage.getItem('username');
+}
+
 const initUsername = () => {
-    // Check if a username is stored in cookies
-    const getCookie = (name) => {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
-    };
+    const username = localStorage.getItem('username');
 
-    userName = getCookie('userName');
-
-    if (!userName) {
-        userName = `User${Math.floor(Math.random() * 1000)}`;
-        document.cookie = `userName=${userName}; path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
+    if (!username) {
+        localStorage.setItem('username', `User${Math.floor(Math.random() * 1000)}`);
     }
 }
 
@@ -58,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initUsername();
 
     // Notify the server of the new user
-    socket.emit('newUser', userName);
+    socket.emit('newUser', getUsername());
 
     const messagesDiv = document.getElementById('messages');
     const newMessageIndicator = document.createElement('div');
@@ -100,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const {username:sender, message} = msg;
         const messageElement = document.createElement('div');
 
-        if (sender === userName) {
+        if (sender === getUsername()) {
             messageElement.textContent = message;
             messageElement.classList.add('message', 'user');
         } else {
@@ -117,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const isFromMe = (msg) => {
-        return msg.username === userName;
+        return msg.username === getUsername();
     }
 
     // Listen for messages from the server
@@ -132,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Send a message to the server
     function sendMessage(message) {
         socket.emit('message', {
-            username: userName,
+            username: getUsername(),
             message,
         });
     }
