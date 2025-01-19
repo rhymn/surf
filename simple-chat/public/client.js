@@ -1,8 +1,25 @@
+let userName;
+
+const initUsername = () => {
+    // Check if a username is stored in cookies
+    const getCookie = (name) => {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    };
+
+    userName = getCookie('userName');
+
+    if (!userName) {
+        userName = `User${Math.floor(Math.random() * 1000)}`;
+        document.cookie = `userName=${userName}; path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
 
-    // Generate a random username
-    const userName = `User${Math.floor(Math.random() * 1000)}`;
+    initUsername();
 
     // Notify the server of the new user
     socket.emit('newUser', userName);
@@ -37,25 +54,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Listen for previous messages from the server
     socket.on('previousMessages', (messages) => {
-        messages.forEach((message) => {
-            const messageElement = document.createElement('div');
-            messageElement.textContent = `${message.username}: ${message.message}`;
-            messageElement.classList.add('message', message.username === userName ? 'user' : 'other');
-            messagesDiv.appendChild(messageElement);
+        messages.forEach((msg) => {
+            appendMessage(msg);
+            // const {username, message} = msg;
+            // const messageElement = document.createElement('div');
+            // messageElement.textContent = `${message.username}: ${message.message}`;
+            // messageElement.classList.add('message', message.username === userName ? 'user' : 'other');
+            // messagesDiv.appendChild(messageElement);
         });
         messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to the newest message
     });
 
-    // Listen for messages from the server
-    socket.on('message', (message) => {
+    const appendMessage = (msg) => {
+        const {username:sender, message} = msg;
         const messageElement = document.createElement('div');
-        const [sender, ...msgParts] = message.split(': ');
-        const msg = msgParts.join(': ');
+
         if (sender === userName) {
-            messageElement.textContent = msg;
+            messageElement.textContent = message;
             messageElement.classList.add('message', 'user');
         } else {
-            messageElement.textContent = `${sender}: ${msg}`;
+            messageElement.textContent = `${sender}: ${message}`;
             messageElement.classList.add('message', 'other');
         }
         messagesDiv.appendChild(messageElement);
@@ -64,11 +82,21 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             newMessageIndicator.style.display = 'block';
         }
+
+    }
+
+    // Listen for messages from the server
+    socket.on('message', (msg) => {
+        appendMessage(msg);
+
     });
 
     // Send a message to the server
     function sendMessage(message) {
-        socket.emit('message', `${userName}: ${message}`);
+        socket.emit('message', {
+            username: userName,
+            message,
+        });
     }
 
     // Listen for form submission
