@@ -37,7 +37,7 @@ io.on('connection', (socket) => {
     // Handle new user
     socket.on('newUser', (userName) => {
         users[socket.id] = userName;
-        io.to(room).emit('message', `${userName} joined the chat`);
+        // io.to(room).emit('message', `${userName} joined the chat`);
     });
 
     // Handle chat messages
@@ -45,7 +45,7 @@ io.on('connection', (socket) => {
         const {username, message} = msg;
         console.log(`Message received from ${username}: ${message}`);
         io.to(room).emit('message', msg);
-        saveMessage(room, username, message).then(console.log('Message stored')).catch(error => {
+        saveMessage(room, username, message).catch(error => {
             console.error('Error saving message:', error);
         });
     });
@@ -53,7 +53,7 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         const username = users[socket.id];
         delete users[socket.id];
-        io.to(room).emit('message', `${username} left the chat`);
+        // io.to(room).emit('message', `${username} left the chat`);
         console.log('A user disconnected');
     });
 });
