@@ -1,5 +1,16 @@
 let userName;
 
+const notify = (msg) => {
+    // Send a notification
+    if (Notification.permission === 'granted') {
+        navigator.serviceWorker.ready.then(registration => {
+            registration.showNotification('New message', {
+                body: `${msg.message}`
+            });
+        });
+    }        
+}
+
 const initUsername = () => {
     // Check if a username is stored in cookies
     const getCookie = (name) => {
@@ -15,6 +26,30 @@ const initUsername = () => {
         document.cookie = `userName=${userName}; path=/; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
     }
 }
+
+const requestNotificationPermission = () => {
+    // Request notification permission
+    if (Notification.permission !== 'granted') {
+        Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+                console.log('Notification permission granted.');
+            }
+        });
+    }
+}    
+requestNotificationPermission();
+
+
+const registerServiceWorker = () => {
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js').then(registration => {
+            console.log('Service Worker registered with scope:', registration.scope);
+        }).catch(error => {
+            console.error('Service Worker registration failed:', error);
+        });
+    }
+}
+registerServiceWorker();
 
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
@@ -56,11 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.on('previousMessages', (messages) => {
         messages.forEach((msg) => {
             appendMessage(msg);
-            // const {username, message} = msg;
-            // const messageElement = document.createElement('div');
-            // messageElement.textContent = `${message.username}: ${message.message}`;
-            // messageElement.classList.add('message', message.username === userName ? 'user' : 'other');
-            // messagesDiv.appendChild(messageElement);
         });
         messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to the newest message
     });
@@ -85,10 +115,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     }
 
+    const isFromMe = (msg) => {
+        return msg.username === userName;
+    }
+
     // Listen for messages from the server
     socket.on('message', (msg) => {
         appendMessage(msg);
 
+        console.log(msg)
+
+        !isFromMe(msg) && notify(msg);
     });
 
     // Send a message to the server
