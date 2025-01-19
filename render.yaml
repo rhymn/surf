@@ -40,6 +40,5 @@ services:
 databases:
   - name: db
     plan: free
-    databaseName: private
-    ipAllowList: [] # Only allow internal connections
+    databaseName: db
     region: frankfurt # Default: oregon
