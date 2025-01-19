@@ -1,6 +1,7 @@
 let userName;
 
 const notify = (msg) => {
+    return;
     // Send a notification
     if (Notification.permission === 'granted') {
         navigator.serviceWorker.ready.then(registration => {
@@ -37,7 +38,7 @@ const requestNotificationPermission = () => {
         });
     }
 }    
-requestNotificationPermission();
+// requestNotificationPermission();
 
 
 const registerServiceWorker = () => {
@@ -49,7 +50,7 @@ const registerServiceWorker = () => {
         });
     }
 }
-registerServiceWorker();
+// registerServiceWorker();
 
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
