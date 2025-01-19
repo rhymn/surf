@@ -41,4 +41,5 @@ databases:
   - name: db
     plan: free
     databaseName: db
-    region: frankfurt # Default: oregon
+    ipAllowList: ["0.0.0.0/0"]
+    region: frankfurt
