@@ -1,6 +1,6 @@
 const pgp = require('pg-promise')();
-const databaseUrl = process.env.DATABASE_URL || 'postgresql://private_il06_user:XmeLpBF41nXXiB6SQeEiXehcrOTlzVRq@dpg-cu6en456l47c73c0fr6g-a/private_il06';
-const db = pgp(databaseUrl);
+const databaseUrl = process.env.DATABASE_URL || 'postgresql://private_il06_user:XmeLpBF41nXXiB6SQeEiXehcrOTlzVRq@dpg-cu6en456l47c73c0fr6g-a.frankfurt-postgres.render.com/private_il06';
+const db = pgp(`${databaseUrl}?ssl=true`);
 
 // Create messages table if it doesn't exist
 db.none(`
@@ -11,7 +11,8 @@ db.none(`
         message TEXT NOT NULL,
         timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
     )
-`).catch(error => {
+`).then(console.log('Messages table created'))
+.catch(error => {
     console.error('Error creating messages table:', error);
 });
 
