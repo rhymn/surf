@@ -50,10 +50,20 @@ app.get('/random', (req, res) => {
     res.redirect(`/${groupName}`);
 });
 
-app.get('/:groupName', (req, res) => {
-    res.sendFile(__dirname + '/public/index.html');
-});
+const isRealGroupName = (groupName) => {
+    return /^[a-z0-9]+$/.test(groupName);
+}
 
+app.get('/:groupName', (req, res) => {
+    if (!isRealGroupName(req.params.groupName)){
+        console.log('not real group name');
+        res.redirect('/random');
+    }
+
+    else{
+        res.sendFile(__dirname + '/public/index.html');        
+    }
+});
 
 // Store usernames
 const users = {};
