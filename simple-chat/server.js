@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const { saveMessage, getMessages } = require('./db');
+const bodyParser = require('body-parser')
 
 const app = express();
 const server = http.createServer(app);
@@ -9,6 +10,7 @@ const io = socketIo(server);
 const port = process.env.PORT || 3000;
 
 app.use(express.static('public'));
+app.use(bodyParser.json());
 
 app.get('/random', (req, res) => {
     // Redirect to a new random room/group
@@ -20,9 +22,7 @@ const isRealGroupName = (groupName) => {
     return /^[a-z0-9]+$/.test(groupName);
 }
 
-app.post('/invite', (req, res) => {
-    // Invite friends to a chat room
-    
+app.post('/invite', (req, res) => {    
     const emails = req.body.emails;
     console.log('Inviting friends:', emails);
     res.send('Invitation sent');
