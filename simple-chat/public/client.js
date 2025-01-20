@@ -51,6 +51,14 @@ const registerServiceWorker = () => {
 
 const buttonListeners = () => {
     {
+        document.getElementById('invite-friends').addEventListener('click', (event) => {
+            event.preventDefault();
+
+            inviteFriends(prompt('Enter emails separated by commas').split(','));
+        });    
+    }
+
+    {
         document.getElementById('set-username').addEventListener('click', (event) => {
             event.preventDefault();
             const username = prompt('Enter your username', getUsername());
@@ -72,6 +80,31 @@ const buttonListeners = () => {
     }
 
 }
+
+const inviteFriends = (emails) => {
+    // use fetch to invite friends
+
+    fetch('/invite', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            url: window.location.href,
+            emails
+        }),
+    }).then(response => {
+        if (response.ok) {
+            alert('Invitation sent');
+        } else {
+            alert('Failed to send invitation');
+        }
+    }
+    ).catch(error => {
+        console.error('Error sending invitation:', error);
+    });
+}
+
 
 document.addEventListener('DOMContentLoaded', () => {
     buttonListeners();

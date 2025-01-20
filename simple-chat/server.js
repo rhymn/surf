@@ -54,6 +54,14 @@ const isRealGroupName = (groupName) => {
     return /^[a-z0-9]+$/.test(groupName);
 }
 
+app.post('/invite', (req, res) => {
+    // Invite friends to a chat room
+    
+    const emails = req.body.emails;
+    console.log('Inviting friends:', emails);
+    res.send('Invitation sent');
+});
+
 app.get('/:groupName', (req, res) => {
     if (!isRealGroupName(req.params.groupName)){
         console.log('not real group name');
