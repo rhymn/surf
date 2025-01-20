@@ -66,10 +66,10 @@ io.on('connection', (socket) => {
 
     // Handle chat messages
     socket.on('message', (msg) => {
-        const {username, message} = msg;
+        const {username, userid, message} = msg;
         console.log(`Message received from ${username}: ${message}`);
         io.to(room).emit('message', msg);
-        saveMessage(room, username, message).catch(error => {
+        saveMessage(room, username, userid, message).catch(error => {
             console.error('Error saving message:', error);
         });
     });

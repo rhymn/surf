@@ -17,6 +17,10 @@ const getUsername = () => {
     return localStorage.getItem('username');
 }
 
+const getUserId = () => {
+    return localStorage.getItem('userId');
+}
+
 const initUsername = () => {
     const username = localStorage.getItem('username');
 
@@ -24,6 +28,20 @@ const initUsername = () => {
         localStorage.setItem('username', `User${Math.floor(Math.random() * 1000)}`);
     }
 }
+
+const initUserId = () => {
+    const id = localStorage.getItem('userId');
+
+    if (!id) {
+        localStorage.setItem('userId', Math.random().toString(36).substring(5));
+    }
+}
+
+
+const isFromMe = (msg) => {
+    return msg.userid === getUserId();
+}
+
 
 const requestNotificationPermission = () => {
     // Request notification permission
@@ -112,6 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
 
     initUsername();
+    initUserId();
 
     // Notify the server of the new user
     socket.emit('newUser', getUsername());
@@ -153,10 +172,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const appendMessage = (msg) => {
-        const {username:sender, message} = msg;
+        const {username:sender, userid, message} = msg;
         const messageElement = document.createElement('div');
 
-        if (sender === getUsername()) {
+        console.log(userid, getUserId())
+        if (userid === getUserId()) {
             messageElement.textContent = message;
             messageElement.classList.add('message', 'user');
         } else {
@@ -172,10 +192,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     }
 
-    const isFromMe = (msg) => {
-        return msg.username === getUsername();
-    }
-
     // Listen for messages from the server
     socket.on('message', (msg) => {
         appendMessage(msg);
@@ -189,6 +205,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function sendMessage(message) {
         socket.emit('message', {
             username: getUsername(),
+            userid: getUserId(),
             message,
         });
     }
