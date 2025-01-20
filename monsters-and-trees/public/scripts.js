@@ -44,6 +44,39 @@ let otherUsers = {};
 let treeImages = [];
 let monsterImages = [];
 
+// Each snake has an array of coordinates
+let snakes = {};
+let mySnake = {
+    color: userColor,
+    coordinates: [],
+    l: 1
+};
+
+const initMySnake = () => {
+    mySnake.coordinates.push({ x: virtualWidth / 2, y: virtualHeight / 2 });
+    mySnake.color = "green";
+}
+
+initMySnake();
+
+
+const updateSnake = (snakeId, coordinatesOfHead, length) => {
+    if (!snakes[snakeId]) {
+        snakes[snakeId] = {
+            coordinates: []
+        };
+    }
+
+    // Add the new head coordinates
+    snakes[snakeId].coordinates.push(coordinatesOfHead);
+
+    // Ensure the snake's length does not exceed the specified length
+    while (snakes[snakeId].coordinates.length > length) {
+        snakes[snakeId].coordinates.shift();
+    }
+}
+
+
 // Create the overlay window
 const overlay = document.createElement('div');
 overlay.style.position = 'absolute';
@@ -59,28 +92,39 @@ document.body.appendChild(overlay);
 
 // Function to update the overlay window
 function updateOverlay() {
-    const numberOfUsers = Object.keys(otherUsers).length + 1; // Add 1 for the current user
+    const numberOfUsers = Object.keys(snakes).length + 1; // Add 1 for the current user
     overlay.innerHTML = `<strong>Connected Users: ${numberOfUsers} </strong><br>`;
     overlay.innerHTML += `<div style="color: ${userColor};">
-        (${Math.round(sphereX)}, ${Math.round(sphereY)})
+        (${Math.round(mySnake.coordinates[0].x)}, ${Math.round(mySnake.coordinates[0].y)})
     </div>`;
-    for (const id in otherUsers) {
-        const user = otherUsers[id];
+    for (const id in snakes) {
+        const user = snakes[id];
         overlay.innerHTML += `<div style="color: ${user.color};">
-            (${Math.round(user.x)}, ${Math.round(user.y)})
+            (${Math.round(user.coordinates[0].x)}, ${Math.round(user.coordinates[0].y)})
         </div>`;
     }
 }
 
+let lastCoordinates = { x: 0, y: 0 };
+
 // Function to send coordinates
 function sendCoordinates(x, y) {
-    socket.emit('sendCoordinates', { x, y, color: userColor });
+
+    if(lastCoordinates.x === x && lastCoordinates.y === y){
+        return;
+    }
+
+    socket.emit('sendCoordinates', { x, y, color: userColor, l: 10 });
+    lastCoordinates = { x, y };
 }
 
 // Listen for coordinates from other users
 socket.on('updateCoordinates', (data) => {
-    // console.log('Received coordinates:', data);
-    otherUsers[data.id] = { x: data.x, y: data.y, color: data.color };
+    console.log('Coordinates received:', data);
+
+    const { id, l, coordinatesOfHead } = data;
+    updateSnake(id, { x: coordinatesOfHead.x, y: coordinatesOfHead.y }, l);
+
     drawScene();
     updateOverlay();
 });
@@ -123,8 +167,8 @@ socket.on('setVirtualDimensions', (data) => {
 
 // Listen for starting position from the server
 socket.on('setStartPosition', (position) => {
-    sphereX = position.x;
-    sphereY = position.y;
+    mySnake.coordinates[0].x = position.x;
+    mySnake.coordinates[0].y = position.y;
     drawScene();
 });
 
@@ -142,44 +186,6 @@ socket.on('removeUser', (id) => {
     updateOverlay();
 });
 
-// Function to draw the user's sphere on the canvas
-function drawSphere() {
-    ctx.beginPath();
-    ctx.arc(sphereX, sphereY, sphereRadius, 0, Math.PI * 2, false);
-    ctx.fillStyle = userColor;
-    ctx.fill();
-    ctx.closePath();
-
-    // Draw direction indicator
-    ctx.beginPath();
-    ctx.moveTo(sphereX, sphereY);
-    switch (direction) {
-        case 'up':
-            ctx.lineTo(sphereX, sphereY - sphereRadius - 10);
-            break;
-        case 'down':
-            ctx.lineTo(sphereX, sphereY + sphereRadius + 10);
-            break;
-        case 'left':
-            ctx.lineTo(sphereX - sphereRadius - 10, sphereY);
-            break;
-        case 'right':
-            ctx.lineTo(sphereX + sphereRadius + 10, sphereY);
-            break;
-    }
-    ctx.strokeStyle = 'black';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.closePath();
-
-    sendCoordinates(sphereX, sphereY); // Send the updated coordinates
-}
-
-// Function to draw other users' squares on the canvas
-function drawOtherSquare(x, y, color) {
-    ctx.fillStyle = color;
-    ctx.fillRect(x - squareSize / 2, y - squareSize / 2, squareSize, squareSize); // Draw the square centered at (x, y)
-}
 
 // Function to draw trees on the canvas
 function drawTrees() {
@@ -189,6 +195,15 @@ function drawTrees() {
         if (img.complete) {
             ctx.drawImage(img, tree.x, tree.y, treeSize, treeSize); // Draw the tree at the specified position with double size
         }
+    });
+}
+
+function drawSnake(snake) {
+    const snakeSize = 20; // Size of each segment of the snake
+    ctx.fillStyle = "black";
+
+    snake.coordinates.forEach(coordinate => {
+        ctx.fillRect(coordinate.x, coordinate.y, snakeSize, snakeSize);
     });
 }
 
@@ -211,7 +226,7 @@ function drawScene() {
     ctx.save();
 
     // Translate the context to center the sphere in the viewport
-    ctx.translate(canvas.width / 2 - sphereX, canvas.height / 2 - sphereY);
+    ctx.translate(canvas.width / 2 - mySnake.coordinates[0].x, canvas.height / 2 - mySnake.coordinates[0].y);
 
     // Draw the border
     ctx.strokeStyle = 'black';
@@ -225,13 +240,15 @@ function drawScene() {
     drawMonsters();
 
     // Draw the user's sphere
-    drawSphere();
+    // drawSphere();
+    drawSnake(mySnake);
 
     // Draw other users' objects
-    for (const id in otherUsers) {
-        const user = otherUsers[id];
-        drawOtherSquare(user.x, user.y, user.color);
+    for (const id in snakes) {
+        const user = snakes[id];
+        drawSnake(user)
     }
+    
 
     // Restore the context to its original state
     ctx.restore();
@@ -272,26 +289,46 @@ function updatePosition() {
     if (!paused && !gameOver) {
         switch (direction) {
             case 'up':
-                sphereY -= step;
+                mySnake.coordinates[0].y -= step;
                 break;
             case 'down':
-                sphereY += step;
+                mySnake.coordinates[0].y += step;
                 break;
             case 'left':
-                sphereX -= step;
+                mySnake.coordinates[0].x -= step;
                 break;
             case 'right':
-                sphereX += step;
+                mySnake.coordinates[0].x += step;
                 break;
         }
 
+        // round the coordinates to the nearest integer
+        mySnake.coordinates[0].x = Math.round(mySnake.coordinates[0].x);
+        mySnake.coordinates[0].y = Math.round(mySnake.coordinates[0].y);
+
         // Check for game over condition
-        if (sphereX - sphereRadius < 0 || sphereX + sphereRadius > virtualWidth ||
-            sphereY - sphereRadius < 0 || sphereY + sphereRadius > virtualHeight) {
+        if (mySnake.coordinates[0].x - sphereRadius < 0 || mySnake.coordinates[0].x + sphereRadius > virtualWidth ||
+            mySnake.coordinates[0].y - sphereRadius < 0 || mySnake.coordinates[0].y + sphereRadius > virtualHeight) {
             gameOver = true;
             alert('Game Over!');
         }
+
+        // if we eat a monster, we gain 1 point/length
+        monsters.forEach((monster, index) => {
+            const dx = monster.x - mySnake.coordinates[0].x;
+            const dy = monster.y - mySnake.coordinates[0].y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance < sphereRadius) {
+                monsters.splice(index, 1); // Remove the monster
+                mySnake.l += 1; // Increase the length
+
+                console.log(mySnake)
+            }
+
+        });
     }
+
+    sendCoordinates(mySnake.coordinates[0].x, mySnake.coordinates[0].y); // Send the updated coordinates
 
     drawScene();
     updateOverlay(); // Update the overlay with the user's position

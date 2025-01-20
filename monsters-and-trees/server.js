@@ -81,7 +81,7 @@ io.on('connection', (socket) => {
         // await updateCoordinatesInDatabase(data.x, data.y);
 
         // Broadcast the coordinates and color to all connected clients
-        socket.broadcast.emit('updateCoordinates', { id: socket.id, x: data.x, y: data.y, color: data.color });
+        socket.broadcast.emit('updateCoordinates', { id: socket.id, coordinatesOfHead: {x: data.x, y: data.y}, l: data.l, color: data.color });
     });
 
     socket.on('disconnect', () => {
