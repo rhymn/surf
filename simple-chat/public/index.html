@@ -101,24 +101,23 @@
                 </button>
             </form>
         </div>
+
         <dialog id="menu-modal">
             <span class="close-btn" id="close-btn">&times;</span>
             <h1>Simple Chat</h1>
             
-            <p>Simple chat is a URL based chat for anyone and any device, no signup needed. Simply share the URL with anyone you'd like to chat with.</p>
+            <p>Simple chat is a URL based chat application for anyone and any device, no signup needed. Simply share the URL with those you wish to chat with.</p>
 
             <a href="mailto:simple-chat.extinct538@passinbox.com">Contact</a>
             <a href="/random" id="create-room">Create a new unique chat room</a>
-            <a href="#" id="copy-url">Copy URL</a>
-            <a href="#" id="set-username">Set username</a>
-            
+            <a href id="copy-url">Copy URL</a>
+            <a href id="set-username">Set username</a>
         </dialog>
+
         <script>
             const menuButton = document.getElementById('menu-button');
             const menuModal = document.getElementById('menu-modal');
             const closeButton = document.getElementById('close-btn');
-            const copyUrlButton = document.getElementById('copy-url');
-            const setUsernameButton = document.getElementById('set-username');
 
             menuButton.addEventListener('click', () => {
                 menuModal.showModal();
@@ -134,22 +133,6 @@
                 }
             });
 
-            copyUrlButton.addEventListener('click', (event) => {
-                event.preventDefault();
-                navigator.clipboard.writeText(window.location.href).then(() => {
-                    alert('URL copied to clipboard');
-                }).catch(err => {
-                    console.error('Failed to copy URL: ', err);
-                });
-            });
-
-            setUsernameButton.addEventListener('click', (event) => {
-                event.preventDefault();
-                const username = prompt('Enter your username');
-                if (username) {
-                    localStorage.setItem('username', username);
-                }
-            });
 
             // Adjust chat container height on iOS
             function adjustChatContainerHeight() {

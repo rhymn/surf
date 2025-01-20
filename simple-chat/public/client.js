@@ -10,6 +10,9 @@ const notify = (msg) => {
     }        
 }
 
+
+
+
 const getUsername = () => {
     return localStorage.getItem('username');
 }
@@ -46,7 +49,33 @@ const registerServiceWorker = () => {
 }
 // registerServiceWorker();
 
+const buttonListeners = () => {
+    {
+        document.getElementById('set-username').addEventListener('click', (event) => {
+            event.preventDefault();
+            const username = prompt('Enter your username', getUsername());
+            if (username) {
+                localStorage.setItem('username', username);
+            }
+        });    
+    }
+
+    {
+        document.getElementById('copy-url').addEventListener('click', (event) => {
+            event.preventDefault();
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                alert('URL copied to clipboard');
+            }).catch(err => {
+                console.error('Failed to copy URL: ', err);
+            });
+        });
+    }
+
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    buttonListeners();
+
     const socket = io();
 
     initUsername();
