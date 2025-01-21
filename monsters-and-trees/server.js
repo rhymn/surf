@@ -31,11 +31,11 @@ function getRandomColor() {
     return color;
 }
 
-// Function to generate a random position within the virtual area
+// Function to generate a random position within the virtual area, integer
 function getRandomPosition() {
     return {
-        x: Math.random() * virtualWidth,
-        y: Math.random() * virtualHeight
+        x: Math.floor(Math.random() * virtualWidth),
+        y: Math.floor(Math.random() * virtualHeight)
     };
 }
 
@@ -53,13 +53,15 @@ for (let i = 0; i < numTrees; i++) {
 
 // Generate random positions for monsters
 const numMonsters = 20;
-const monsters = [];
+const monsters = {};
 for (let i = 0; i < numMonsters; i++) {
-    monsters.push({
+    monsters[i] = {
         x: Math.random() * virtualWidth,
         y: Math.random() * virtualHeight
-    });
+    };
 }
+
+let users = {};
 
 app.use(express.static('public'));
 
@@ -68,11 +70,30 @@ io.on('connection', (socket) => {
     console.log('A user connected');
     const userColor = getRandomColor();
     const startPosition = getRandomPosition();
+   console.log(startPosition) 
+    users[socket.id] = {
+        id: socket.id,
+        coordinates: startPosition,
+        color: userColor,
+        score: 0
+    };
+
     socket.emit('assignColor', userColor);
     socket.emit('initializeTrees', trees);
     socket.emit('initializeMonsters', monsters);
     socket.emit('setVirtualDimensions', { virtualWidth, virtualHeight });
     socket.emit('setStartPosition', startPosition);
+
+    socket.on('monsterEaten', async (monsterId) => {
+        console.log('Monster eaten:', monsterId);
+        socket.emit('removeMonster', monsterId);
+
+        if(users[socket.id]){
+            users[socket.id].score += 1;
+            // socket.emit('updateScore', users[socket.id].score);
+        }
+        sendUsers(socket);
+    });
 
     socket.on('sendCoordinates', async (data) => {
         // console.log('Coordinates received:', data);
@@ -82,13 +103,27 @@ io.on('connection', (socket) => {
 
         // Broadcast the coordinates and color to all connected clients
         socket.broadcast.emit('updateCoordinates', { id: socket.id, coordinatesOfHead: {x: data.x, y: data.y}, l: data.l, color: data.color });
+
+        if(users[socket.id]){
+            users[socket.id].coordinates = {x: data.x, y: data.y};
+        }
     });
 
     socket.on('disconnect', () => {
         console.log('A user disconnected');
-        socket.broadcast.emit('removeUser', socket.id);
+        // socket.broadcast.emit('removeUser', socket.id);
+        sendUsers(socket);
+
+        if(users[socket.id]){
+            delete users[socket.id];
+        }
     });
 });
+
+const sendUsers = (socket) => {
+    console.log(users)
+    socket.emit('updateUsers', users);
+}
 
 server.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);

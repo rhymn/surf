@@ -39,7 +39,7 @@ const monsterSVG = 'data:image/svg+xml;base64,' + btoa(`
 `);
 
 let trees = [];
-let monsters = [];
+let monsters = {};
 let otherUsers = {};
 let treeImages = [];
 let monsterImages = [];
@@ -97,12 +97,16 @@ function updateOverlay() {
     overlay.innerHTML += `<div style="color: ${userColor};">
         (${Math.round(mySnake.coordinates[0].x)}, ${Math.round(mySnake.coordinates[0].y)})
     </div>`;
-    for (const id in snakes) {
-        const user = snakes[id];
-        overlay.innerHTML += `<div style="color: ${user.color};">
-            (${Math.round(user.coordinates[0].x)}, ${Math.round(user.coordinates[0].y)})
+
+    for(const id in snakes){
+        const snake = snakes[id];
+        // console.log(snake.coordinates)
+        overlay.innerHTML += `<div style="color: ${snake.color};">
+
+            (${snake.coordinates[0].x}, ${snake.coordinates[0].y})
         </div>`;
     }
+
 }
 
 let lastCoordinates = { x: 0, y: 0 };
@@ -118,10 +122,19 @@ function sendCoordinates(x, y) {
     lastCoordinates = { x, y };
 }
 
+const removeMonster = (monsterId) => {
+    delete monsters[monsterId];
+}
+
+socket.on('removeMonster', (monsterId) => {
+    removeMonster(monsterId);
+    console.log(monsters)
+
+    drawScene();
+});
+
 // Listen for coordinates from other users
 socket.on('updateCoordinates', (data) => {
-    console.log('Coordinates received:', data);
-
     const { id, l, coordinatesOfHead } = data;
     updateSnake(id, { x: coordinatesOfHead.x, y: coordinatesOfHead.y }, l);
 
@@ -150,12 +163,6 @@ socket.on('initializeTrees', (serverTrees) => {
 // Listen for monster positions from the server
 socket.on('initializeMonsters', (serverMonsters) => {
     monsters = serverMonsters;
-    monsterImages = monsters.map(() => {
-        const img = new Image();
-        img.src = monsterSVG;
-        return img;
-    });
-    drawScene();
 });
 
 // Listen for virtual dimensions from the server
@@ -172,11 +179,17 @@ socket.on('setStartPosition', (position) => {
     drawScene();
 });
 
-// Listen for all users' positions from the server
-socket.on('updateAllUsers', (users) => {
-    otherUsers = users;
-    drawScene();
+socket.on('updateUsers', (users) => {
+    // console.log(users)
+
+// Update each snake using updateSnake
+    for (const id in users) {
+        const user = users[id];
+        updateSnake(id, user.coordinates, user.l);
+    }    
+
     updateOverlay();
+    drawScene();
 });
 
 // Listen for user disconnection
@@ -207,15 +220,29 @@ function drawSnake(snake) {
     });
 }
 
+function notifyOfEatenMonster(monsterId) {
+    socket.emit('monsterEaten', monsterId);
+}
+
 // Function to draw monsters on the canvas
 function drawMonsters() {
     const monsterSize = 32;
-    monsters.forEach((monster, index) => {
-        const img = monsterImages[index];
+    for (const monster in monsters) {
+        const img = new Image();
+        img.src = monsterSVG;
         if (img.complete) {
-            ctx.drawImage(img, monster.x, monster.y, monsterSize, monsterSize); // Draw the monster at the specified position
+            ctx.drawImage(img, monsters[monster].x, monsters[monster].y, monsterSize, monsterSize); // Draw the monster at the specified position
         }
-    });
+    }
+
+
+
+    // monsters.forEach((monster) => {
+    //     const img = monsterImages[monster.id];
+    //     if (img.complete) {
+    //         ctx.drawImage(img, monster.x, monster.y, monsterSize, monsterSize); // Draw the monster at the specified position
+    //     }
+    // });
 }
 
 // Function to draw the entire scene
@@ -314,18 +341,13 @@ function updatePosition() {
         }
 
         // if we eat a monster, we gain 1 point/length
-        monsters.forEach((monster, index) => {
-            const dx = monster.x - mySnake.coordinates[0].x;
-            const dy = monster.y - mySnake.coordinates[0].y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            if (distance < sphereRadius) {
-                monsters.splice(index, 1); // Remove the monster
-                mySnake.l += 1; // Increase the length
-
-                console.log(mySnake)
+        for (const monster in monsters) {
+            if (mySnake.coordinates[0].x >= monsters[monster].x && mySnake.coordinates[0].x <= monsters[monster].x + 32 &&
+                mySnake.coordinates[0].y >= monsters[monster].y && mySnake.coordinates[0].y <= monsters[monster].y + 32) {
+                notifyOfEatenMonster(monster);
+                mySnake.l += 1;
             }
-
-        });
+        }
     }
 
     sendCoordinates(mySnake.coordinates[0].x, mySnake.coordinates[0].y); // Send the updated coordinates
