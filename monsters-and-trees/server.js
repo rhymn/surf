@@ -40,8 +40,8 @@ function getRandomPosition() {
 }
 
 // Generate random positions for trees
-const virtualWidth = 3000; // Virtual area width
-const virtualHeight = 3000; // Virtual area height
+const virtualWidth = 600; // Virtual area width
+const virtualHeight = 600; // Virtual area height
 const numTrees = 50;
 const trees = [];
 for (let i = 0; i < numTrees; i++) {
@@ -70,12 +70,13 @@ io.on('connection', (socket) => {
     console.log('A user connected');
     const userColor = getRandomColor();
     const startPosition = getRandomPosition();
-   console.log(startPosition) 
+
     users[socket.id] = {
         id: socket.id,
         coordinates: startPosition,
         color: userColor,
-        score: 0
+        score: 0,
+        l: 1
     };
 
     socket.emit('assignColor', userColor);
@@ -83,6 +84,8 @@ io.on('connection', (socket) => {
     socket.emit('initializeMonsters', monsters);
     socket.emit('setVirtualDimensions', { virtualWidth, virtualHeight });
     socket.emit('setStartPosition', startPosition);
+
+    sendUsers(socket);
 
     socket.on('monsterEaten', async (monsterId) => {
         console.log('Monster eaten:', monsterId);
@@ -95,17 +98,14 @@ io.on('connection', (socket) => {
         sendUsers(socket);
     });
 
-    socket.on('sendCoordinates', async (data) => {
-        // console.log('Coordinates received:', data);
-
+    socket.on('sendCoordinatesOfHead', async (data) => {
         // Update coordinates in the database
         // await updateCoordinatesInDatabase(data.x, data.y);
-
-        // Broadcast the coordinates and color to all connected clients
-        socket.broadcast.emit('updateCoordinates', { id: socket.id, coordinatesOfHead: {x: data.x, y: data.y}, l: data.l, color: data.color });
+        socket.broadcast.emit('updateCoordinatesOfHead', {id: socket.id, coordinatesOfHead: {x: data.x, y: data.y, l: data.l} });
 
         if(users[socket.id]){
             users[socket.id].coordinates = {x: data.x, y: data.y};
+            users[socket.id].l = data.l;
         }
     });
 
@@ -122,7 +122,7 @@ io.on('connection', (socket) => {
 });
 
 const sendUsers = (socket) => {
-    console.log(users)
+    console.log(users, `${Object.keys(users).length} users`)
     socket.broadcast.emit('updateUsers', users);
 }
 

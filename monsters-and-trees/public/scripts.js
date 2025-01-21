@@ -4,8 +4,8 @@ const ctx = canvas.getContext('2d');
 
 const sphereRadius = 12.5; // Radius of the sphere (half of 25)
 const squareSize = 25; // Size of the square
-let virtualWidth = 3000; // Virtual area width (default value)
-let virtualHeight = 3000; // Virtual area height (default value)
+let virtualWidth = 600; // Virtual area width (default value)
+let virtualHeight = 600; // Virtual area height (default value)
 let sphereX = virtualWidth / 2; // Initial x position of the sphere
 let sphereY = virtualHeight / 2; // Initial y position of the sphere
 
@@ -71,11 +71,15 @@ const updateSnake = (snakeId, coordinatesOfHead, length, score) => {
         snakes[snakeId].score = score;
     }
 
+    if(length > 0){
+        snakes[snakeId].l = length;
+    }
+
     // Add the new head coordinates
     snakes[snakeId].coordinates.push(coordinatesOfHead);
 
     // Ensure the snake's length does not exceed the specified length
-    while (snakes[snakeId].coordinates.length > length) {
+    while (snakes[snakeId].coordinates.length > snakes[snakeId].l) {
         snakes[snakeId].coordinates.shift();
     }
 }
@@ -106,7 +110,7 @@ function updateOverlay() {
         const snake = snakes[id];
         overlay.innerHTML += `<div style="color: ${snake.color};">
 
-            (${snake.coordinates[0].x}, ${snake.coordinates[0].y}) ${snake.score}
+            (${snake.coordinates[0].x}, ${snake.coordinates[0].y}) ${snake.score}, l: ${snake.l}
         </div>`;
     }
 
@@ -115,31 +119,31 @@ function updateOverlay() {
 let lastCoordinates = { x: 0, y: 0 };
 
 // Function to send coordinates
-function sendCoordinates(x, y) {
+function sendCoordinatesOfHead(x, y) {
 
     if(lastCoordinates.x === x && lastCoordinates.y === y){
         return;
     }
 
-    socket.emit('sendCoordinates', { x, y, color: userColor, l: 10 });
+    socket.emit('sendCoordinatesOfHead', { x, y, l: mySnake.l });
     lastCoordinates = { x, y };
 }
 
 const removeMonster = (monsterId) => {
+    console.log('Removing monster:', monsterId);
     delete monsters[monsterId];
 }
 
 socket.on('removeMonster', (monsterId) => {
     removeMonster(monsterId);
-    console.log(monsters)
 
     drawScene();
 });
 
 // Listen for coordinates from other users
-socket.on('updateCoordinates', (data) => {
-    const { id, l, coordinatesOfHead } = data;
-    updateSnake(id, { x: coordinatesOfHead.x, y: coordinatesOfHead.y }, l);
+socket.on('updateCoordinatesOfHead', (data) => {
+    const { id, coordinatesOfHead } = data;
+    updateSnake(id, { x: coordinatesOfHead.x, y: coordinatesOfHead.y }, data.l, data.score);
 
     drawScene();
     updateOverlay();
@@ -220,12 +224,18 @@ function drawTrees() {
 }
 
 function drawSnake(snake) {
-    const snakeSize = 20; // Size of each segment of the snake
-    ctx.fillStyle = "black";
+    const snakeSize = 10; // Size of each segment of the snake
+    ctx.fillStyle = snake.color;
 
     snake.coordinates.forEach(coordinate => {
         ctx.fillRect(coordinate.x, coordinate.y, snakeSize, snakeSize);
     });
+
+    // on the first coordinate, draw the value of snake.l
+    ctx.fillStyle = snake.color;
+    ctx.font = "12px Arial";
+    ctx.fillText(snake.l, snake.coordinates[0].x, snake.coordinates[0].y);
+
 }
 
 function notifyOfEatenMonster(monsterId) {
@@ -242,15 +252,6 @@ function drawMonsters() {
             ctx.drawImage(img, monsters[monster].x, monsters[monster].y, monsterSize, monsterSize); // Draw the monster at the specified position
         }
     }
-
-
-
-    // monsters.forEach((monster) => {
-    //     const img = monsterImages[monster.id];
-    //     if (img.complete) {
-    //         ctx.drawImage(img, monster.x, monster.y, monsterSize, monsterSize); // Draw the monster at the specified position
-    //     }
-    // });
 }
 
 // Function to draw the entire scene
@@ -353,12 +354,12 @@ function updatePosition() {
             if (mySnake.coordinates[0].x >= monsters[monster].x && mySnake.coordinates[0].x <= monsters[monster].x + 32 &&
                 mySnake.coordinates[0].y >= monsters[monster].y && mySnake.coordinates[0].y <= monsters[monster].y + 32) {
                 notifyOfEatenMonster(monster);
-                mySnake.l += 1;
+                mySnake.l += 50;
             }
         }
     }
 
-    sendCoordinates(mySnake.coordinates[0].x, mySnake.coordinates[0].y); // Send the updated coordinates
+    sendCoordinatesOfHead(mySnake.coordinates[0].x, mySnake.coordinates[0].y); // Send the updated coordinates
 
     drawScene();
     updateOverlay(); // Update the overlay with the user's position
