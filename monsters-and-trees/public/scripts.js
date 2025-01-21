@@ -60,11 +60,15 @@ const initMySnake = () => {
 initMySnake();
 
 
-const updateSnake = (snakeId, coordinatesOfHead, length) => {
+const updateSnake = (snakeId, coordinatesOfHead, length, score) => {
     if (!snakes[snakeId]) {
         snakes[snakeId] = {
             coordinates: []
         };
+    }
+
+    if(score){
+        snakes[snakeId].score = score;
     }
 
     // Add the new head coordinates
@@ -100,10 +104,9 @@ function updateOverlay() {
 
     for(const id in snakes){
         const snake = snakes[id];
-        // console.log(snake.coordinates)
         overlay.innerHTML += `<div style="color: ${snake.color};">
 
-            (${snake.coordinates[0].x}, ${snake.coordinates[0].y})
+            (${snake.coordinates[0].x}, ${snake.coordinates[0].y}) ${snake.score}
         </div>`;
     }
 
@@ -180,12 +183,17 @@ socket.on('setStartPosition', (position) => {
 });
 
 socket.on('updateUsers', (users) => {
-    // console.log(users)
+    // remove all snakes in snakes, that are not in users
+    for (const id in snakes) {
+        if (!users[id]) {
+            delete snakes[id];
+        }
+    }
 
-// Update each snake using updateSnake
     for (const id in users) {
         const user = users[id];
-        updateSnake(id, user.coordinates, user.l);
+
+        updateSnake(id, user.coordinates, user.l, user.score);
     }    
 
     updateOverlay();

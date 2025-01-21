@@ -112,17 +112,18 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         console.log('A user disconnected');
         // socket.broadcast.emit('removeUser', socket.id);
-        sendUsers(socket);
 
         if(users[socket.id]){
             delete users[socket.id];
         }
+        sendUsers(socket);
+
     });
 });
 
 const sendUsers = (socket) => {
     console.log(users)
-    socket.emit('updateUsers', users);
+    socket.broadcast.emit('updateUsers', users);
 }
 
 server.listen(port, () => {
