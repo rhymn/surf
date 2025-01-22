@@ -89,7 +89,7 @@ io.on('connection', (socket) => {
 
     socket.on('monsterEaten', async (monsterId) => {
         console.log('Monster eaten:', monsterId);
-        socket.emit('removeMonster', monsterId);
+        io.emit('removeMonster', monsterId);
 
         if(users[socket.id]){
             users[socket.id].score += 1;
