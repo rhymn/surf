@@ -100,16 +100,10 @@ const updateSnake = (snakeId, coordinatesOfHead, length, score) => {
         snakes[snakeId].l = length;
     }
 
-
     // Add the new head coordinates
     snakes[snakeId].coordinates.unshift(coordinatesOfHead);
 
     snakes[snakeId].coordinates.splice(snakes[snakeId].l);
-
-    // // Ensure the snake's length does not exceed length
-    // while (snakes[snakeId].coordinates.length > snakes[snakeId].l) {
-    //     snakes[snakeId].coordinates.shift();
-    // }
 }
 
 
@@ -139,7 +133,7 @@ function updateOverlay() {
         const snake = snakes[id];
         overlay.innerHTML += `<div style="color: ${snake.color};">
 
-            (${snake.coordinates[0].x}, ${snake.coordinates[0].y}) ${snake.score}p, ${snake.l}l
+            (${snake.coordinates[0].x}, ${snake.coordinates[0].y}), ${snake.l} L
         </div>`;
     }
 
@@ -165,6 +159,7 @@ const removeMonster = (monsterId) => {
 }
 
 socket.on("connect", () => socketId = socket.id);
+
 
 socket.on('removeMonster', (monsterId) => {
     removeMonster(monsterId);
@@ -200,6 +195,8 @@ socket.on('initializeTrees', (serverTrees) => {
 // Listen for monster positions from the server
 socket.on('initializeMonsters', (serverMonsters) => {
     monsters = serverMonsters;
+    console.log('New monsters', monsters);
+
 });
 
 // Listen for virtual dimensions from the server
@@ -223,7 +220,11 @@ socket.on('updateUsers', (users) => {
     // remove all snakes in snakes, that are not in users
     for (const id in snakes) {
         // Never delete the mySnake key
-        if (id !== 'mySnake' && !users[id]) {
+        if(id == 'mySnake'){
+            continue;
+        }
+
+        if (!users[id]) {
             delete snakes[id];
         }
     }
@@ -261,6 +262,7 @@ function drawTrees() {
 function drawSnake(snake) {
     const snakeSize = 10; // Size of each segment of the snake
     ctx.fillStyle = snake.color;
+
 
     snake.coordinates.forEach(coordinate => {
         ctx.fillRect(coordinate.x, coordinate.y, snakeSize, snakeSize);
@@ -317,11 +319,7 @@ function drawScene() {
     // Draw other users' objects
     for (const id in snakes) {
         const user = snakes[id];
- 
-        if(snakes[id].coordinates.length === 0){
-            console.log(id, snakes[id], user)
-        }    
-    
+
         drawSnake(user)
     }
     
@@ -333,7 +331,7 @@ function drawScene() {
 let intervalId;
 
 const start = () => {
-    intervalId = setInterval(updatePosition, 1000 / 30); // Update the position every 60th of a second
+    intervalId = setInterval(updatePosition, 1000 / 10); // Update the position every 60th of a second
 }
 
 const stop = () => {
@@ -361,6 +359,7 @@ window.addEventListener('keydown', (event) => {
                 break;
             case ' ':
                 paused = !paused; // Toggle the paused state
+                paused ? stop() : start();
                 break;
             case 'b':
                 boost = !boost; // Toggle the boost state
@@ -374,6 +373,8 @@ window.addEventListener('keydown', (event) => {
 
     requestAnimationFrame(drawScene);
 });
+
+const sendWeHitAnotherSnake = () => socket.emit('iTurnedIntoMonsters', {coordinates: snakes['mySnake'].coordinates});
 
 // Add touch event listeners for mobile devices
 canvas.addEventListener('touchstart', (event) => {
@@ -427,6 +428,24 @@ function updatePosition() {
             y - sphereRadius < 0 || y + sphereRadius > virtualHeight) {
             gameOver = true;
             alert('Game Over!');
+        }
+
+        // If we touch another snake, game over
+        for (const id in snakes) {
+            if (id === 'mySnake') {
+                continue;
+            }
+
+            for (let i = 0; i < snakes[id].coordinates.length; i++) {
+                const coordinate = snakes[id].coordinates[i];
+                if (x >= coordinate.x && x <= coordinate.x + 10 &&
+                    y >= coordinate.y && y <= coordinate.y + 10) {
+                    gameOver = true;
+                    sendWeHitAnotherSnake();
+                    alert('Game Over, hit another player!');
+                    return;
+                }
+            }
         }
 
         // if we eat a monster, we gain 1 point/length

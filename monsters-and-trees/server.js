@@ -31,13 +31,6 @@ function getRandomColor() {
     return color;
 }
 
-// Function to generate a random position within the virtual area, integer
-function getRandomPosition() {
-    return {
-        x: Math.floor(Math.random() * virtualWidth),
-        y: Math.floor(Math.random() * virtualHeight)
-    };
-}
 
 // Generate random positions for trees
 const virtualWidth = 600; // Virtual area width
@@ -51,25 +44,38 @@ for (let i = 0; i < numTrees; i++) {
     });
 }
 
+const getRandomPosition = (virtualWidth, virtualHeight) => {
+    return {
+        x: Math.floor(Math.random() * virtualWidth),
+        y: Math.floor(Math.random() * virtualHeight)
+    };
+}
+
 // Generate random positions for monsters
 const numMonsters = 20;
 const monsters = {};
 for (let i = 0; i < numMonsters; i++) {
-    monsters[i] = {
-        x: Math.random() * virtualWidth,
-        y: Math.random() * virtualHeight
-    };
+    monsters[i] = getRandomPosition(virtualWidth, virtualHeight);
 }
 
 let users = {};
 
 app.use(express.static('public'));
 
+const addMonsters = (coordinates) => {
+    const nextMonsterPos = Object.keys(monsters).length;
+
+    for (let i = 0; i < coordinates.length; i++) {
+        monsters[nextMonsterPos+i] = coordinates[i];
+    }
+}
+
+
 // Socket.IO connection
 io.on('connection', (socket) => {
     console.log('A user connected');
     const userColor = getRandomColor();
-    const startPosition = getRandomPosition();
+    const startPosition = getRandomPosition(virtualWidth, virtualHeight);
 
     users[socket.id] = {
         id: socket.id,
@@ -79,6 +85,8 @@ io.on('connection', (socket) => {
         l: 1
     };
 
+    console.log('monsters', Object.keys(monsters).length)
+
     socket.emit('assignColor', userColor);
     socket.emit('initializeTrees', trees);
     socket.emit('initializeMonsters', monsters);
@@ -87,9 +95,17 @@ io.on('connection', (socket) => {
 
     sendUsers(socket);
 
+    socket.on('iTurnedIntoMonsters', async ({coordinates}) => {
+        console.log('We hit another snake');
+        addMonsters(coordinates);
+        socket.broadcast.emit('initializeMonsters', monsters);
+    });
+
     socket.on('monsterEaten', async (monsterId) => {
         console.log('Monster eaten:', monsterId);
         io.emit('removeMonster', monsterId);
+
+        delete monsters[monsterId];
 
         if(users[socket.id]){
             users[socket.id].score += 1;
