@@ -123,6 +123,19 @@ const inviteFriends = (emails) => {
     });
 }
 
+const group = () => window.location.pathname.split('/').pop();
+
+const appendGroupIdToLocalStorage = () => {
+    const existinGroups = localStorage.getItem('groups') || [];
+    const arrayOfGroups = Array.isArray(existinGroups) ? existinGroups : existinGroups.split(',');
+    localStorage.setItem('groups', [...arrayOfGroups, group()]);
+}
+
+const getGroups = () => {
+    return localStorage.getItem('groups').split(',');
+}
+
+appendGroupIdToLocalStorage();
 
 document.addEventListener('DOMContentLoaded', () => {
     buttonListeners();
