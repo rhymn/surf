@@ -40,6 +40,6 @@ services:
 databases:
   - name: db
     plan: free
-    databaseName: db-simple-chat
-    ipAllowList: ["0.0.0.0/0"]
+    databaseName: db
+    ipAllowList: [0.0.0.0/0]
     region: frankfurt
