@@ -41,5 +41,6 @@ databases:
   - name: db
     plan: free
     databaseName: db
-    ipAllowList: [0.0.0.0/0]
+    ipAllowList:
+    - 0.0.0.0/0
     region: frankfurt
