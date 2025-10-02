@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
-import { initDatabase } from './config/database';
+import { initDatabase, pool } from './config/database';
 import { authenticate } from './middleware/auth';
 import calendarRoutes from './routes/calendar';
 import contactsRoutes from './routes/contacts';
@@ -268,6 +268,189 @@ app.use('/contacts', contactsRoutes);
 // Health check
 app.get('/health', (req: Request, res: Response) => {
   res.json({ status: 'ok' });
+});
+
+// Simple HTML interface to list contacts
+app.get('/', (req: Request, res: Response) => {
+  res.set('Content-Type', 'text/html; charset=utf-8');
+  res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CalDAV/CardDAV Server</title>
+</head>
+<body>
+  <h1>📅 CalDAV/CardDAV Server</h1>
+  
+  <h2>🎯 Server Status</h2>
+  <p><strong>✅ Server Running</strong></p>
+  <p><strong>Port:</strong> ${PORT}</p>
+  <p><strong>Host:</strong> ${HOST}</p>
+
+  <h2>🔗 WebDAV Endpoints</h2>
+  <p>📅 CalDAV: <strong>http://localhost:${PORT}/calendars/</strong></p>
+  <p>📇 CardDAV: <strong>http://localhost:${PORT}/contacts/</strong></p>
+  <p>🔍 CalDAV Discovery: <strong>http://localhost:${PORT}/.well-known/caldav</strong></p>
+  <p>🔍 CardDAV Discovery: <strong>http://localhost:${PORT}/.well-known/carddav</strong></p>
+
+  <h2>👤 Authentication</h2>
+  <p><strong>Username:</strong> admin</p>
+  <p><strong>Password:</strong> admin123</p>
+
+  <h2>📇 Contacts</h2>
+  <button onclick="loadContacts()">🔄 Load Contacts</button>
+  <button onclick="addSampleContact()">➕ Add Sample Contact</button>
+  <div id="contacts-list"></div>
+
+  <h2>🧪 Test Endpoints</h2>
+  <button onclick="testHealth()">Test Health</button>
+  <button onclick="testCalDAV()">Test CalDAV Discovery</button>
+  <button onclick="testCardDAV()">Test CardDAV Discovery</button>
+  <pre id="test-results"></pre>
+
+  <script>
+    async function loadContacts() {
+      const resultsDiv = document.getElementById('contacts-list');
+      resultsDiv.innerHTML = '<p>Loading contacts...</p>';
+      
+      try {
+        const response = await fetch('/api/contacts', {
+          headers: {
+            'Authorization': 'Basic ' + btoa('admin:admin123')
+          }
+        });
+        
+        if (response.ok) {
+          const contacts = await response.json();
+          if (contacts.length === 0) {
+            resultsDiv.innerHTML = '<p>No contacts found. Add some contacts first!</p>';
+          } else {
+            resultsDiv.innerHTML = contacts.map(contact => 
+              \`<div class="contact">
+                <strong>\${contact.name || 'Unnamed Contact'}</strong><br>
+                <small>ID: \${contact.id}</small><br>
+                <small>Created: \${new Date(contact.created_at).toLocaleString()}</small>
+              </div>\`
+            ).join('');
+          }
+        } else {
+          resultsDiv.innerHTML = \`<p>Error loading contacts: \${response.status} \${response.statusText}</p>\`;
+        }
+      } catch (error) {
+        resultsDiv.innerHTML = \`<p>Error: \${error.message}</p>\`;
+      }
+    }
+
+    async function addSampleContact() {
+      try {
+        const response = await fetch('/api/contacts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Basic ' + btoa('admin:admin123')
+          },
+          body: JSON.stringify({
+            name: 'John Doe',
+            email: 'john@example.com',
+            phone: '+1-555-0123'
+          })
+        });
+        
+        if (response.ok) {
+          alert('Sample contact added!');
+          loadContacts();
+        } else {
+          alert('Error adding contact: ' + response.status);
+        }
+      } catch (error) {
+        alert('Error: ' + error.message);
+      }
+    }
+
+    async function testHealth() {
+      const resultsDiv = document.getElementById('test-results');
+      try {
+        const response = await fetch('/health');
+        const data = await response.json();
+        resultsDiv.innerHTML = \`Health Check: \${JSON.stringify(data, null, 2)}\`;
+      } catch (error) {
+        resultsDiv.innerHTML = \`Error: \${error.message}\`;
+      }
+    }
+
+    async function testCalDAV() {
+      const resultsDiv = document.getElementById('test-results');
+      try {
+        const response = await fetch('/.well-known/caldav', {
+          method: 'PROPFIND',
+          headers: {
+            'Authorization': 'Basic ' + btoa('admin:admin123'),
+            'Content-Type': 'application/xml',
+            'Depth': '0'
+          }
+        });
+        const data = await response.text();
+        resultsDiv.innerHTML = \`CalDAV Discovery (Status: \${response.status}):\\n\${data}\`;
+      } catch (error) {
+        resultsDiv.innerHTML = \`Error: \${error.message}\`;
+      }
+    }
+
+    async function testCardDAV() {
+      const resultsDiv = document.getElementById('test-results');
+      try {
+        const response = await fetch('/.well-known/carddav', {
+          method: 'PROPFIND',
+          headers: {
+            'Authorization': 'Basic ' + btoa('admin:admin123'),
+            'Content-Type': 'application/xml',
+            'Depth': '0'
+          }
+        });
+        const data = await response.text();
+        resultsDiv.innerHTML = \`CardDAV Discovery (Status: \${response.status}):\\n\${data}\`;
+      } catch (error) {
+        resultsDiv.innerHTML = \`Error: \${error.message}\`;
+      }
+    }
+  </script>
+</body>
+</html>`);
+});
+
+// Simple API endpoints for the web interface
+app.get('/api/contacts', authenticate, async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query('SELECT * FROM caldav_contacts ORDER BY created_at DESC');
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching contacts:', error);
+    res.status(500).json({ error: 'Failed to fetch contacts' });
+  }
+});
+
+app.post('/api/contacts', authenticate, async (req: Request, res: Response) => {
+  try {
+    const { name, email, phone } = req.body;
+    const vcard = `BEGIN:VCARD
+VERSION:3.0
+FN:${name || 'Unknown'}
+EMAIL:${email || ''}
+TEL:${phone || ''}
+UID:${Date.now()}-${Math.random().toString(36).substr(2, 9)}
+END:VCARD`;
+
+    const result = await pool.query(
+      'INSERT INTO caldav_contacts (filename, vcard_data, etag, created_at, updated_at) VALUES ($1, $2, $3, NOW(), NOW()) RETURNING *',
+      [`${name?.replace(/\s+/g, '-').toLowerCase() || 'contact'}-${Date.now()}.vcf`, vcard, `"${Date.now()}"`]
+    );
+
+    res.json({ success: true, contact: result.rows[0] });
+  } catch (error) {
+    console.error('Error creating contact:', error);
+    res.status(500).json({ error: 'Failed to create contact' });
+  }
 });
 
 // Catch-all handler for unmatched requests
