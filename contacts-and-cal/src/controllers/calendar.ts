@@ -204,7 +204,7 @@ export class CalendarController {
       );
 
       res.status(201).end();
-    } catch (error) {
+    } catch (error: any) {
       console.error('MKCALENDAR error:', error);
       if (error.code === '23505') { // Unique violation
         res.status(409).send('Calendar already exists');
