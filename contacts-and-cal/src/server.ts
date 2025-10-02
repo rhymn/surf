@@ -23,6 +23,43 @@ app.use(express.text({ type: 'text/calendar' }));
 app.use(express.text({ type: 'text/vcard' }));
 app.use(express.text({ type: 'application/xml' }));
 
+// WebDAV Discovery endpoints
+app.get('/.well-known/caldav', (req: Request, res: Response) => {
+  res.redirect(301, '/calendars/');
+});
+
+app.get('/.well-known/carddav', (req: Request, res: Response) => {
+  res.redirect(301, '/contacts/');
+});
+
+// Root WebDAV PROPFIND for discovery
+app.use('/', (req: Request, res: Response, next) => {
+  if (req.method === 'PROPFIND' && req.path === '/') {
+    res.set('Content-Type', 'application/xml; charset=utf-8');
+    res.status(207).send(`<?xml version="1.0" encoding="UTF-8"?>
+<d:multistatus xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav" xmlns:card="urn:ietf:params:xml:ns:carddav">
+  <d:response>
+    <d:href>/</d:href>
+    <d:propstat>
+      <d:prop>
+        <d:resourcetype><d:collection/></d:resourcetype>
+        <d:displayname>CalDAV/CardDAV Server</d:displayname>
+        <c:calendar-home-set>
+          <d:href>/calendars/</d:href>
+        </c:calendar-home-set>
+        <card:addressbook-home-set>
+          <d:href>/contacts/</d:href>
+        </card:addressbook-home-set>
+      </d:prop>
+      <d:status>HTTP/1.1 200 OK</d:status>
+    </d:propstat>
+  </d:response>
+</d:multistatus>`);
+  } else {
+    next();
+  }
+});
+
 // Routes
 app.use('/calendars', calendarRoutes);
 app.use('/contacts', contactsRoutes);
