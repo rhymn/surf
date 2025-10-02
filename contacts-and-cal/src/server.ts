@@ -142,7 +142,9 @@ app.use('/principals/*', (req: Request, res: Response) => {
   if (req.method === 'PROPFIND') {
     // Require authentication for principals
     authenticate(req as any, res, () => {
-      const path = req.path;
+      const path = req.originalUrl; // Use originalUrl to get the full path
+      console.log(`🔍 Principals PROPFIND: path="${req.path}", originalUrl="${req.originalUrl}"`);
+      console.log(`🔍 Checking path conditions: path="${path}"`);
       res.set('Content-Type', 'application/xml; charset=utf-8');
     
       if (path === '/principals/' || path === '/principals') {
@@ -187,6 +189,8 @@ app.use('/principals/*', (req: Request, res: Response) => {
 </d:multistatus>`);
       } else if (path === '/principals/users/admin/' || path === '/principals/users/admin') {
         // Individual principal - RFC 4791 Section 6.2.1 & RFC 6352 Section 7.1.1
+        console.log(`✅ Found admin principal path: "${path}"`);
+        console.log(`✅ Sending admin principal response`);
         res.status(207).send(`<?xml version="1.0" encoding="UTF-8"?>
 <d:multistatus xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav" xmlns:card="urn:ietf:params:xml:ns:carddav">
   <d:response>
@@ -210,6 +214,12 @@ app.use('/principals/*', (req: Request, res: Response) => {
   </d:response>
 </d:multistatus>`);
       } else {
+        console.log(`❌ No matching path for: "${path}" (length: ${path.length})`);
+        console.log(`❌ Expected: "/principals/users/admin/" or "/principals/users/admin"`);
+        console.log(`❌ Path comparison details:`);
+        console.log(`   - path === '/principals/users/admin/': ${path === '/principals/users/admin/'}`);
+        console.log(`   - path === '/principals/users/admin': ${path === '/principals/users/admin'}`);
+        console.log(`   - path bytes: [${Array.from(path).map(c => c.charCodeAt(0)).join(', ')}]`);
         res.status(404).send('Not Found');
       }
     });

@@ -2,8 +2,7 @@ import { Request, Response } from 'express';
 import { pool } from '../config/database';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { createMultistatusResponse, createPropfindResponse, parseCalendarQuery } from '../utils/webdav';
-import { parseICalendar, createICalendarEvent, createCalendarResponse, CalendarEvent } from '../utils/ical';
-import { v4 as uuidv4 } from 'uuid';
+import { createICalendarEvent, CalendarEvent } from '../utils/ical';
 
 export class CalendarController {
   options = (req: Request, res: Response) => {
@@ -22,44 +21,88 @@ export class CalendarController {
         return res.status(401).send('Unauthorized');
       }
 
-      // Get user's calendars
+      const responses = [];
+      const depth = req.headers.depth || '0';
+      
+      console.log(`🔍 Calendar PROPFIND: path="${req.path}", originalUrl="${req.originalUrl}", depth="${depth}"`);
+
+      // For Depth: 0 on the calendars collection, return the collection itself
+      // For Depth: 1 on the calendars collection, return the individual calendars (not the parent)
+      if (depth === '0' && (req.path === '/' || req.path === '' || req.originalUrl.includes('/calendars'))) {
+        console.log('✅ Adding calendar home collection to PROPFIND response (Depth: 0)');
+        responses.push(
+          createPropfindResponse('/calendars/', {
+            'resourcetype': {
+              children: [
+                { name: 'collection', value: '' }
+              ]
+            },
+            'displayname': 'Calendar Home'
+          })
+        );
+      }
+
+      // Get user's calendars - but only add them if we're doing discovery or if no depth restrictions
       const result = await pool.query(
         'SELECT id, name, description, color FROM caldav_calendars WHERE user_id = $1',
         [userId]
       );
 
-      const responses = result.rows.map((calendar: any) => 
-        createPropfindResponse(`/calendars/${calendar.id}/`, {
-          'resourcetype': {
-            children: [
-              { name: 'collection', value: '' },
-              { name: 'c:calendar', value: '' }
-            ]
-          },
-          'displayname': calendar.name,
-          'calendar-description': calendar.description || '',
-          'calendar-color': calendar.color,
-          'supported-calendar-component-set': {
-            children: [
-              { name: 'c:comp', value: '', attributes: { name: 'VEVENT' } }
-            ]
-          }
-        })
-      );
+      console.log(`📅 Found ${result.rows.length} calendars for user ${userId}`);
 
-      // Add default calendar if none exist
-      if (responses.length === 0) {
+      // For both Depth: 0 and Depth: 1, include individual calendars
+      // Thunderbird needs to see the actual calendar collections for discovery
+      result.rows.forEach((calendar: any) => {
+        console.log(`📅 Adding calendar: ${calendar.name} (ID: ${calendar.id})`);
         responses.push(
-          createPropfindResponse('/calendars/default/', {
+          createPropfindResponse(`/calendars/${calendar.id}/`, {
             'resourcetype': {
               children: [
-                { name: 'collection', value: '' },
+                { name: 'd:collection', value: '' },
                 { name: 'c:calendar', value: '' }
               ]
             },
-            'displayname': 'Default Calendar',
-            'calendar-description': 'Default calendar',
-            'calendar-color': '#3174ad'
+            'displayname': calendar.name,
+            'c:calendar-description': calendar.description || '',
+            'c:calendar-color': calendar.color,
+            'c:supported-calendar-component-set': {
+              children: [
+                { name: 'c:comp', value: '', attributes: { name: 'VEVENT' } }
+              ]
+            }
+          })
+        );
+      });
+
+      // Add default calendar if none exist
+      if (result.rows.length === 0) {
+        console.log('📅 No calendars found, creating default calendar');
+        
+        // Create a default calendar in the database
+        const defaultCalResult = await pool.query(
+          'INSERT INTO caldav_calendars (user_id, name, description, color) VALUES ($1, $2, $3, $4) RETURNING id',
+          [userId, 'Personal', 'Personal calendar', '#3174ad']
+        );
+        
+        const defaultCalId = defaultCalResult.rows[0].id;
+        console.log(`📅 Created default calendar with ID: ${defaultCalId}`);
+        
+        responses.push(
+          createPropfindResponse(`/calendars/${defaultCalId}/`, {
+            'resourcetype': {
+              children: [
+                { name: 'd:collection', value: '' },
+                { name: 'c:calendar', value: '' }
+              ]
+            },
+            'displayname': 'Personal',
+            'c:calendar-description': 'Personal calendar',
+            'c:calendar-color': '#3174ad',
+            'c:supported-calendar-component-set': {
+              children: [
+                { name: 'c:comp', value: '', attributes: { name: 'VEVENT' } }
+              ]
+            }
           })
         );
       }
@@ -93,28 +136,87 @@ export class CalendarController {
     try {
       const { calendarId, eventId } = req.params;
       const icalData = req.body;
+      
+      // Remove .ics extension if present
+      const cleanEventId = eventId.replace(/\.ics$/, '');
+      
+      console.log(`📅 PUT Event: calendarId=${calendarId}, eventId=${cleanEventId}`);
+      console.log(`📝 iCal data length: ${icalData ? icalData.length : 0} characters`);
+      
+      if (!icalData || typeof icalData !== 'string') {
+        console.error('❌ Invalid iCal data provided');
+        return res.status(400).send('Invalid iCal data');
+      }
 
-      await pool.query(
+      // Check if calendar exists first
+      const calendarCheck = await pool.query(
+        'SELECT id FROM caldav_calendars WHERE id = $1',
+        [calendarId]
+      );
+      
+      if (calendarCheck.rows.length === 0) {
+        console.error(`❌ Calendar ${calendarId} not found`);
+        return res.status(404).send('Calendar not found');
+      }
+
+      const result = await pool.query(
         `INSERT INTO caldav_events (calendar_id, uid, ical_data, updated_at) 
          VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
          ON CONFLICT (uid) DO UPDATE SET
-         ical_data = $3, updated_at = CURRENT_TIMESTAMP`,
-        [calendarId, eventId, icalData]
+         calendar_id = $1, ical_data = $3, updated_at = CURRENT_TIMESTAMP
+         RETURNING id`,
+        [calendarId, cleanEventId, icalData]
       );
 
+      console.log(`✅ Event saved successfully: ID=${result.rows[0].id}`);
       res.status(201).end();
     } catch (error) {
-      res.status(500).json({ error: 'Internal server error' });
+      console.error('❌ PUT Event error:', error);
+      res.status(500).send('Internal server error: ' + (error instanceof Error ? error.message : String(error)));
+    }
+  };
+
+  getEvent = async (req: Request, res: Response) => {
+    try {
+      const { calendarId, eventId } = req.params;
+      
+      // Remove .ics extension if present
+      const cleanEventId = eventId.replace(/\.ics$/, '');
+      
+      const result = await pool.query(
+        'SELECT ical_data FROM caldav_events WHERE calendar_id = $1 AND uid = $2',
+        [calendarId, cleanEventId]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).send('Event not found');
+      }
+
+      res.set('Content-Type', 'text/calendar; charset=utf-8');
+      res.send(result.rows[0].ical_data);
+    } catch (error) {
+      console.error('Get event error:', error);
+      res.status(500).send('Internal server error');
     }
   };
 
   deleteEvent = async (req: Request, res: Response) => {
     try {
       const { eventId } = req.params;
-      await pool.query('DELETE FROM caldav_events WHERE uid = $1', [eventId]);
+      
+      // Remove .ics extension if present
+      const cleanEventId = eventId.replace(/\.ics$/, '');
+      
+      const result = await pool.query('DELETE FROM caldav_events WHERE uid = $1 RETURNING *', [cleanEventId]);
+      
+      if (result.rowCount === 0) {
+        return res.status(404).send('Event not found');
+      }
+      
       res.status(204).end();
     } catch (error) {
-      res.status(500).json({ error: 'Internal server error' });
+      console.error('Delete event error:', error);
+      res.status(500).send('Internal server error');
     }
   };
 
