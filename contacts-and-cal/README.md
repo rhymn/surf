@@ -1,6 +1,28 @@
 # Calendar and Contacts Sync Server
 
-A **standards-compliant** CalDAV/CardDAV server for syncing calendars and contacts with PostgreSQL backend.
+A **Prerequisites**
+
+Just PostgreSQL installed - that's it! 
+
+- **Local dev**: Uses default `postgres` database (no setup needed)
+- **Production**: Uses `DATABASE_URL` environment variable (Render sets this automatically)
+
+**Install PostgreSQL** (if not already installed):
+```bash
+# Ubuntu/Debian
+sudo apt install postgresql
+
+# macOS  
+brew install postgresql
+
+# Start PostgreSQL
+sudo systemctl start postgresql  # Linux
+brew services start postgresql   # macOS
+```
+
+**Default credentials**:
+- Username: `admin`
+- Password: `admin123`mpliant** CalDAV/CardDAV server for syncing calendars and contacts with PostgreSQL backend.
 
 ## Features
 
@@ -22,13 +44,35 @@ A **standards-compliant** CalDAV/CardDAV server for syncing calendars and contac
 - XML multistatus responses
 - CORS support for web clients
 
-## Setup
+## 🚀 Zero-Config Setup
 
-1. Copy `.env.example` to `.env` and configure your database URL
-2. Install dependencies: `npm install`
-3. Create a test user: `npm run setup-user`
-4. Run in development: `npm run dev`
-5. Build for production: `npm run build && npm start`
+**Just run the server** - everything happens automatically:
+
+```bash
+npm install
+npm run dev
+```
+
+**That's it!** The server will automatically:
+- ✅ Create database tables if they don't exist
+- ✅ Create a default user (`testuser` / `testpass`)  
+- ✅ Create a default calendar
+- ✅ Show you the URLs to use
+
+### Prerequisites
+
+You just need PostgreSQL installed and a database available. The server uses these defaults:
+- Database: `postgresql://caldav_user:caldav_pass@localhost:5432/caldav_db`
+- Or set `DATABASE_URL` environment variable
+
+**Quick PostgreSQL setup** (if needed):
+```bash
+# Ubuntu/Debian
+sudo apt install postgresql
+sudo -u postgres createdb caldav_db
+sudo -u postgres psql -c "CREATE USER caldav_user WITH PASSWORD 'caldav_pass';"
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE caldav_db TO caldav_user;"
+```
 
 ## Authentication
 

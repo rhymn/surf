@@ -52,21 +52,13 @@ services:
         value: production
       - key: DATABASE_URL
         fromDatabase:
-          name: contacts-and-cal-db
+          name: db
           property: connectionString
 
 databases:
   - name: db
     plan: free
     databaseName: db
-    ipAllowList:
-      - source: 0.0.0.0/0
-        description: Allow all (public). Change to specific IP/CIDR or remove for internal-only access.
-    region: frankfurt
-
-  - name: contacts-and-cal-db
-    plan: free
-    databaseName: caldav_db
     ipAllowList:
       - source: 0.0.0.0/0
         description: Allow all (public). Change to specific IP/CIDR or remove for internal-only access.

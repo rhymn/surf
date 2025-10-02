@@ -37,7 +37,7 @@ export class ContactsController {
     try {
       const { contactId } = req.params;
       const result = await pool.query(
-        'SELECT vcard_data FROM contacts WHERE uid = $1',
+        'SELECT vcard_data FROM caldav_contacts WHERE uid = $1',
         [contactId]
       );
 
@@ -58,7 +58,7 @@ export class ContactsController {
       const vcardData = req.body;
 
       await pool.query(
-        `INSERT INTO contacts (uid, vcard_data, updated_at) 
+        `INSERT INTO caldav_contacts (uid, vcard_data, updated_at) 
          VALUES ($1, $2, CURRENT_TIMESTAMP)
          ON CONFLICT (uid) DO UPDATE SET
          vcard_data = $2, updated_at = CURRENT_TIMESTAMP`,
@@ -74,7 +74,7 @@ export class ContactsController {
   deleteContact = async (req: Request, res: Response) => {
     try {
       const { contactId } = req.params;
-      await pool.query('DELETE FROM contacts WHERE uid = $1', [contactId]);
+      await pool.query('DELETE FROM caldav_contacts WHERE uid = $1', [contactId]);
       res.status(204).end();
     } catch (error) {
       res.status(500).json({ error: 'Internal server error' });

@@ -16,12 +16,10 @@ export async function authenticate(req: AuthenticatedRequest, res: Response, nex
   }
 
   try {
-    const result = await pool.query(
-      'SELECT id, username, password_hash FROM users WHERE username = $1',
-      [credentials.name]
-    );
-
-    if (result.rows.length === 0) {
+      const result = await pool.query(
+        'SELECT id, username, password_hash FROM caldav_users WHERE username = $1',
+        [credentials.name]
+      );    if (result.rows.length === 0) {
       return res.status(401).send('Invalid credentials');
     }
 

@@ -24,7 +24,7 @@ export class CalendarController {
 
       // Get user's calendars
       const result = await pool.query(
-        'SELECT id, name, description, color FROM calendars WHERE user_id = $1',
+        'SELECT id, name, description, color FROM caldav_calendars WHERE user_id = $1',
         [userId]
       );
 
@@ -77,7 +77,7 @@ export class CalendarController {
     try {
       const { calendarId } = req.params;
       const result = await pool.query(
-        'SELECT * FROM events WHERE calendar_id = $1',
+        'SELECT * FROM caldav_events WHERE calendar_id = $1',
         [calendarId]
       );
 
@@ -95,7 +95,7 @@ export class CalendarController {
       const icalData = req.body;
 
       await pool.query(
-        `INSERT INTO events (calendar_id, uid, ical_data, updated_at) 
+        `INSERT INTO caldav_events (calendar_id, uid, ical_data, updated_at) 
          VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
          ON CONFLICT (uid) DO UPDATE SET
          ical_data = $3, updated_at = CURRENT_TIMESTAMP`,
@@ -111,7 +111,7 @@ export class CalendarController {
   deleteEvent = async (req: Request, res: Response) => {
     try {
       const { eventId } = req.params;
-      await pool.query('DELETE FROM events WHERE uid = $1', [eventId]);
+      await pool.query('DELETE FROM caldav_events WHERE uid = $1', [eventId]);
       res.status(204).end();
     } catch (error) {
       res.status(500).json({ error: 'Internal server error' });
@@ -130,7 +130,7 @@ export class CalendarController {
       const query = parseCalendarQuery(req.body);
 
       // Get events from calendar
-      let sqlQuery = 'SELECT * FROM events WHERE calendar_id = $1';
+      let sqlQuery = 'SELECT * FROM caldav_events WHERE calendar_id = $1';
       const params: any[] = [calendarId];
 
       // Add time range filter if provided
@@ -199,7 +199,7 @@ export class CalendarController {
       
       // Create new calendar
       await pool.query(
-        'INSERT INTO calendars (user_id, name, description, color) VALUES ($1, $2, $3, $4)',
+        'INSERT INTO caldav_calendars (user_id, name, description, color) VALUES ($1, $2, $3, $4)',
         [userId, calendarName, calendarDescription, calendarColor]
       );
 
@@ -223,7 +223,7 @@ export class CalendarController {
       }
 
       const result = await pool.query(
-        'SELECT id, name, description, color, created_at FROM calendars WHERE user_id = $1 ORDER BY name',
+        'SELECT id, name, description, color, created_at FROM caldav_calendars WHERE user_id = $1 ORDER BY name',
         [userId]
       );
 
@@ -254,11 +254,11 @@ export class CalendarController {
       const { calendarId } = req.params;
 
       // First delete all events in the calendar
-      await pool.query('DELETE FROM events WHERE calendar_id = $1', [calendarId]);
+      await pool.query('DELETE FROM caldav_events WHERE calendar_id = $1', [calendarId]);
       
       // Then delete the calendar (only if user owns it)
       const result = await pool.query(
-        'DELETE FROM calendars WHERE id = $1 AND user_id = $2',
+        'DELETE FROM caldav_calendars WHERE id = $1 AND user_id = $2',
         [calendarId, userId]
       );
 

@@ -9,7 +9,7 @@ import contactsRoutes from './routes/contacts';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(helmet());
@@ -35,12 +35,29 @@ app.get('/health', (req, res) => {
 // Initialize database and start server
 async function startServer() {
   try {
+    console.log('🚀 Starting CalDAV/CardDAV Server...');
     await initDatabase();
+    
     app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
+      console.log(`\n🎉 Server running on http://localhost:${PORT}`);
+      console.log('📅 CalDAV URL: http://localhost:' + PORT + '/calendars/');
+      console.log('📇 CardDAV URL: http://localhost:' + PORT + '/contacts/');
+      console.log('👤 Default user: admin / admin123');
+      console.log('❤️  Health check: http://localhost:' + PORT + '/health');
     });
-  } catch (error) {
-    console.error('Failed to start server:', error);
+  } catch (error: any) {
+    console.error('❌ Failed to start server:', error);
+    
+    // Provide helpful error messages
+    if (error.code === 'ECONNREFUSED' || error.message?.includes('ECONNREFUSED')) {
+      console.log('\n💡 Possible solutions:');
+      console.log('1. Install PostgreSQL: sudo apt install postgresql');
+      console.log('2. Start PostgreSQL: sudo systemctl start postgresql');
+      console.log('3. Create database: sudo -u postgres createdb caldav_db');
+      console.log('4. Create user: sudo -u postgres psql -c "CREATE USER caldav_user WITH PASSWORD \'caldav_pass\';"');
+      console.log('5. Grant privileges: sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE caldav_db TO caldav_user;"');
+    }
+    
     process.exit(1);
   }
 }
