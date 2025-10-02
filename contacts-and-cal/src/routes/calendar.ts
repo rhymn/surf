@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { CalendarController } from '../controllers/calendar';
 import { authenticate, webdavMethods } from '../middleware/auth';
 
@@ -13,7 +13,7 @@ router.use(authenticate);
 router.options('*', calendarController.options);
 
 // Handle PROPFIND and REPORT methods
-router.all('/', (req, res, next) => {
+router.all('/', (req: Request, res: Response, next: NextFunction) => {
   if (req.method === 'PROPFIND') {
     calendarController.propfind(req, res);
   } else {
@@ -25,7 +25,7 @@ router.all('/', (req, res, next) => {
 router.get('/', calendarController.listCalendars); // List all calendars
 router.delete('/:calendarId', calendarController.deleteCalendar); // Delete calendar
 
-router.all('/:calendarId/', (req, res, next) => {
+router.all('/:calendarId/', (req: Request, res: Response, next: NextFunction) => {
   if (req.method === 'PROPFIND') {
     calendarController.propfind(req, res);
   } else if (req.method === 'REPORT') {
@@ -38,7 +38,7 @@ router.all('/:calendarId/', (req, res, next) => {
 });
 
 // MKCALENDAR at calendar level
-router.all('/:calendarId', (req, res, next) => {
+router.all('/:calendarId', (req: Request, res: Response, next: NextFunction) => {
   if (req.method === 'MKCALENDAR') {
     calendarController.mkcalendar(req, res);
   } else {

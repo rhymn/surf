@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { ContactsController } from '../controllers/contacts';
 
 const router = Router();
@@ -6,7 +6,7 @@ const contactsController = new ContactsController();
 
 // CardDAV endpoints
 router.options('*', contactsController.options);
-router.all('/', (req, res, next) => {
+router.all('/', (req: Request, res: Response, next: NextFunction) => {
   if (req.method === 'PROPFIND') {
     contactsController.propfind(req, res);
   } else {

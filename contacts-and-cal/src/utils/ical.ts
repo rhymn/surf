@@ -16,7 +16,7 @@ export function parseICalendar(icalData: string): CalendarEvent[] {
     const comp = new ICAL.Component(jcalData);
     const vevents = comp.getAllSubcomponents('vevent');
 
-    return vevents.map(vevent => {
+    return vevents.map((vevent: ICAL.Component) => {
       const event = new ICAL.Event(vevent);
       
       return {
