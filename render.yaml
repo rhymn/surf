@@ -40,7 +40,7 @@ services:
   - type: web
     name: contacts-and-cal-server
     env: node
-    buildCommand: npm install && npm run build
+    buildCommand: npm install --include=dev && npm run build
     startCommand: npm start
     plan: free
     branch: main
