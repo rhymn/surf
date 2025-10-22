@@ -216,7 +216,7 @@ socket.on('setStartPosition', (position) => {
 // Consider this might send back myself, so exclude myself socket.id somehow...
 
 socket.on('updateUsers', (users) => {
-    console.log(users)
+    console.log('updating users')
     // remove all snakes in snakes, that are not in users
     for (const id in snakes) {
         // Never delete the mySnake key

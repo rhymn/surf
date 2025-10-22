@@ -98,7 +98,7 @@ io.on('connection', (socket) => {
     socket.on('iTurnedIntoMonsters', async ({coordinates}) => {
         console.log('We hit another snake');
         addMonsters(coordinates);
-        socket.broadcast.emit('initializeMonsters', monsters);
+        io.emit('initializeMonsters', monsters);
     });
 
     socket.on('monsterEaten', async (monsterId) => {
@@ -138,8 +138,7 @@ io.on('connection', (socket) => {
 });
 
 const sendUsers = (socket) => {
-    console.log(users, `${Object.keys(users).length} users`)
-    socket.broadcast.emit('updateUsers', users);
+    io.emit('updateUsers', users);
 }
 
 server.listen(port, () => {
