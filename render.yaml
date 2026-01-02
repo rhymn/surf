@@ -55,6 +55,17 @@ services:
           name: db
           property: connectionString
 
+  - type: web
+    name: unplastech
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    plan: free
+    branch: main
+    rootDir: unplastech
+    pullRequestPreviewsEnabled: true
+    region: frankfurt
+
 databases:
   - name: db
     plan: basic-256mb
