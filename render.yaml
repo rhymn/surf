@@ -55,6 +55,16 @@ services:
           name: db
           property: connectionString
 
+  - type: static
+    name: unplastech
+    buildCommand: echo "No build needed"
+    staticPublishPath: .
+    plan: free
+    branch: main
+    rootDir: unplastech
+    pullRequestPreviewsEnabled: true
+    region: frankfurt
+
 databases:
   - name: db
     plan: basic-256mb
