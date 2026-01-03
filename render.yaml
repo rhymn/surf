@@ -55,10 +55,10 @@ services:
           name: db
           property: connectionString
 
-  - type: static_site
+  - type: static
     name: unplastech
     buildCommand: echo "No build needed"
-    publishPath: .
+    staticPublishPath: .
     plan: free
     branch: main
     rootDir: unplastech
