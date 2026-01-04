@@ -55,10 +55,11 @@ services:
           name: db
           property: connectionString
 
-  - type: static_site
+  - type: web
     name: unplastech
-    buildCommand: echo "No build needed"
-    publishPath: .
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
     plan: free
     branch: main
     rootDir: unplastech
