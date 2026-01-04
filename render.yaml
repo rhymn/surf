@@ -62,8 +62,6 @@ services:
     plan: free
     branch: main
     rootDir: unplastech
-    pullRequestPreviewsEnabled: true
-    region: frankfurt
 
 databases:
   - name: db
