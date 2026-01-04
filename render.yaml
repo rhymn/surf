@@ -59,7 +59,6 @@ services:
     name: unplastech
     runtime: static
     staticPublishPath: .
-    plan: free
     branch: main
     rootDir: unplastech
 
