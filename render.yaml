@@ -57,9 +57,9 @@ services:
 
   - type: web
     name: unplastech
-    env: node
-    buildCommand: npm install
-    startCommand: node server.js
+    runtime: static
+    buildCommand: echo "No build needed"
+    staticPublishPath: .
     plan: free
     branch: main
     rootDir: unplastech
