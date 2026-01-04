@@ -58,7 +58,6 @@ services:
   - type: web
     name: unplastech
     runtime: static
-    buildCommand: echo "No build needed"
     staticPublishPath: .
     plan: free
     branch: main
