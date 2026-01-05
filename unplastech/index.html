@@ -6,6 +6,17 @@
     <meta name="color-scheme" content="light dark">
     <title>unplas.tech - Ocean Plastic Products</title>
     <meta name="description" content="Transforming ocean plastic trash into marine-focused products">
+    <style>
+        /* Make product grid responsive on mobile */
+        @media (max-width: 768px) {
+            .product-grid {
+                display: block !important;
+            }
+            .product-grid > div {
+                margin-bottom: 20px;
+            }
+        }
+    </style>
 </head>
 <body style="font-family: system-ui, -apple-system, sans-serif; line-height: 1.6; margin: 0; padding: 0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff;">
     <div style="max-width: 1200px; margin: 0 auto; padding: 20px; background: rgba(255, 255, 255, 0.95); color: #1a202c; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
@@ -34,7 +45,7 @@
                 <h3 style="color: #0e7490; font-size: 2em; border-bottom: 3px solid #06b6d4; padding-bottom: 10px; display: inline-block;">🛠️ Our Products</h3>
                 <p style="color: #4a5568; font-size: 1.1em; margin: 20px 0;">We create a range of marine-focused products from ocean plastic:</p>
                 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0;">
+                <div class="product-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0;">
                     <div style="background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%); padding: 25px; border-radius: 15px; border: 2px solid #5eead4; box-shadow: 0 4px 10px rgba(0,0,0,0.08);">
                         <h4 style="color: #0f766e; margin-top: 0; font-size: 1.5em; border-bottom: 2px solid #14b8a6; padding-bottom: 8px;">⚓ Marine Equipment</h4>
                         <ul style="list-style: none; padding-left: 0; color: #134e4a;">
