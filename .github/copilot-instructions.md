@@ -61,7 +61,7 @@ npm start            # Start with nodemon
 
 #### simple-chat/ and monsters-and-trees/
 ```bash
-cd <project-directory>
+cd simple-chat  # or cd monsters-and-trees
 npm install
 node server.js       # Start the server
 ```
@@ -95,7 +95,7 @@ The root `package-lock.json` is minimal and most work happens in individual proj
 - Follow ESLint rules defined in each project's `eslint.config.js`
 
 ### Database
-- **chat/**: Uses Drizzle ORM with PostgreSQL. Run `npm run db:push` to sync schema changes. Note: This project is not currently deployed to Render.
+- **chat/**: Uses Drizzle ORM with PostgreSQL. Run `npm run db:push` to sync schema changes. Note: This project is in development and not currently deployed to Render - it's configured for local development with database credentials in `.env` file.
 - **simple-chat/** and **contacts-and-cal/**: Connect to PostgreSQL database via DATABASE_URL environment variable provided by Render
 - **contacts-and-cal/**: Also uses JSON file storage via fs-extra for some data
 - Database migrations should be handled through Drizzle Kit for the chat project
