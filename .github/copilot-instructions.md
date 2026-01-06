@@ -2,7 +2,7 @@
 
 ## Repository Overview
 
-This is a monorepo containing multiple web applications and services, primarily focused on surfing-related services and other web applications. The repository is deployed to Render.com with different services in separate directories.
+This is a monorepo containing multiple web applications and services, primarily focused on surfing-related services and other web applications. The individual projects have nothing in common beyond deploying to Render.com, and each operates independently in its own directory.
 
 ### Project Structure
 
@@ -11,7 +11,7 @@ This is a monorepo containing multiple web applications and services, primarily 
 - **contacts-and-cal/** - A WebDAV server for calendars and contacts with JSON storage, built with Express and TypeScript.
 - **simple-chat/** - A simple Node.js chat application using a basic database.
 - **monsters-and-trees/** - A Node.js web application.
-- **unplastech/** - A static HTML website.
+- **unplastech/** - A static HTML5 website with no CSS or JavaScript - using semantic HTML only.
 
 ## Technology Stack
 
