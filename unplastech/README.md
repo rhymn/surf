@@ -62,11 +62,12 @@ Open `index.html` and replace the placeholder values in the Merch section:
 
 ## Current Placeholder Values
 
-The current `index.html` contains example/placeholder values:
-- Buy button IDs: `buy_btn_1QhDrxKFOHyBjrXO1234EXAMPLE` and `buy_btn_1QhDsxKFOHyBjrXO5678EXAMPLE`
-- Publishable key: `pk_test_51QhDfVKFOHyBjrXOABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvwxyz123456`
+The current `index.html` contains placeholder values that clearly indicate they need to be replaced:
+- T-Shirt buy button ID: `REPLACE_WITH_YOUR_TSHIRT_BUY_BUTTON_ID`
+- Hat buy button ID: `REPLACE_WITH_YOUR_HAT_BUY_BUTTON_ID`
+- Publishable key: `REPLACE_WITH_YOUR_STRIPE_PUBLISHABLE_KEY`
 
-**These must be replaced with your actual Stripe keys to function.**
+**These MUST be replaced with your actual Stripe keys for the buy buttons to function.**
 
 ## Documentation
 
