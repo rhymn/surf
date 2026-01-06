@@ -1,78 +1,73 @@
-# unplas.tech - Stripe Buy Button Configuration
+# unplas.tech - Stripe Payment Links Configuration
 
-This document explains how to configure the Stripe Buy Buttons for the merch products on unplas.tech.
+This document explains how to configure the Stripe Payment Links for the merch products on unplas.tech.
 
 ## Overview
 
-The website includes Stripe Buy Buttons for the following merch products:
+The website includes simple Stripe Payment Links for the following merch products:
 - **Eco T-Shirts** - Sustainable t-shirts made from ecological cotton
 - **Hats** - Stylish caps and hats crafted from ecological wool
 
 ## Configuration Steps
 
-To activate the Stripe Buy Buttons with your actual Stripe account:
+To activate the Stripe Payment Links with your actual Stripe account:
 
-### 1. Create Stripe Buy Buttons
+### 1. Create Stripe Payment Links
 
 1. Log in to your [Stripe Dashboard](https://dashboard.stripe.com/)
-2. Navigate to **Products** → **Buy Buttons**
-3. Create a buy button for each product:
+2. Navigate to **Products** → **Payment Links**
+3. Create a payment link for each product:
    - Eco T-Shirts
    - Hats
-4. For each button, configure:
+4. For each link, configure:
    - Product name and description
    - Price
    - Images
    - Payment settings
    - Shipping options (if applicable)
 
-### 2. Get Your Stripe Keys
+### 2. Get Your Payment Link URLs
 
-After creating each buy button, Stripe will provide you with:
-- A unique **buy-button-id** (e.g., `buy_btn_1ABC123...`)
-- Your **publishable key** (starts with `pk_live_...` for production or `pk_test_...` for testing)
+After creating each payment link, Stripe will provide you with a unique URL that looks like:
+- `https://buy.stripe.com/xxxxxxxxxxxxx`
 
 ### 3. Update index.html
 
-Open `index.html` and replace the placeholder values in the Merch section:
+Open `index.html` and replace the placeholder URLs in the Merch section:
 
-#### For Eco T-Shirts (around line 176):
+#### For Eco T-Shirts (around line 172):
 ```html
-<stripe-buy-button
-  buy-button-id="REPLACE_WITH_YOUR_TSHIRT_BUY_BUTTON_ID"
-  publishable-key="REPLACE_WITH_YOUR_STRIPE_PUBLISHABLE_KEY"
->
-</stripe-buy-button>
+<dd><a href="https://buy.stripe.com/REPLACE_WITH_YOUR_TSHIRT_PAYMENT_LINK">💳 Buy now</a></dd>
 ```
 
-#### For Hats (around line 186):
+Replace `REPLACE_WITH_YOUR_TSHIRT_PAYMENT_LINK` with your actual T-shirt payment link ID (the part after `buy.stripe.com/`)
+
+#### For Hats (around line 176):
 ```html
-<stripe-buy-button
-  buy-button-id="REPLACE_WITH_YOUR_HAT_BUY_BUTTON_ID"
-  publishable-key="REPLACE_WITH_YOUR_STRIPE_PUBLISHABLE_KEY"
->
-</stripe-buy-button>
+<dd><a href="https://buy.stripe.com/REPLACE_WITH_YOUR_HAT_PAYMENT_LINK">💳 Buy now</a></dd>
 ```
+
+Replace `REPLACE_WITH_YOUR_HAT_PAYMENT_LINK` with your actual hat payment link ID (the part after `buy.stripe.com/`)
 
 ### 4. Test Your Integration
 
-1. Use test mode keys (`pk_test_...`) for initial testing
-2. Use Stripe's test card numbers to verify checkout works correctly
-3. Once tested, switch to live mode keys (`pk_live_...`)
+1. Use test mode payment links for initial testing
+2. Click the links to verify they direct to the correct Stripe checkout page
+3. Use Stripe's test card numbers to verify checkout works correctly
+4. Once tested, switch to live mode payment links
 
 ## Current Placeholder Values
 
 The current `index.html` contains placeholder values that clearly indicate they need to be replaced:
-- T-Shirt buy button ID: `REPLACE_WITH_YOUR_TSHIRT_BUY_BUTTON_ID`
-- Hat buy button ID: `REPLACE_WITH_YOUR_HAT_BUY_BUTTON_ID`
-- Publishable key: `REPLACE_WITH_YOUR_STRIPE_PUBLISHABLE_KEY`
+- T-Shirt payment link: `https://buy.stripe.com/REPLACE_WITH_YOUR_TSHIRT_PAYMENT_LINK`
+- Hat payment link: `https://buy.stripe.com/REPLACE_WITH_YOUR_HAT_PAYMENT_LINK`
 
-**These MUST be replaced with your actual Stripe keys for the buy buttons to function.**
+**These MUST be replaced with your actual Stripe payment link URLs for the buy buttons to function.**
 
 ## Documentation
 
-For more information about Stripe Buy Buttons, visit:
-- [Stripe Buy Button Documentation](https://stripe.com/docs/payment-links/buy-button)
+For more information about Stripe Payment Links, visit:
+- [Stripe Payment Links Documentation](https://stripe.com/docs/payment-links)
 - [Stripe Dashboard](https://dashboard.stripe.com/)
 
 ## Support
