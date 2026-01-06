@@ -95,8 +95,9 @@ The root `package-lock.json` is minimal and most work happens in individual proj
 - Follow ESLint rules defined in each project's `eslint.config.js`
 
 ### Database
-- **chat/**: Uses Drizzle ORM with PostgreSQL. Run `npm run db:push` to sync schema changes.
-- **contacts-and-cal/**: Uses JSON file storage via fs-extra
+- **chat/**: Uses Drizzle ORM with PostgreSQL. Run `npm run db:push` to sync schema changes. Note: This project is not currently deployed to Render.
+- **simple-chat/** and **contacts-and-cal/**: Connect to PostgreSQL database via DATABASE_URL environment variable provided by Render
+- **contacts-and-cal/**: Also uses JSON file storage via fs-extra for some data
 - Database migrations should be handled through Drizzle Kit for the chat project
 
 ## Testing
@@ -132,9 +133,11 @@ The root `package-lock.json` is minimal and most work happens in individual proj
 ## Deployment
 
 - The repository uses Render.com for deployment, configured in `render.yaml`
-- Pull request previews are enabled for most services
-- Services are deployed to Frankfurt region
-- Database services use PostgreSQL with connection strings from Render
+- **Deployed services with PR previews enabled**: surf, monsters-and-trees, simple-chat, contacts-and-cal-server
+- **Deployed static site (no PR previews)**: unplastech
+- **Not currently deployed**: chat (development only)
+- All services are deployed to Frankfurt region
+- PostgreSQL database (named "db") is shared by simple-chat and contacts-and-cal services via DATABASE_URL environment variable
 
 ## Important Notes
 
