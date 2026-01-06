@@ -39,8 +39,8 @@ Open `index.html` and replace the placeholder values in the Merch section:
 #### For Eco T-Shirts (around line 176):
 ```html
 <stripe-buy-button
-  buy-button-id="YOUR_TSHIRT_BUY_BUTTON_ID"
-  publishable-key="YOUR_STRIPE_PUBLISHABLE_KEY"
+  buy-button-id="REPLACE_WITH_YOUR_TSHIRT_BUY_BUTTON_ID"
+  publishable-key="REPLACE_WITH_YOUR_STRIPE_PUBLISHABLE_KEY"
 >
 </stripe-buy-button>
 ```
@@ -48,8 +48,8 @@ Open `index.html` and replace the placeholder values in the Merch section:
 #### For Hats (around line 186):
 ```html
 <stripe-buy-button
-  buy-button-id="YOUR_HAT_BUY_BUTTON_ID"
-  publishable-key="YOUR_STRIPE_PUBLISHABLE_KEY"
+  buy-button-id="REPLACE_WITH_YOUR_HAT_BUY_BUTTON_ID"
+  publishable-key="REPLACE_WITH_YOUR_STRIPE_PUBLISHABLE_KEY"
 >
 </stripe-buy-button>
 ```
