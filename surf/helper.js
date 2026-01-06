@@ -100,12 +100,11 @@ const parsedWindData = function(windData, spot, sunrise, sunset) {
             startInputType: 'utc',
             duration: { hours: duration },
             location: spot.name,
-            description: 'Based in Sweden. Future metric: Kilos of plastic recovered.',
             geo: {
                 lat: spot.lat,
                 lon: spot.lon,
             },
-            productId: `Surfkalender för ${spot.name} - Based in Sweden`
+            productId: `Surfkalender för ${spot.name}`
          });
     });
 
