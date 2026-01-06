@@ -62,7 +62,7 @@ The current `index.html` contains placeholder values that clearly indicate they 
 - T-Shirt payment link: `https://buy.stripe.com/REPLACE_WITH_YOUR_TSHIRT_PAYMENT_LINK`
 - Hat payment link: `https://buy.stripe.com/REPLACE_WITH_YOUR_HAT_PAYMENT_LINK`
 
-**These MUST be replaced with your actual Stripe payment link URLs for the buy buttons to function.**
+**These MUST be replaced with your actual Stripe payment link URLs for the links to function.**
 
 ## Documentation
 
