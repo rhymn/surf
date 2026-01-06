@@ -2,7 +2,7 @@
 
 ## Repository Overview
 
-This is a monorepo containing multiple web applications and services, primarily focused on surfing-related services and other web applications. The individual projects have nothing in common beyond deploying to Render.com, and each operates independently in its own directory.
+This is a monorepo containing multiple web applications and services. The individual projects have nothing in common beyond deploying to Render.com, and each operates independently in its own directory.
 
 ### Project Structure
 
