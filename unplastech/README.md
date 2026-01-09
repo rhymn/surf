@@ -16,7 +16,7 @@ We do **not** claim circularity, closed-loop recycling, or infinite reuse. This 
 
 ## Where to Start
 
-Begin with **[docs/00_CORE.md](/docs/00_CORE.md)** — the single source of truth for the project.
+Begin with **[docs/00_CORE.md](docs/00_CORE.md)** — the single source of truth for the project.
 
 Then read sequentially through the numbered documents:
 - `00_CORE.md` — Mission, thesis, principles, language
