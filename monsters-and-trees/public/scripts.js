@@ -19,11 +19,11 @@ let ticksPerSecond = DEFAULT_TICKS_PER_SECOND;
 let boostMultiplier = DEFAULT_BOOST_MULTIPLIER;
 let updateIntervalMs = 1000 / ticksPerSecond;
 let hasMovementConfig = false;
-const WORLD_OBJECT_TYPES = window.WORLD_OBJECT_TYPES;
-const OBJECT_TYPE_TREE = WORLD_OBJECT_TYPES.TREE;
-const OBJECT_TYPE_MONSTER = WORLD_OBJECT_TYPES.MONSTER;
-const OBJECT_TYPE_CLOUD = WORLD_OBJECT_TYPES.CLOUD;
-const OBJECT_TYPE_THORN = WORLD_OBJECT_TYPES.THORN;
+const GAME_WORLD_OBJECT_TYPES = window.WORLD_OBJECT_TYPES;
+const OBJECT_TYPE_TREE = GAME_WORLD_OBJECT_TYPES.TREE;
+const OBJECT_TYPE_MONSTER = GAME_WORLD_OBJECT_TYPES.MONSTER;
+const OBJECT_TYPE_CLOUD = GAME_WORLD_OBJECT_TYPES.CLOUD;
+const OBJECT_TYPE_THORN = GAME_WORLD_OBJECT_TYPES.THORN;
 let movementStep = baseStep;
 let localSnakeColor = 'red';
 const INITIAL_USER_LENGTH = 100;
@@ -144,11 +144,16 @@ overlay.style.overflowY = 'auto';
 document.body.appendChild(overlay);
 
 function getConnectedSnakeCount() {
-    return Object.keys(snakeStates).filter((key) => key !== localSocketId).length
+    return Object.keys(snakeStates).filter((key) => key !== 'mySnake' && key !== localSocketId).length
+}
+
+function getBotSnakeCount() {
+    return Object.keys(snakeStates).filter((key) => key.startsWith('bot-')).length
 }
 
 function updateOverlay() {
     overlay.innerHTML = `<strong>Connected Users: ${getConnectedSnakeCount()} </strong><br>`;
+    overlay.innerHTML += `<strong>Bots: ${getBotSnakeCount()} </strong><br>`;
 
     for (const id in snakeStates) {
         const snake = snakeStates[id];
@@ -294,19 +299,42 @@ function drawTrees() {
 
 function drawSnake(snake) {
     ctx.fillStyle = snake.color;
+    const baseSegmentSize = gameRules.snakeSegmentSize;
+    const headSize = baseSegmentSize * gameRules.snakeHeadSizeMultiplier;
+    const headOffset = (headSize - baseSegmentSize) / 2;
 
 
     snake.coordinates.forEach((coordinate, index) => {
         const segmentSize = index === 0
-            ? gameRules.snakeSegmentSize * gameRules.snakeHeadSizeMultiplier
-            : gameRules.snakeSegmentSize;
+            ? headSize
+            : baseSegmentSize;
 
-        ctx.fillRect(coordinate.x, coordinate.y, segmentSize, segmentSize);
+        const segmentOffset = index === 0 ? headOffset : 0;
+
+        ctx.fillRect(coordinate.x - segmentOffset, coordinate.y - segmentOffset, segmentSize, segmentSize);
     });
 
     ctx.fillStyle = snake.color;
     ctx.font = "12px Arial";
-    ctx.fillText(snake.l, snake.coordinates[0].x, snake.coordinates[0].y);
+    const tailCoordinate = snake.coordinates[snake.coordinates.length - 1] ?? snake.coordinates[0];
+    const previousToTailCoordinate = snake.coordinates[snake.coordinates.length - 2] ?? tailCoordinate;
+    const deltaX = tailCoordinate.x - previousToTailCoordinate.x;
+    const deltaY = tailCoordinate.y - previousToTailCoordinate.y;
+    const isHorizontalTail = Math.abs(deltaX) >= Math.abs(deltaY);
+    const tailDirectionX = isHorizontalTail ? Math.sign(deltaX || 1) : 0;
+    const tailDirectionY = isHorizontalTail ? 0 : Math.sign(deltaY || 1);
+    const tailLabelOffset = baseSegmentSize * 3.0;
+    const tailCenterX = tailCoordinate.x + baseSegmentSize / 2;
+    const tailCenterY = tailCoordinate.y + baseSegmentSize / 2;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(
+        snake.l,
+        tailCenterX + tailDirectionX * tailLabelOffset,
+        tailCenterY + tailDirectionY * tailLabelOffset
+    );
+    ctx.textAlign = 'start';
+    ctx.textBaseline = 'alphabetic';
 
 }
 

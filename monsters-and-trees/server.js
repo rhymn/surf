@@ -14,8 +14,8 @@ const UPDATE_COORDINATES_QUERY = 'UPDATE coordinates SET x = $1, y = $2 WHERE id
 const HEX_COLOR_CHARS = '0123456789ABCDEF';
 const HEX_BASE = 16;
 const HEX_COLOR_LENGTH = 6;
-const VIRTUAL_WIDTH = 800;
-const VIRTUAL_HEIGHT = 800;
+const VIRTUAL_WIDTH = 1600;
+const VIRTUAL_HEIGHT = 1600;
 const MOVEMENT_BASE_STEP = 2;
 const MOVEMENT_TICKS_PER_SECOND = 30;
 const MOVEMENT_BOOST_MULTIPLIER = 2;
@@ -234,6 +234,94 @@ const clampPosition = (value, min, max) => {
     return Math.min(Math.max(value, min), max);
 };
 
+const getSnakeHitbox = (position) => {
+    return {
+        x: position.x,
+        y: position.y,
+        width: RULE_SNAKE_SEGMENT_SIZE,
+        height: RULE_SNAKE_SEGMENT_SIZE
+    };
+};
+
+const getCollidedWorldObjectId = (position) => {
+    const snakeHitbox = getSnakeHitbox(position);
+
+    for (const worldObjectId in worldObjects) {
+        const worldObject = worldObjects[worldObjectId];
+        const worldObjectRect = getWorldObjectRect(worldObject);
+        if (rectanglesOverlap(snakeHitbox, worldObjectRect)) {
+            return worldObjectId;
+        }
+    }
+
+    return null;
+};
+
+const resetBotUser = (botId) => {
+    const botUser = connectedUsers[botId];
+    const botState = botStateById[botId];
+    if (!botUser || !botState) {
+        return;
+    }
+
+    botUser.coordinates = getSafeStartPosition(boardWidth, boardHeight);
+    botUser.score = INITIAL_USER_SCORE;
+    botUser.l = INITIAL_USER_LENGTH;
+    botState.direction = getRandomBotDirection();
+};
+
+const applyWorldObjectHitForBot = (botId, worldObjectId) => {
+    const botUser = connectedUsers[botId];
+    const worldObject = worldObjects[worldObjectId];
+    if (!botUser || !worldObject) {
+        return { usersChanged: false, worldObjectsChanged: false };
+    }
+
+    const worldObjectDefinition = WORLD_OBJECT_TYPE_DEFINITIONS[worldObject.type];
+    if (!worldObjectDefinition) {
+        return { usersChanged: false, worldObjectsChanged: false };
+    }
+
+    if (worldObjectDefinition.effects.instantLose) {
+        resetBotUser(botId);
+        return { usersChanged: true, worldObjectsChanged: false };
+    }
+
+    botUser.score += worldObjectDefinition.effects.scoreDelta;
+    botUser.l += worldObjectDefinition.effects.growthDelta;
+
+    if (worldObjectDefinition.removeOnHit) {
+        delete worldObjects[worldObjectId];
+        return { usersChanged: true, worldObjectsChanged: true };
+    }
+
+    return { usersChanged: true, worldObjectsChanged: false };
+};
+
+const botCollidesWithAnotherPlayer = (botId, botPosition) => {
+    for (const userId in connectedUsers) {
+        if (userId === botId) {
+            continue;
+        }
+
+        const otherUser = connectedUsers[userId];
+        if (!otherUser) {
+            continue;
+        }
+
+        if (
+            botPosition.x >= otherUser.coordinates.x &&
+            botPosition.x <= otherUser.coordinates.x + RULE_PLAYER_COLLISION_SIZE &&
+            botPosition.y >= otherUser.coordinates.y &&
+            botPosition.y <= otherUser.coordinates.y + RULE_PLAYER_COLLISION_SIZE
+        ) {
+            return true;
+        }
+    }
+
+    return false;
+};
+
 const initializeBots = () => {
     for (let index = 0; index < BOT_COUNT; index++) {
         const botId = `bot-${index + 1}`;
@@ -254,7 +342,8 @@ const initializeBots = () => {
 };
 
 const updateBotPositions = () => {
-    let hasMovement = false;
+    let usersChanged = false;
+    let worldObjectsChanged = false;
     const maxX = Math.max(0, boardWidth - RULE_SNAKE_SEGMENT_SIZE);
     const maxY = Math.max(0, boardHeight - RULE_SNAKE_SEGMENT_SIZE);
 
@@ -282,7 +371,7 @@ const updateBotPositions = () => {
             candidatePosition.y < 0 ||
             candidatePosition.y > maxY;
 
-        if (outOfBounds || collidesWithBlockingObject(candidatePosition)) {
+        if (outOfBounds) {
             let foundAlternative = false;
 
             for (let attempt = 0; attempt < BOT_DIRECTIONS.length; attempt++) {
@@ -298,10 +387,10 @@ const updateBotPositions = () => {
                     alternatePosition.y < 0 ||
                     alternatePosition.y > maxY;
 
-                if (!alternateOutOfBounds && !collidesWithBlockingObject(alternatePosition)) {
+                if (!alternateOutOfBounds) {
                     botState.direction = alternateDirection;
                     botUser.coordinates = alternatePosition;
-                    hasMovement = true;
+                    usersChanged = true;
                     foundAlternative = true;
                     break;
                 }
@@ -314,6 +403,18 @@ const updateBotPositions = () => {
                 };
             }
 
+            if (botCollidesWithAnotherPlayer(botId, botUser.coordinates)) {
+                resetBotUser(botId);
+                usersChanged = true;
+            }
+
+            const collidedWorldObjectId = getCollidedWorldObjectId(botUser.coordinates);
+            if (collidedWorldObjectId) {
+                const result = applyWorldObjectHitForBot(botId, collidedWorldObjectId);
+                usersChanged = usersChanged || result.usersChanged;
+                worldObjectsChanged = worldObjectsChanged || result.worldObjectsChanged;
+            }
+
             continue;
         }
 
@@ -321,10 +422,27 @@ const updateBotPositions = () => {
             x: clampPosition(candidatePosition.x, 0, maxX),
             y: clampPosition(candidatePosition.y, 0, maxY)
         };
-        hasMovement = true;
+        usersChanged = true;
+
+        if (botCollidesWithAnotherPlayer(botId, botUser.coordinates)) {
+            resetBotUser(botId);
+            usersChanged = true;
+            continue;
+        }
+
+        const collidedWorldObjectId = getCollidedWorldObjectId(botUser.coordinates);
+        if (collidedWorldObjectId) {
+            const result = applyWorldObjectHitForBot(botId, collidedWorldObjectId);
+            usersChanged = usersChanged || result.usersChanged;
+            worldObjectsChanged = worldObjectsChanged || result.worldObjectsChanged;
+        }
     }
 
-    if (hasMovement) {
+    if (worldObjectsChanged) {
+        broadcastWorldObjects();
+    }
+
+    if (usersChanged) {
         broadcastUsers();
     }
 };
@@ -380,7 +498,6 @@ io.on('connection', (socket) => {
     socket.emit(SOCKET_EVENTS.SET_GAME_RULES, {
         borderCollisionEndsGame: RULE_BORDER_COLLISION_ENDS_GAME,
         playerCollisionEndsGame: RULE_PLAYER_COLLISION_ENDS_GAME,
-        treeCollisionEndsGame: RULE_TREE_COLLISION_ENDS_GAME,
         snakeSegmentSize: RULE_SNAKE_SEGMENT_SIZE,
         snakeHeadSizeMultiplier: RULE_SNAKE_HEAD_SIZE_MULTIPLIER,
         playerCollisionSize: RULE_PLAYER_COLLISION_SIZE,

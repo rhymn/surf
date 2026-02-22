@@ -9,7 +9,7 @@ const DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS = {
     [WORLD_OBJECT_TYPES.TREE]: {
         size: 64,
         spawnPadding: 6,
-        collisionInset: 8,
+        collisionInset: 16,
         blocksSpawn: true,
         removeOnHit: false,
         effects: {
