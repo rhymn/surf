@@ -2,23 +2,53 @@ const socket = io();
 const canvas = document.getElementById('myCanvas');
 const ctx = canvas.getContext('2d');
 
-const sphereRadius = 12.5; // Radius of the sphere (half of 25)
-const squareSize = 25; // Size of the square
-let virtualWidth = 600; // Virtual area width (default value)
-let virtualHeight = 600; // Virtual area height (default value)
-let sphereX = virtualWidth / 2; // Initial x position of the sphere
-let sphereY = virtualHeight / 2; // Initial y position of the sphere
+const SPHERE_RADIUS = 12.5;
+let boardWidth = 0;
+let boardHeight = 0;
 
-let direction = null; // Current direction of movement
-let paused = false; // Movement paused state
-let gameOver = false; // Game over state
-let boost = false; // Boost mode state
+let movementDirection = null;
+let isPaused = false;
+let isGameOver = false;
+let isBoostEnabled = false;
 
-const baseStep = 2; // Base number of pixels the sphere moves per frame
-let step = baseStep; // Current step value
-let userColor = 'red'; // Default color
+const DEFAULT_BASE_STEP = 2;
+const DEFAULT_TICKS_PER_SECOND = 20;
+const DEFAULT_BOOST_MULTIPLIER = 2;
+let baseStep = DEFAULT_BASE_STEP;
+let ticksPerSecond = DEFAULT_TICKS_PER_SECOND;
+let boostMultiplier = DEFAULT_BOOST_MULTIPLIER;
+let updateIntervalMs = 1000 / ticksPerSecond;
+let hasMovementConfig = false;
+const WORLD_OBJECT_TYPES = window.WORLD_OBJECT_TYPES;
+const OBJECT_TYPE_TREE = WORLD_OBJECT_TYPES.TREE;
+const OBJECT_TYPE_MONSTER = WORLD_OBJECT_TYPES.MONSTER;
+const OBJECT_TYPE_CLOUD = WORLD_OBJECT_TYPES.CLOUD;
+const OBJECT_TYPE_THORN = WORLD_OBJECT_TYPES.THORN;
+let movementStep = baseStep;
+let localSnakeColor = 'red';
+const INITIAL_USER_LENGTH = 100;
+const GAME_SOCKET_EVENTS = window.SOCKET_EVENTS;
+let gameRules = {
+    borderCollisionEndsGame: true,
+    playerCollisionEndsGame: true,
+    treeCollisionEndsGame: false,
+    snakeSegmentSize: 10,
+    snakeHeadSizeMultiplier: 2,
+    playerCollisionSize: 10,
+    worldObjectsEnabled: true
+};
 
-// Tree SVG data URL
+let worldObjectDefinitions = JSON.parse(JSON.stringify(window.DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS));
+
+const rectanglesOverlap = (firstRect, secondRect) => {
+    return (
+        firstRect.x < secondRect.x + secondRect.width &&
+        firstRect.x + firstRect.width > secondRect.x &&
+        firstRect.y < secondRect.y + secondRect.height &&
+        firstRect.y + firstRect.height > secondRect.y
+    );
+};
+
 const treeSVG = 'data:image/svg+xml;base64,' + btoa(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
     <rect x="112" y="128" width="32" height="64" fill="#8B4513"/>
@@ -40,97 +70,88 @@ const monsterSVG = 'data:image/svg+xml;base64,' + btoa(`
     </svg>
 `);
 
-let trees = [];
-let monsters = {};
-let otherUsers = {};
-let treeImages = [];
-let monsterImages = [];
+let worldObjects = {};
+const treeImage = new Image();
+treeImage.src = treeSVG;
+const monsterImage = new Image();
+monsterImage.src = monsterSVG;
 
-// Each snake has an array of coordinates
-let snakes = {};
-let socketId = null;
-const initMySnake = () => {
-    snakes['mySnake'] = {
-        coordinates: [{ x: virtualWidth / 2, y: virtualHeight / 2 }],
-        color: userColor,
-        l:1
+let snakeStates = {};
+let localSocketId = null;
+const initializeLocalSnake = () => {
+    snakeStates.mySnake = {
+        coordinates: [{ x: boardWidth / 2, y: boardHeight / 2 }],
+        color: localSnakeColor,
+        l: INITIAL_USER_LENGTH
     }
 }
 
-initMySnake();
+initializeLocalSnake();
 
 const updateSnakeColor = (snakeId, color) => {
-    if(snakeId == socketId){
+    if (snakeId === localSocketId) {
         return;
     }
 
-    if(snakes[snakeId]){
-        snakes[snakeId].color = color;
+    if (snakeStates[snakeId]) {
+        snakeStates[snakeId].color = color;
     }
 }
 
-const updateSnake = (snakeId, coordinatesOfHead, length, score) => {
-    if(snakeId == socketId){
-
-        // My own snake is handled locally.
+const upsertSnakeState = (snakeId, headCoordinates, length, score) => {
+    if (snakeId === localSocketId) {
         return;
     }
 
-    if(snakeId !== 'mySnake'){
+    if (snakeId !== 'mySnake') {
         console.log('setting new coords')
     }
 
-    if(!snakes[snakeId]){
-        snakes[snakeId] = {
+    if (!snakeStates[snakeId]) {
+        snakeStates[snakeId] = {
             coordinates: [{
-                x: coordinatesOfHead.x,
-                y: coordinatesOfHead.y,
+                x: headCoordinates.x,
+                y: headCoordinates.y,
             }],
             color: 'black',
-            l: 1,
+            l: INITIAL_USER_LENGTH,
             score: 0
         }
     }
 
-    if(score){
-        snakes[snakeId].score = score;
+    if (score) {
+        snakeStates[snakeId].score = score;
     }
 
-    if(length > 0){
-        snakes[snakeId].l = length;
+    if (length > 0) {
+        snakeStates[snakeId].l = length;
     }
 
-    // Add the new head coordinates
-    snakes[snakeId].coordinates.unshift(coordinatesOfHead);
-
-    snakes[snakeId].coordinates.splice(snakes[snakeId].l);
+    snakeStates[snakeId].coordinates.unshift(headCoordinates);
+    snakeStates[snakeId].coordinates.splice(snakeStates[snakeId].l);
 }
 
-
-// Create the overlay window
 const overlay = document.createElement('div');
 overlay.style.position = 'absolute';
 overlay.style.bottom = '10px';
 overlay.style.right = '10px';
 overlay.style.width = '200px';
 overlay.style.height = 'auto';
-overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.5)'; // 50% transparent
+overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
 overlay.style.border = '1px solid black';
 overlay.style.padding = '10px';
 overlay.style.overflowY = 'auto';
 document.body.appendChild(overlay);
 
-function numberOfSnakes(){
-    return Object.keys(snakes).filter(key => key !== socketId).length
+function getConnectedSnakeCount() {
+    return Object.keys(snakeStates).filter((key) => key !== localSocketId).length
 }
 
-// Function to update the overlay window
 function updateOverlay() {
-    // const numberOfUsers = Object.keys(snakes).length + 1; // Add 1 for the current user
-    overlay.innerHTML = `<strong>Connected Users: ${numberOfSnakes()} </strong><br>`;
+    overlay.innerHTML = `<strong>Connected Users: ${getConnectedSnakeCount()} </strong><br>`;
 
-    for(const id in snakes){
-        const snake = snakes[id];
+    for (const id in snakeStates) {
+        const snake = snakeStates[id];
         overlay.innerHTML += `<div style="color: ${snake.color};">
 
             (${snake.coordinates[0].x}, ${snake.coordinates[0].y}), ${snake.l} L
@@ -139,199 +160,246 @@ function updateOverlay() {
 
 }
 
-let lastCoordinates = { x: 0, y: 0 };
+let lastHeadCoordinates = { x: 0, y: 0 };
 
-// Function to send coordinates
-function sendCoordinatesOfHead(x, y) {
+function emitHeadCoordinates(x, y) {
 
-    if(lastCoordinates.x === x && lastCoordinates.y === y){
+    if (lastHeadCoordinates.x === x && lastHeadCoordinates.y === y) {
         return;
     }
 
-    socket.emit('sendCoordinatesOfHead', { x, y, l: snakes['mySnake'].l });
-    lastCoordinates = { x, y };
+    socket.emit(GAME_SOCKET_EVENTS.SEND_COORDINATES_OF_HEAD, { x, y, l: snakeStates.mySnake.l });
+    lastHeadCoordinates = { x, y };
 }
 
-const removeMonster = (monsterId) => {
-    console.log('Removing monster:', monsterId);
-    delete monsters[monsterId];
-    requestAnimationFrame(drawScene);
-}
+socket.on(GAME_SOCKET_EVENTS.CONNECT, () => localSocketId = socket.id);
 
-socket.on("connect", () => socketId = socket.id);
-
-
-socket.on('removeMonster', (monsterId) => {
-    removeMonster(monsterId);
-});
-
-// Listen for coordinates from other users
-socket.on('updateCoordinatesOfHead', (data) => {
+socket.on(GAME_SOCKET_EVENTS.UPDATE_COORDINATES_OF_HEAD, (data) => {
     const { id, coordinatesOfHead } = data;
-    updateSnake(id, { x: coordinatesOfHead.x, y: coordinatesOfHead.y }, data.l, data.score);
+    upsertSnakeState(id, { x: coordinatesOfHead.x, y: coordinatesOfHead.y }, data.l, data.score);
 
     drawScene();
     updateOverlay();
 });
 
-// Listen for assigned color from the server
-socket.on('assignColor', (color) => {
-    userColor = color;
-    console.log('Assigned color:', userColor);
-    updateOverlay(); // Update the overlay with the user's color
+socket.on(GAME_SOCKET_EVENTS.ASSIGN_COLOR, (color) => {
+    localSnakeColor = color;
+    console.log('Assigned color:', localSnakeColor);
+    updateOverlay();
 });
 
-// Listen for tree positions from the server
-socket.on('initializeTrees', (serverTrees) => {
-    trees = serverTrees;
-    treeImages = trees.map(() => {
-        const img = new Image();
-        img.src = treeSVG;
-        return img;
-    });
+socket.on(GAME_SOCKET_EVENTS.SET_WORLD_OBJECT_DEFINITIONS, (objectDefinitions) => {
+    worldObjectDefinitions = {
+        ...worldObjectDefinitions,
+        ...objectDefinitions
+    };
     drawScene();
 });
 
-// Listen for monster positions from the server
-socket.on('initializeMonsters', (serverMonsters) => {
-    monsters = serverMonsters;
-    console.log('New monsters', monsters);
-
-});
-
-// Listen for virtual dimensions from the server
-socket.on('setVirtualDimensions', (data) => {
-    virtualWidth = data.virtualWidth;
-    virtualHeight = data.virtualHeight;
+socket.on(GAME_SOCKET_EVENTS.UPDATE_WORLD_OBJECTS, (nextWorldObjects) => {
+    worldObjects = nextWorldObjects;
     drawScene();
 });
 
-// Listen for starting position from the server
-socket.on('setStartPosition', (position) => {
-    snakes['mySnake'].coordinates[0].x = position.x;
-    snakes['mySnake'].coordinates[0].y = position.y;
+const applyMovementConfig = ({ baseStep: configuredBaseStep, ticksPerSecond: configuredTicksPerSecond, boostMultiplier: configuredBoostMultiplier }) => {
+    if (typeof configuredBaseStep === 'number' && configuredBaseStep > 0) {
+        baseStep = configuredBaseStep;
+    }
+
+    if (typeof configuredTicksPerSecond === 'number' && configuredTicksPerSecond > 0) {
+        ticksPerSecond = configuredTicksPerSecond;
+    }
+
+    if (typeof configuredBoostMultiplier === 'number' && configuredBoostMultiplier > 0) {
+        boostMultiplier = configuredBoostMultiplier;
+    }
+
+    updateIntervalMs = 1000 / ticksPerSecond;
+    movementStep = isBoostEnabled ? baseStep * boostMultiplier : baseStep;
+    hasMovementConfig = true;
+
+    if (!isPaused) {
+        stop();
+        start();
+    }
+};
+
+socket.on(GAME_SOCKET_EVENTS.SET_MOVEMENT_CONFIG, (movementConfig) => {
+    applyMovementConfig(movementConfig);
+});
+
+const applyGameRules = (rulesConfig) => {
+    gameRules = {
+        ...gameRules,
+        ...rulesConfig
+    };
+};
+
+socket.on(GAME_SOCKET_EVENTS.SET_GAME_RULES, (rulesConfig) => {
+    applyGameRules(rulesConfig);
+});
+
+socket.on(GAME_SOCKET_EVENTS.SET_VIRTUAL_DIMENSIONS, (data) => {
+    boardWidth = data.virtualWidth;
+    boardHeight = data.virtualHeight;
     drawScene();
 });
 
-// Consider this might send back myself, so exclude myself socket.id somehow...
+socket.on(GAME_SOCKET_EVENTS.SET_START_POSITION, (position) => {
+    snakeStates.mySnake.coordinates[0].x = position.x;
+    snakeStates.mySnake.coordinates[0].y = position.y;
+    drawScene();
+});
 
-socket.on('updateUsers', (users) => {
+socket.on(GAME_SOCKET_EVENTS.UPDATE_USERS, (users) => {
     console.log('updating users')
-    // remove all snakes in snakes, that are not in users
-    for (const id in snakes) {
-        // Never delete the mySnake key
-        if(id == 'mySnake'){
+    for (const id in snakeStates) {
+        if (id === 'mySnake') {
             continue;
         }
 
         if (!users[id]) {
-            delete snakes[id];
+            delete snakeStates[id];
         }
     }
 
     for (const id in users) {
         const user = users[id];
 
-        updateSnake(id, user.coordinates, user.l, user.score);
+        upsertSnakeState(id, user.coordinates, user.l, user.score);
         updateSnakeColor(id, user.color);
     }
 
     updateOverlay();
-    // drawScene();
-});
-
-// Listen for user disconnection
-socket.on('removeUser', (id) => {
-    delete otherUsers[id];
-    drawScene();
-    updateOverlay();
 });
 
 
-// Function to draw trees on the canvas
 function drawTrees() {
-    const treeSize = 64;
-    trees.forEach((tree, index) => {
-        const img = treeImages[index];
-        if (img.complete) {
-            ctx.drawImage(img, tree.x, tree.y, treeSize, treeSize); // Draw the tree at the specified position with double size
+    for (const worldObjectId in worldObjects) {
+        const worldObject = worldObjects[worldObjectId];
+        if (worldObject.type !== OBJECT_TYPE_TREE) {
+            continue;
         }
-    });
+
+        const worldObjectDefinition = worldObjectDefinitions[worldObject.type];
+        if (!worldObjectDefinition) {
+            continue;
+        }
+
+        if (treeImage.complete) {
+            ctx.drawImage(treeImage, worldObject.x, worldObject.y, worldObjectDefinition.size, worldObjectDefinition.size);
+        }
+    }
 }
 
 function drawSnake(snake) {
-    const snakeSize = 10; // Size of each segment of the snake
     ctx.fillStyle = snake.color;
 
 
-    snake.coordinates.forEach(coordinate => {
-        ctx.fillRect(coordinate.x, coordinate.y, snakeSize, snakeSize);
+    snake.coordinates.forEach((coordinate, index) => {
+        const segmentSize = index === 0
+            ? gameRules.snakeSegmentSize * gameRules.snakeHeadSizeMultiplier
+            : gameRules.snakeSegmentSize;
+
+        ctx.fillRect(coordinate.x, coordinate.y, segmentSize, segmentSize);
     });
 
-    // on the first coordinate, draw the value of snake.l
     ctx.fillStyle = snake.color;
     ctx.font = "12px Arial";
     ctx.fillText(snake.l, snake.coordinates[0].x, snake.coordinates[0].y);
 
 }
 
-function notifyOfEatenMonster(monsterId) {
-    socket.emit('monsterEaten', monsterId);
+function notifyOfHitWorldObject(worldObjectId) {
+    socket.emit(GAME_SOCKET_EVENTS.WORLD_OBJECT_HIT, worldObjectId);
 }
 
-// Function to draw monsters on the canvas
-function drawMonsters() {
-    const monsterSize = 32;
-    for (const monster in monsters) {
-        const img = new Image();
-        img.src = monsterSVG;
-        if (img.complete) {
-            ctx.drawImage(img, monsters[monster].x, monsters[monster].y, monsterSize, monsterSize); // Draw the monster at the specified position
+function drawWorldObjects() {
+    for (const worldObjectId in worldObjects) {
+        const worldObject = worldObjects[worldObjectId];
+        const worldObjectDefinition = worldObjectDefinitions[worldObject.type];
+
+        if (!worldObjectDefinition) {
+            continue;
+        }
+
+        if (worldObject.type === OBJECT_TYPE_TREE) {
+            continue;
+        }
+
+        if (worldObject.type === OBJECT_TYPE_MONSTER) {
+            if (monsterImage.complete) {
+                ctx.drawImage(monsterImage, worldObject.x, worldObject.y, worldObjectDefinition.size, worldObjectDefinition.size);
+            }
+            continue;
+        }
+
+        if (worldObject.type === OBJECT_TYPE_CLOUD) {
+            const cloudCenterX = worldObject.x + worldObjectDefinition.size / 2;
+            const cloudCenterY = worldObject.y + worldObjectDefinition.size / 2;
+            const cloudRadius = worldObjectDefinition.size / 2;
+
+            ctx.fillStyle = '#FFFFFF';
+            ctx.beginPath();
+            ctx.arc(cloudCenterX, cloudCenterY, cloudRadius, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.strokeStyle = '#BBBBBB';
+            ctx.stroke();
+            continue;
+        }
+
+        if (worldObject.type === OBJECT_TYPE_THORN) {
+            ctx.fillStyle = '#C62828';
+            ctx.fillRect(worldObject.x, worldObject.y, worldObjectDefinition.size, worldObjectDefinition.size);
+            continue;
         }
     }
 }
 
-// Function to draw the entire scene
-function drawScene() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+const getWorldObjectHitbox = (worldObject, worldObjectDefinition) => {
+    const maxInset = Math.max(0, Math.floor((worldObjectDefinition.size - 1) / 2));
+    const objectInset = Math.max(0, Math.min(worldObjectDefinition.collisionInset ?? 0, maxInset));
 
-    // Save the current context state
+    return {
+        x: worldObject.x + objectInset,
+        y: worldObject.y + objectInset,
+        width: worldObjectDefinition.size - objectInset * 2,
+        height: worldObjectDefinition.size - objectInset * 2
+    };
+};
+
+function drawScene() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
 
-    // Translate the context to center the sphere in the viewport
-    ctx.translate(canvas.width / 2 - snakes['mySnake'].coordinates[0].x, canvas.height / 2 - snakes['mySnake'].coordinates[0].y);
+    ctx.translate(canvas.width / 2 - snakeStates.mySnake.coordinates[0].x, canvas.height / 2 - snakeStates.mySnake.coordinates[0].y);
 
-    // Draw the border
     ctx.strokeStyle = 'black';
     ctx.lineWidth = 5;
-    ctx.strokeRect(0, 0, virtualWidth, virtualHeight);
+    ctx.strokeRect(0, 0, boardWidth, boardHeight);
 
-    // Draw the trees
     drawTrees();
+    drawWorldObjects();
 
-    // Draw the monsters
-    drawMonsters();
+    drawSnake(snakeStates.mySnake);
 
-    // Draw the user's sphere
-    // drawSphere();
-    drawSnake(snakes['mySnake']);
-
-    // Draw other users' objects
-    for (const id in snakes) {
-        const user = snakes[id];
+    for (const id in snakeStates) {
+        const user = snakeStates[id];
 
         drawSnake(user)
     }
-    
 
-    // Restore the context to its original state
     ctx.restore();
 }
 
 let intervalId;
 
 const start = () => {
-    intervalId = setInterval(updatePosition, 1000 / 10); // Update the position every 60th of a second
+    if (!hasMovementConfig) {
+        return;
+    }
+    intervalId = setInterval(updatePosition, updateIntervalMs);
 }
 
 const stop = () => {
@@ -340,33 +408,31 @@ const stop = () => {
 
 start();
 
-
-// Event listener for arrow keys to set the direction of the sphere's movement
 window.addEventListener('keydown', (event) => {
-    if (!gameOver) {
+    if (!isGameOver) {
         switch (event.key) {
             case 'ArrowUp':
-                direction = 'up';
+                movementDirection = 'up';
                 break;
             case 'ArrowDown':
-                direction = 'down';
+                movementDirection = 'down';
                 break;
             case 'ArrowLeft':
-                direction = 'left';
+                movementDirection = 'left';
                 break;
             case 'ArrowRight':
-                direction = 'right';
+                movementDirection = 'right';
                 break;
             case ' ':
-                paused = !paused; // Toggle the paused state
-                paused ? stop() : start();
+                isPaused = !isPaused;
+                isPaused ? stop() : start();
                 break;
             case 'b':
-                boost = !boost; // Toggle the boost state
-                step = boost ? baseStep * 2 : baseStep; // Double the step value if boost is on
+                isBoostEnabled = !isBoostEnabled;
+                movementStep = isBoostEnabled ? baseStep * boostMultiplier : baseStep;
                 break;
             case 'o':
-                overlay.style.display = overlay.style.display === 'none' ? 'block' : 'none'; // Toggle overlay visibility
+                overlay.style.display = overlay.style.display === 'none' ? 'block' : 'none';
                 break;
         }
     }
@@ -374,11 +440,10 @@ window.addEventListener('keydown', (event) => {
     requestAnimationFrame(drawScene);
 });
 
-const sendWeHitAnotherSnake = () => socket.emit('iTurnedIntoMonsters', {coordinates: snakes['mySnake'].coordinates});
+const sendWeHitAnotherSnake = () => socket.emit(GAME_SOCKET_EVENTS.TURNED_INTO_MONSTERS, {coordinates: snakeStates.mySnake.coordinates});
 
-// Add touch event listeners for mobile devices
 canvas.addEventListener('touchstart', (event) => {
-    if (!gameOver) {
+    if (!isGameOver) {
         const touch = event.touches[0];
         const touchX = touch.clientX;
         const touchY = touch.clientY;
@@ -390,81 +455,113 @@ canvas.addEventListener('touchstart', (event) => {
         const diffY = touchY - centerY;
 
         if (Math.abs(diffX) > Math.abs(diffY)) {
-            direction = diffX > 0 ? 'right' : 'left';
+            movementDirection = diffX > 0 ? 'right' : 'left';
         } else {
-            direction = diffY > 0 ? 'down' : 'up';
+            movementDirection = diffY > 0 ? 'down' : 'up';
         }
     }
 
     requestAnimationFrame(drawScene);
 });
 
-// Function to update the sphere's position based on the current direction
 function updatePosition() {
-    let x, y, newLength = 0;
+    let nextX;
+    let nextY;
+    let nextLength = 0;
 
-    x = snakes['mySnake'].coordinates[0].x;
-    y = snakes['mySnake'].coordinates[0].y;
+    nextX = snakeStates.mySnake.coordinates[0].x;
+    nextY = snakeStates.mySnake.coordinates[0].y;
 
-    if (!paused && !gameOver) {
-        switch (direction) {
+    if (!isPaused && !isGameOver) {
+        switch (movementDirection) {
             case 'up':
-                y -= step;
+                nextY -= movementStep;
                 break;
             case 'down':
-                y += step;
+                nextY += movementStep;
                 break;
             case 'left':
-                x -= step;
+                nextX -= movementStep;
                 break;
             case 'right':
-                x += step;
+                nextX += movementStep;
                 break;
         }
 
-
-        // Check for game over condition
-        if (x - sphereRadius < 0 || x + sphereRadius > virtualWidth ||
-            y - sphereRadius < 0 || y + sphereRadius > virtualHeight) {
-            gameOver = true;
+        if (gameRules.borderCollisionEndsGame && (
+            nextX - SPHERE_RADIUS < 0 || nextX + SPHERE_RADIUS > boardWidth ||
+            nextY - SPHERE_RADIUS < 0 || nextY + SPHERE_RADIUS > boardHeight
+        )) {
+            isGameOver = true;
             alert('Game Over!');
         }
 
-        // If we touch another snake, game over
-        for (const id in snakes) {
-            if (id === 'mySnake') {
-                continue;
-            }
+        if (gameRules.worldObjectsEnabled) {
+            const snakeHitbox = {
+                x: nextX,
+                y: nextY,
+                width: gameRules.snakeSegmentSize,
+                height: gameRules.snakeSegmentSize
+            };
 
-            for (let i = 0; i < snakes[id].coordinates.length; i++) {
-                const coordinate = snakes[id].coordinates[i];
-                if (x >= coordinate.x && x <= coordinate.x + 10 &&
-                    y >= coordinate.y && y <= coordinate.y + 10) {
-                    gameOver = true;
-                    sendWeHitAnotherSnake();
-                    alert('Game Over, hit another player!');
+            for (const worldObjectId in worldObjects) {
+                const worldObject = worldObjects[worldObjectId];
+                const worldObjectDefinition = worldObjectDefinitions[worldObject.type];
+
+                if (!worldObjectDefinition) {
+                    continue;
+                }
+
+                const worldObjectHitbox = getWorldObjectHitbox(worldObject, worldObjectDefinition);
+                if (!rectanglesOverlap(snakeHitbox, worldObjectHitbox)) {
+                    continue;
+                }
+
+                if (worldObjectDefinition.effects.instantLose) {
+                    isGameOver = true;
+                    alert('Game Over, hit a dangerous object!');
                     return;
+                }
+
+                notifyOfHitWorldObject(worldObjectId);
+                nextLength = snakeStates.mySnake.l + worldObjectDefinition.effects.growthDelta;
+
+                if (!worldObjectDefinition.removeOnHit) {
+                    continue;
                 }
             }
         }
 
-        // if we eat a monster, we gain 1 point/length
-        for (const monster in monsters) {
-            if (x >= monsters[monster].x && x <= monsters[monster].x + 32 &&
-                y >= monsters[monster].y && y <= monsters[monster].y + 32) {
-                notifyOfEatenMonster(monster);
-                // snakes['mySnake'].l += 50;
-                newLength = snakes['mySnake'].l + 50;
+        if (gameRules.playerCollisionEndsGame) {
+            for (const id in snakeStates) {
+                if (id === 'mySnake') {
+                    continue;
+                }
+
+                for (let i = 0; i < snakeStates[id].coordinates.length; i++) {
+                    const coordinate = snakeStates[id].coordinates[i];
+                    if (
+                        nextX >= coordinate.x &&
+                        nextX <= coordinate.x + gameRules.playerCollisionSize &&
+                        nextY >= coordinate.y &&
+                        nextY <= coordinate.y + gameRules.playerCollisionSize
+                    ) {
+                        isGameOver = true;
+                        sendWeHitAnotherSnake();
+                        alert('Game Over, hit another player!');
+                        return;
+                    }
+                }
             }
         }
+
     }
 
-    sendCoordinatesOfHead(x, y); // Send the updated coordinates
-    updateSnake('mySnake', { x, y }, newLength);
+    emitHeadCoordinates(nextX, nextY);
+    upsertSnakeState('mySnake', { x: nextX, y: nextY }, nextLength);
 
-    // drawScene();
-    updateOverlay(); // Update the overlay with the user's position
-    if (!gameOver) {
+    updateOverlay();
+    if (!isGameOver) {
         requestAnimationFrame(drawScene);
     }
 }
@@ -472,7 +569,7 @@ function updatePosition() {
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    drawScene(); // Redraw the scene after resizing
+    drawScene();
 }
 
 resizeCanvas();
