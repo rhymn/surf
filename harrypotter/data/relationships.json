@@ -1,0 +1,23 @@
+[
+  {
+    "id": "harry-ron-vanskap",
+    "type": "vänskap",
+    "fromId": "harry",
+    "toId": "ron",
+    "description": "Bästa vänner"
+  },
+  {
+    "id": "harry-hermione-vanskap",
+    "type": "vänskap",
+    "fromId": "harry",
+    "toId": "hermione",
+    "description": "Nära vänner"
+  },
+  {
+    "id": "hermione-ron-vanskap",
+    "type": "vänskap",
+    "fromId": "hermione",
+    "toId": "ron",
+    "description": "Vänner och allierade"
+  }
+]

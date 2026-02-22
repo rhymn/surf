@@ -1,0 +1,20 @@
+[
+  {
+    "id": "daniel-radcliffe",
+    "name": "Daniel Radcliffe",
+    "characterIds": ["harry"],
+    "description": "Gestaltade Harry Potter i filmerna"
+  },
+  {
+    "id": "emma-watson",
+    "name": "Emma Watson",
+    "characterIds": ["hermione"],
+    "description": "Gestaltade Hermione Granger i filmerna"
+  },
+  {
+    "id": "rupert-grint",
+    "name": "Rupert Grint",
+    "characterIds": ["ron"],
+    "description": "Gestaltade Ronny Weasley i filmerna"
+  }
+]

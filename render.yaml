@@ -62,6 +62,13 @@ services:
     branch: main
     rootDir: unplastech
 
+  - type: web
+    name: harrypotter
+    runtime: static
+    staticPublishPath: .
+    branch: main
+    rootDir: harrypotter
+
 databases:
   - name: db
     plan: basic-256mb

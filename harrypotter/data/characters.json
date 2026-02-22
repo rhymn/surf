@@ -1,0 +1,44 @@
+[
+  {
+    "id": "harry",
+    "name": "Harry Potter",
+    "house": "Gryffindor",
+    "birthYear": 1980,
+    "deathYear": null,
+    "actorId": "daniel-radcliffe",
+    "petIds": ["hedwig"],
+    "yearIds": ["year-1", "year-2", "year-3", "year-4", "year-5", "year-6", "year-7"],
+    "description": "Pojken som överlevde",
+    "kuriosa": "Är den utvalde"
+  },
+  {
+    "id": "hermione",
+    "name": "Hermione Granger",
+    "house": "Gryffindor",
+    "birthYear": 1979,
+    "deathYear": null,
+    "actorId": "emma-watson",
+    "petIds": ["crookshanks"],
+    "yearIds": ["year-1", "year-2", "year-3", "year-4", "year-5", "year-6", "year-7"],
+    "description": "Briljant häxa och en av Harrys närmaste vänner",
+    "kuriosa": "Är mugglarfödd och en av de skickligaste eleverna i sin årskull."
+  },
+  {
+    "id": "ron",
+    "name": "Ron Weasley",
+    "house": "Gryffindor",
+    "birthYear": 1980,
+    "deathYear": null,
+    "actorId": "rupert-grint",
+    "petIds": ["scabbers", "pigwidgeon"],
+    "yearIds": ["year-1", "year-2", "year-3", "year-4", "year-5", "year-6", "year-7"],
+    "description": "Harrys lojala bästa vän",
+    "kuriosa": "Kommer från familjen Weasley och är känd för sitt schackspel."
+  },
+  {
+    "id":"fred",
+    "name": "Fred Weasley",
+    "house": "Gryffindor",
+    "birthYear":"?"
+  }
+]

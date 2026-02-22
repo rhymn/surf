@@ -1,0 +1,44 @@
+[
+  {
+    "id": "year-1",
+    "label": "År 1",
+    "schoolYear": "1991-1992",
+    "description": "Harry börjar på Hogwarts"
+  },
+  {
+    "id": "year-2",
+    "label": "År 2",
+    "schoolYear": "1992-1993",
+    "description": "Händelserna kring Hemligheternas kammare"
+  },
+  {
+    "id": "year-3",
+    "label": "År 3",
+    "schoolYear": "1993-1994",
+    "description": "Händelser med Sirius Black och tidvändaren"
+  },
+  {
+    "id": "year-4",
+    "label": "År 4",
+    "schoolYear": "1994-1995",
+    "description": "Tretrollkarlsturneringen"
+  },
+  {
+    "id": "year-5",
+    "label": "År 5",
+    "schoolYear": "1995-1996",
+    "description": "Fenixordens period"
+  },
+  {
+    "id": "year-6",
+    "label": "År 6",
+    "schoolYear": "1996-1997",
+    "description": "Halvblodsprinsens period"
+  },
+  {
+    "id": "year-7",
+    "label": "År 7",
+    "schoolYear": "1997-1998",
+    "description": "Den sista jakten på horrokruxer och slutstriden"
+  }
+]

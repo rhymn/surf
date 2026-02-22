@@ -1,0 +1,46 @@
+[
+  {
+    "id": "hedwig",
+    "name": "Hedwig",
+    "species": "Snöuggla",
+    "color": "Vit",
+    "birthYear": null,
+    "deathYear": 1997,
+    "ownerId": "harry",
+    "description": "Harrys husuggla",
+    "kuriosa": "Levererar ofta Harrys brev och visar stark lojalitet."
+  },
+  {
+    "id": "crookshanks",
+    "name": "Krummben",
+    "species": "Katt",
+    "color": "Rödbrun",
+    "birthYear": null,
+    "deathYear": null,
+    "ownerId": "hermione",
+    "description": "Hermiones halvkneazle-katt",
+    "kuriosa": "Misstänker tidigt att Scabbers inte är en vanlig råtta."
+  },
+  {
+    "id": "scabbers",
+    "name": "Skabbis",
+    "species": "Råtta",
+    "color": "Brun",
+    "birthYear": null,
+    "deathYear": null,
+    "ownerId": "ron",
+    "description": "Rons gamla tamråtta",
+    "kuriosa": "Visar sig senare ha en mörk hemlighet."
+  },
+  {
+    "id": "pigwidgeon",
+    "name": "Piggelin",
+    "species": "Uggla",
+    "color": "Grå",
+    "birthYear": null,
+    "deathYear": null,
+    "ownerId": "ron",
+    "description": "Rons pigga uggla",
+    "kuriosa": "Liten, snabb och ofta överentusiastisk."
+  }
+]
