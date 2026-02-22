@@ -21,7 +21,7 @@
     "petIds": ["crookshanks"],
     "yearIds": ["year-1", "year-2", "year-3", "year-4", "year-5", "year-6", "year-7"],
     "description": "Briljant häxa och en av Harrys närmaste vänner",
-    "kuriosa": "Är mugglarfödd och en av de skickligaste eleverna i sin årskull."
+    "kuriosa": "Är mugglarfödd och den skickligaste eleven i sin årskurs."
   },
   {
     "id": "ron",
@@ -39,6 +39,25 @@
     "id":"fred",
     "name": "Fred Weasley",
     "house": "Gryffindor",
-    "birthYear":"?"
+    "birthYear": 1978,
+    "deathYear": 1998,
+    "actorId":"james-phelps",
+    "petIds":[],
+    "yearIds": ["year-1", "year-2", "year-3", "year-4", "year-5", "year-6", "year-7"],
+    "description": "Känd för skämt, bus och Weasleys skämtartiklar.",
+    "kuriosa": "Ger Marodörkartan till Harry"
+  },
+    {
+    "id":"george",
+    "name": "George Weasley",
+    "house": "Gryffindor",
+    "birthYear": 1978,
+    "deathYear": null,
+    "actorId":"oliver-phelps",
+    "petIds":[],
+    "yearIds": ["year-1", "year-2", "year-3", "year-4", "year-5", "year-6", "year-7"],
+    "description": "Känd för skämt, bus och Weasleys skämtartiklar.",
+    "kuriosa": "Ger Marodörkartan till Harry"
   }
+
 ]

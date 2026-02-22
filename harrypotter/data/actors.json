@@ -16,5 +16,19 @@
     "name": "Rupert Grint",
     "characterIds": ["ron"],
     "description": "Gestaltade Ronny Weasley i filmerna"
+  },
+  {
+    "id": "james-phelps",
+    "name": "James Phelps",
+    "characterIds": ["fred"],
+    "description": "Gestaltade Fred Weasley i filmerna"
   }
+,
+{
+    "id": "oliver-phelps",
+    "name": "Oliver Phelps",
+    "characterIds": ["george"],
+    "description": "Gestaltade George Weasley i filmerna"
+  }
+
 ]
