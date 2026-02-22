@@ -68,6 +68,10 @@ services:
     staticPublishPath: .
     branch: main
     rootDir: harrypotter
+    routes:
+      - type: rewrite
+        source: /
+        destination: /index.html
 
 databases:
   - name: db
