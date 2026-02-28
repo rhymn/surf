@@ -28,7 +28,10 @@ const VIRTUAL_HEIGHT = 1600;
 const MOVEMENT_BASE_STEP = 2;
 const MOVEMENT_TICKS_PER_SECOND = 30;
 const MOVEMENT_BOOST_MULTIPLIER = 2;
-const RULE_BORDER_COLLISION_ENDS_GAME = true;
+const COLLISION_RESPONSES = {
+    GAME_OVER: 'gameOver',
+    BOUNCE: 'bounce'
+};
 const RULE_PLAYER_COLLISION_ENDS_GAME = true;
 const RULE_SNAKE_SEGMENT_SIZE = 6;
 const RULE_SNAKE_HEAD_SIZE_MULTIPLIER = 2;
@@ -78,6 +81,19 @@ const PLAYING_TYPE = Object.values(PLAYING_TYPES).includes(process.env.PLAYING_T
     ? process.env.PLAYING_TYPE
     : PLAYING_TYPES.LAST_MAN_STANDING;
 const DEFAULT_MAP_TYPE = MAP_TYPES.CLASSIC;
+const DEFAULT_BORDER_COLLISION_RESPONSE = COLLISION_RESPONSES.GAME_OVER;
+const DEFAULT_DANGEROUS_OBJECT_COLLISION_RESPONSE = COLLISION_RESPONSES.GAME_OVER;
+const resolveCollisionResponse = (configuredValue, fallback) => {
+    if (Object.values(COLLISION_RESPONSES).includes(configuredValue)) {
+        return configuredValue;
+    }
+
+    return fallback;
+};
+
+const toSafeCollisionResponse = (collisionResponse, fallback) => {
+    return resolveCollisionResponse(collisionResponse, fallback);
+};
 
 const MAP_DEFINITIONS = {
     [MAP_TYPES.CLASSIC]: {
@@ -389,9 +405,12 @@ const getActiveGamesPayload = () => {
             id: game.id,
             name: game.name,
             ownerName: game.ownerName,
+            ownerSocketId: game.ownerSocketId,
             playingType: game.playingType,
             mapType: game.mapType,
             mapName: game.mapName,
+            borderCollisionResponse: game.borderCollisionResponse,
+            dangerousObjectCollisionResponse: game.dangerousObjectCollisionResponse,
             playerCount: game.playerIds.size
         });
     }
@@ -404,17 +423,29 @@ const broadcastActiveGames = () => {
     io.emit(SOCKET_EVENTS.ACTIVE_GAMES_UPDATED, getActiveGamesPayload());
 };
 
-const createGame = (gameName, ownerName, playingType, mapType) => {
+const createGame = (gameName, ownerName, ownerSocketId, playingType, mapType, borderCollisionResponse, dangerousObjectCollisionResponse) => {
     const gameId = createGameId();
     const safeMapType = toSafeMapType(mapType);
     const mapDefinition = getMapDefinition(safeMapType);
+    const safeBorderCollisionResponse = toSafeCollisionResponse(
+        borderCollisionResponse,
+        DEFAULT_BORDER_COLLISION_RESPONSE
+    );
+    const safeDangerousObjectCollisionResponse = toSafeCollisionResponse(
+        dangerousObjectCollisionResponse,
+        DEFAULT_DANGEROUS_OBJECT_COLLISION_RESPONSE
+    );
+
     activeGamesById[gameId] = {
         id: gameId,
         name: `${gameName ?? ''}`.trim() || `Game ${Object.keys(activeGamesById).length + 1}`,
         ownerName: toSafeDisplayName(ownerName),
+        ownerSocketId,
         playingType: toSafePlayingType(playingType),
         mapType: safeMapType,
         mapName: mapDefinition.name,
+        borderCollisionResponse: safeBorderCollisionResponse,
+        dangerousObjectCollisionResponse: safeDangerousObjectCollisionResponse,
         playerIds: new Set()
     };
 
@@ -441,9 +472,6 @@ const removeUserFromCurrentGame = (socket) => {
     const game = activeGamesById[gameId];
     if (game) {
         game.playerIds.delete(socket.id);
-        if (game.playerIds.size === 0) {
-            delete activeGamesById[gameId];
-        }
     }
 
     delete socketGameById[socket.id];
@@ -477,6 +505,23 @@ const getMapConfigForGame = (gameId) => {
         mapName: mapDefinition.name,
         width: mapDefinition.width,
         height: mapDefinition.height
+    };
+};
+
+const getGameRulesForGame = (gameId) => {
+    const game = activeGamesById[gameId];
+    const borderCollisionResponse = game?.borderCollisionResponse ?? DEFAULT_BORDER_COLLISION_RESPONSE;
+    const dangerousObjectCollisionResponse = game?.dangerousObjectCollisionResponse ?? DEFAULT_DANGEROUS_OBJECT_COLLISION_RESPONSE;
+
+    return {
+        borderCollisionEndsGame: borderCollisionResponse === COLLISION_RESPONSES.GAME_OVER,
+        borderCollisionResponse,
+        dangerousObjectCollisionResponse,
+        playerCollisionEndsGame: RULE_PLAYER_COLLISION_ENDS_GAME,
+        snakeSegmentSize: RULE_SNAKE_SEGMENT_SIZE,
+        snakeHeadSizeMultiplier: RULE_SNAKE_HEAD_SIZE_MULTIPLIER,
+        playerCollisionSize: RULE_PLAYER_COLLISION_SIZE,
+        worldObjectsEnabled: true
     };
 };
 
@@ -1051,12 +1096,12 @@ const joinUserToGame = (socket, gameId, playerName) => {
     removeUserFromCurrentGame(socket);
 
     const isFirstPlayerInGame = game.playerIds.size === 0;
-
-    if (Object.keys(connectedUsers).length === 0) {
+    const isRejoiningAfterMatchEnd = matchState.isEnded;
+    if (isFirstPlayerInGame || isRejoiningAfterMatchEnd) {
         applyMapToWorld(game.mapType);
     }
 
-    if (isFirstPlayerInGame) {
+    if (isFirstPlayerInGame || isRejoiningAfterMatchEnd) {
         resetMatchStateForGame(game);
     }
 
@@ -1104,19 +1149,55 @@ const joinUserToGame = (socket, gameId, playerName) => {
         ticksPerSecond: MOVEMENT_TICKS_PER_SECOND,
         boostMultiplier: MOVEMENT_BOOST_MULTIPLIER
     });
-    socket.emit(SOCKET_EVENTS.SET_GAME_RULES, {
-        borderCollisionEndsGame: RULE_BORDER_COLLISION_ENDS_GAME,
-        playerCollisionEndsGame: RULE_PLAYER_COLLISION_ENDS_GAME,
-        snakeSegmentSize: RULE_SNAKE_SEGMENT_SIZE,
-        snakeHeadSizeMultiplier: RULE_SNAKE_HEAD_SIZE_MULTIPLIER,
-        playerCollisionSize: RULE_PLAYER_COLLISION_SIZE,
-        worldObjectsEnabled: true
-    });
+    socket.emit(SOCKET_EVENTS.SET_GAME_RULES, getGameRulesForGame(gameId));
     socket.emit(SOCKET_EVENTS.SET_VIRTUAL_DIMENSIONS, {
         virtualWidth: getMapConfigForGame(gameId).width,
         virtualHeight: getMapConfigForGame(gameId).height
     });
     socket.emit(SOCKET_EVENTS.SET_START_POSITION, startPosition);
+
+    broadcastUsers(gameId);
+    broadcastActiveGames();
+};
+
+const endGameByOwner = (socket, gameId) => {
+    const game = activeGamesById[gameId];
+    if (!game) {
+        socket.emit(SOCKET_EVENTS.JOIN_GAME_ERROR, 'Game not found');
+        return;
+    }
+
+    if (game.ownerSocketId !== socket.id) {
+        socket.emit(SOCKET_EVENTS.JOIN_GAME_ERROR, 'Only the owner can end this game');
+        return;
+    }
+
+    const roomName = getRoomNameForGame(gameId);
+    const playerIds = Array.from(game.playerIds);
+
+    for (const playerId of playerIds) {
+        const playerSocket = io.sockets.sockets.get(playerId);
+        if (playerSocket) {
+            playerSocket.leave(roomName);
+            playerSocket.emit(SOCKET_EVENTS.GAME_ENDED, {
+                gameId,
+                gameName: game.name
+            });
+        }
+
+        if (connectedUsers[playerId]) {
+            delete connectedUsers[playerId];
+        }
+
+        if (snakeTrailById[playerId]) {
+            delete snakeTrailById[playerId];
+        }
+
+        delete socketGameById[playerId];
+    }
+
+    game.playerIds.clear();
+    delete activeGamesById[gameId];
 
     broadcastUsers(gameId);
     broadcastActiveGames();
@@ -1131,8 +1212,24 @@ io.on('connection', (socket) => {
         socket.emit(SOCKET_EVENTS.ACTIVE_GAMES_UPDATED, getActiveGamesPayload());
     });
 
-    socket.on(SOCKET_EVENTS.CREATE_GAME, ({ gameName, playerName, playingType, mapType, autoJoin }) => {
-        const game = createGame(gameName, playerName, playingType, mapType);
+    socket.on(SOCKET_EVENTS.CREATE_GAME, ({
+        gameName,
+        playerName,
+        playingType,
+        mapType,
+        borderCollisionResponse,
+        dangerousObjectCollisionResponse,
+        autoJoin
+    }) => {
+        const game = createGame(
+            gameName,
+            playerName,
+            socket.id,
+            playingType,
+            mapType,
+            borderCollisionResponse,
+            dangerousObjectCollisionResponse
+        );
         if (autoJoin) {
             joinUserToGame(socket, game.id, playerName);
             return;
@@ -1143,6 +1240,10 @@ io.on('connection', (socket) => {
 
     socket.on(SOCKET_EVENTS.JOIN_GAME, ({ gameId, playerName }) => {
         joinUserToGame(socket, gameId, playerName);
+    });
+
+    socket.on(SOCKET_EVENTS.END_GAME, ({ gameId }) => {
+        endGameByOwner(socket, gameId);
     });
 
     socket.on(SOCKET_EVENTS.SNAKE_EATEN, ({ victimId }) => {
@@ -1275,7 +1376,8 @@ const broadcastUsers = (gameId) => {
     const usersForGame = {};
     for (const userId in connectedUsers) {
         const user = connectedUsers[userId];
-        if (user.gameId !== gameId) {
+        const isBotUser = Boolean(botStateById[userId]);
+        if (!isBotUser && user.gameId !== gameId) {
             continue;
         }
         usersForGame[userId] = user;

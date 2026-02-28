@@ -24,6 +24,7 @@ let isPaused = false;
 let isGameOver = false;
 let isBoostEnabled = false;
 let hasJoinedGame = false;
+let isInLobbyWhilePlaying = false;
 let localPlayerName = 'Anonymous';
 let currentGameId = null;
 
@@ -56,8 +57,18 @@ const MAP_TYPES = {
     FOREST: 'forest',
     THORNS: 'thorns'
 };
+const COLLISION_RESPONSES = {
+    GAME_OVER: 'gameOver',
+    BOUNCE: 'bounce'
+};
+const COLLISION_RESPONSE_OPTIONS = [
+    { value: COLLISION_RESPONSES.GAME_OVER, label: 'Game over' },
+    { value: COLLISION_RESPONSES.BOUNCE, label: 'Bounce back' }
+];
 let gameRules = {
     borderCollisionEndsGame: true,
+    borderCollisionResponse: COLLISION_RESPONSES.GAME_OVER,
+    dangerousObjectCollisionResponse: COLLISION_RESPONSES.GAME_OVER,
     playerCollisionEndsGame: true,
     treeCollisionEndsGame: false,
     snakeSegmentSize: 10,
@@ -202,6 +213,30 @@ overlay.style.overflowY = 'auto';
 overlay.style.display = 'none';
 document.body.appendChild(overlay);
 
+const overlayContent = document.createElement('div');
+overlay.appendChild(overlayContent);
+
+const goToLobbyButton = document.createElement('button');
+goToLobbyButton.textContent = 'Go to lobby';
+goToLobbyButton.style.marginTop = '8px';
+goToLobbyButton.style.padding = '6px 8px';
+goToLobbyButton.style.display = 'none';
+goToLobbyButton.onclick = () => {
+    isInLobbyWhilePlaying = true;
+    isPaused = true;
+    isBoostEnabled = false;
+    movementStep = baseStep;
+    activeSteerKeys.clear();
+    stopMovementLoop();
+    canvas.style.display = 'none';
+    overlay.style.display = 'none';
+    timerOverlay.style.display = 'none';
+    lobbyOverlay.style.display = 'flex';
+    updateRejoinButtonVisibility();
+    socket.emit(GAME_SOCKET_EVENTS.LIST_ACTIVE_GAMES);
+};
+overlay.appendChild(goToLobbyButton);
+
 const timerOverlay = document.createElement('div');
 timerOverlay.style.position = 'absolute';
 timerOverlay.style.top = '10px';
@@ -261,6 +296,51 @@ createRow.style.display = 'flex';
 createRow.style.gap = '8px';
 createRow.style.marginBottom = '12px';
 
+const newGameSettingsTitle = document.createElement('h3');
+newGameSettingsTitle.textContent = 'New game settings';
+newGameSettingsTitle.style.margin = '8px 0 6px 0';
+
+const newGameSettingsHint = document.createElement('div');
+newGameSettingsHint.textContent = 'These settings are used only when creating a new game.';
+newGameSettingsHint.style.fontSize = '12px';
+newGameSettingsHint.style.marginBottom = '8px';
+newGameSettingsHint.style.color = '#555';
+
+const gameTypeLabel = document.createElement('label');
+gameTypeLabel.textContent = 'Game type';
+gameTypeLabel.style.display = 'block';
+gameTypeLabel.style.marginBottom = '4px';
+
+const mapTypeLabel = document.createElement('label');
+mapTypeLabel.textContent = 'Map';
+mapTypeLabel.style.display = 'block';
+mapTypeLabel.style.marginBottom = '4px';
+
+const borderCollisionLabel = document.createElement('label');
+borderCollisionLabel.textContent = 'Border collision';
+borderCollisionLabel.style.display = 'block';
+borderCollisionLabel.style.marginBottom = '4px';
+
+const dangerousCollisionLabel = document.createElement('label');
+dangerousCollisionLabel.textContent = 'Dangerous object collision';
+dangerousCollisionLabel.style.display = 'block';
+dangerousCollisionLabel.style.marginBottom = '4px';
+
+const steeringSettingsTitle = document.createElement('h3');
+steeringSettingsTitle.textContent = 'Your controls';
+steeringSettingsTitle.style.margin = '8px 0 6px 0';
+
+const steeringSettingsHint = document.createElement('div');
+steeringSettingsHint.textContent = 'Steering is personal and can be changed in lobby or during play.';
+steeringSettingsHint.style.fontSize = '12px';
+steeringSettingsHint.style.marginBottom = '8px';
+steeringSettingsHint.style.color = '#555';
+
+const steeringModeLabel = document.createElement('label');
+steeringModeLabel.textContent = 'Steering mode';
+steeringModeLabel.style.display = 'block';
+steeringModeLabel.style.marginBottom = '4px';
+
 const gameNameInput = document.createElement('input');
 gameNameInput.type = 'text';
 gameNameInput.placeholder = 'New game name';
@@ -306,6 +386,16 @@ steeringModeSelect.style.padding = '8px';
 steeringModeSelect.style.marginBottom = '12px';
 steeringModeSelect.style.width = '100%';
 
+const borderCollisionSelect = document.createElement('select');
+borderCollisionSelect.style.padding = '8px';
+borderCollisionSelect.style.marginBottom = '12px';
+borderCollisionSelect.style.width = '100%';
+
+const dangerousObjectCollisionSelect = document.createElement('select');
+dangerousObjectCollisionSelect.style.padding = '8px';
+dangerousObjectCollisionSelect.style.marginBottom = '12px';
+dangerousObjectCollisionSelect.style.width = '100%';
+
 const playingTypeOptions = [
     { value: PLAYING_TYPES.LAST_MAN_STANDING, label: 'Last man standing' },
     { value: PLAYING_TYPES.TIMER, label: 'Most points in 60s' },
@@ -331,14 +421,39 @@ for (const steeringModeOption of steeringModeOptions) {
     steeringModeSelect.appendChild(optionElement);
 }
 
+for (const collisionResponseOption of COLLISION_RESPONSE_OPTIONS) {
+    const borderOptionElement = document.createElement('option');
+    borderOptionElement.value = collisionResponseOption.value;
+    borderOptionElement.textContent = collisionResponseOption.label;
+    borderCollisionSelect.appendChild(borderOptionElement);
+
+    const dangerousOptionElement = document.createElement('option');
+    dangerousOptionElement.value = collisionResponseOption.value;
+    dangerousOptionElement.textContent = collisionResponseOption.label;
+    dangerousObjectCollisionSelect.appendChild(dangerousOptionElement);
+}
+
 playingTypeSelect.value = PLAYING_TYPES.LAST_MAN_STANDING;
 steeringModeSelect.value = STEERING_MODES.CLASSIC;
+borderCollisionSelect.value = COLLISION_RESPONSES.GAME_OVER;
+dangerousObjectCollisionSelect.value = COLLISION_RESPONSES.GAME_OVER;
 
 createRow.appendChild(gameNameInput);
 createRow.appendChild(createButton);
 createRow.appendChild(randomButton);
+lobbyPanel.appendChild(newGameSettingsTitle);
+lobbyPanel.appendChild(newGameSettingsHint);
+lobbyPanel.appendChild(gameTypeLabel);
 lobbyPanel.appendChild(playingTypeSelect);
+lobbyPanel.appendChild(mapTypeLabel);
 lobbyPanel.appendChild(mapTypeSelect);
+lobbyPanel.appendChild(borderCollisionLabel);
+lobbyPanel.appendChild(borderCollisionSelect);
+lobbyPanel.appendChild(dangerousCollisionLabel);
+lobbyPanel.appendChild(dangerousObjectCollisionSelect);
+lobbyPanel.appendChild(steeringSettingsTitle);
+lobbyPanel.appendChild(steeringSettingsHint);
+lobbyPanel.appendChild(steeringModeLabel);
 lobbyPanel.appendChild(steeringModeSelect);
 lobbyPanel.appendChild(createRow);
 
@@ -352,6 +467,13 @@ activeGamesList.style.display = 'grid';
 activeGamesList.style.gap = '6px';
 lobbyPanel.appendChild(activeGamesList);
 
+const rejoinCurrentGameButton = document.createElement('button');
+rejoinCurrentGameButton.textContent = 'Rejoin current game';
+rejoinCurrentGameButton.style.padding = '8px 12px';
+rejoinCurrentGameButton.style.marginTop = '12px';
+rejoinCurrentGameButton.style.display = 'none';
+lobbyPanel.appendChild(rejoinCurrentGameButton);
+
 lobbyOverlay.appendChild(lobbyPanel);
 document.body.appendChild(lobbyOverlay);
 
@@ -364,14 +486,56 @@ const getEnteredPlayerName = () => {
     return enteredName;
 };
 
+const updateRejoinButtonVisibility = () => {
+    const canRejoinCurrentGame = Boolean(currentGameId) && (Boolean(currentMatchState?.isEnded) || isInLobbyWhilePlaying);
+    rejoinCurrentGameButton.textContent = currentMatchState?.isEnded ? 'Rejoin current game' : 'Re-join';
+    rejoinCurrentGameButton.style.display = canRejoinCurrentGame ? 'inline-block' : 'none';
+};
+
+const emitRejoinCurrentGame = () => {
+    if (!currentGameId) {
+        return;
+    }
+
+    if (isInLobbyWhilePlaying && !currentMatchState?.isEnded) {
+        isInLobbyWhilePlaying = false;
+        isPaused = false;
+        canvas.style.display = 'block';
+        overlay.style.display = 'block';
+        timerOverlay.style.display = 'block';
+        lobbyOverlay.style.display = 'none';
+        stopMovementLoop();
+        startMovementLoop();
+        updateRejoinButtonVisibility();
+        requestAnimationFrame(drawScene);
+        return;
+    }
+
+    if (!currentMatchState?.isEnded) {
+        return;
+    }
+
+    const playerName = localPlayerName || getEnteredPlayerName();
+    socket.emit(GAME_SOCKET_EVENTS.JOIN_GAME, {
+        gameId: currentGameId,
+        playerName
+    });
+};
+
+rejoinCurrentGameButton.onclick = () => {
+    emitRejoinCurrentGame();
+};
+
 const showGameCanvas = () => {
     hasJoinedGame = true;
-    steeringMode = steeringModeSelect.value === STEERING_MODES.FREE ? STEERING_MODES.FREE : STEERING_MODES.CLASSIC;
+    isInLobbyWhilePlaying = false;
+    applySteeringMode(steeringModeSelect.value);
     activeSteerKeys.clear();
     canvas.style.display = 'block';
     overlay.style.display = 'block';
     timerOverlay.style.display = 'block';
     lobbyOverlay.style.display = 'none';
+    updateRejoinButtonVisibility();
 };
 
 const normalizeAngle = (angleInRadians) => {
@@ -425,6 +589,60 @@ const applySteeringRotationFromKeys = () => {
 
 const getSteeringLabel = () => STEERING_MODE_LABELS[steeringMode] ?? STEERING_MODE_LABELS[STEERING_MODES.CLASSIC];
 
+const getAngleForDirection = (direction) => {
+    if (direction === 'up') {
+        return -Math.PI / 2;
+    }
+
+    if (direction === 'down') {
+        return Math.PI / 2;
+    }
+
+    if (direction === 'left') {
+        return Math.PI;
+    }
+
+    return 0;
+};
+
+const getDirectionForAngle = (angleInRadians) => {
+    const normalizedAngle = normalizeAngle(angleInRadians);
+    const quarterTurn = Math.PI / 2;
+    const nearestQuarterTurn = Math.round(normalizedAngle / quarterTurn) % 4;
+
+    if (nearestQuarterTurn === 1) {
+        return 'down';
+    }
+
+    if (nearestQuarterTurn === 2) {
+        return 'left';
+    }
+
+    if (nearestQuarterTurn === 3) {
+        return 'up';
+    }
+
+    return 'right';
+};
+
+const applySteeringMode = (nextMode) => {
+    const safeMode = nextMode === STEERING_MODES.FREE ? STEERING_MODES.FREE : STEERING_MODES.CLASSIC;
+    if (steeringMode === safeMode) {
+        return;
+    }
+
+    if (safeMode === STEERING_MODES.FREE) {
+        steeringAngle = getAngleForDirection(movementDirection);
+    } else {
+        movementDirection = getDirectionForAngle(steeringAngle);
+        activeSteerKeys.clear();
+    }
+
+    steeringMode = safeMode;
+    steeringModeSelect.value = safeMode;
+    updateOverlay();
+};
+
 const renderActiveGames = (games) => {
     activeGamesList.innerHTML = '';
 
@@ -436,6 +654,13 @@ const renderActiveGames = (games) => {
     }
 
     for (const game of games) {
+        const borderCollisionLabel = game.borderCollisionResponse === COLLISION_RESPONSES.BOUNCE
+            ? 'Bounce'
+            : 'Game over';
+        const dangerousCollisionLabel = game.dangerousObjectCollisionResponse === COLLISION_RESPONSES.BOUNCE
+            ? 'Bounce'
+            : 'Game over';
+
         const row = document.createElement('div');
         row.style.display = 'flex';
         row.style.justifyContent = 'space-between';
@@ -444,7 +669,11 @@ const renderActiveGames = (games) => {
         row.style.padding = '8px';
 
         const gameMeta = document.createElement('div');
-        gameMeta.innerHTML = `<strong>${game.name}</strong><br><small>${getPlayingTypeLabel(game.playingType)} · ${game.mapName ?? 'Map'} · Host: ${game.ownerName} · Players: ${game.playerCount}</small>`;
+        gameMeta.innerHTML = `<strong>${game.name}</strong><br><small>${getPlayingTypeLabel(game.playingType)} · ${game.mapName ?? 'Map'} · Host: ${game.ownerName} · Players: ${game.playerCount}</small><br><small>Locked for this game: Border ${borderCollisionLabel} · Dangerous ${dangerousCollisionLabel}</small>`;
+
+        const actions = document.createElement('div');
+        actions.style.display = 'flex';
+        actions.style.gap = '6px';
 
         const joinButton = document.createElement('button');
         joinButton.textContent = 'Join';
@@ -456,8 +685,22 @@ const renderActiveGames = (games) => {
             });
         };
 
+        actions.appendChild(joinButton);
+
+        const isOwner = game.ownerSocketId === localSocketId;
+        if (isOwner) {
+            const endButton = document.createElement('button');
+            endButton.textContent = 'End';
+            endButton.onclick = () => {
+                socket.emit(GAME_SOCKET_EVENTS.END_GAME, {
+                    gameId: game.id
+                });
+            };
+            actions.appendChild(endButton);
+        }
+
         row.appendChild(gameMeta);
-        row.appendChild(joinButton);
+        row.appendChild(actions);
         activeGamesList.appendChild(row);
     }
 };
@@ -467,11 +710,15 @@ createButton.onclick = () => {
     const gameName = gameNameInput.value.trim();
     const playingType = playingTypeSelect.value;
     const mapType = mapTypeSelect.value;
+    const borderCollisionResponse = borderCollisionSelect.value;
+    const dangerousObjectCollisionResponse = dangerousObjectCollisionSelect.value;
     socket.emit(GAME_SOCKET_EVENTS.CREATE_GAME, {
         gameName,
         playerName,
         playingType,
-        mapType
+        mapType,
+        borderCollisionResponse,
+        dangerousObjectCollisionResponse
     });
 };
 
@@ -488,15 +735,21 @@ randomButton.onclick = () => {
     const playerName = getEnteredPlayerName();
     const randomPlayingType = getRandomItem(playingTypeOptions).value;
     const randomMapType = getRandomItem(mapTypeOptions).value;
+    const randomBorderCollisionResponse = getRandomItem(COLLISION_RESPONSE_OPTIONS).value;
+    const randomDangerousObjectCollisionResponse = getRandomItem(COLLISION_RESPONSE_OPTIONS).value;
 
     playingTypeSelect.value = randomPlayingType;
     mapTypeSelect.value = randomMapType;
+    borderCollisionSelect.value = randomBorderCollisionResponse;
+    dangerousObjectCollisionSelect.value = randomDangerousObjectCollisionResponse;
 
     socket.emit(GAME_SOCKET_EVENTS.CREATE_GAME, {
         gameName: getRandomGameName(),
         playerName,
         playingType: randomPlayingType,
         mapType: randomMapType,
+        borderCollisionResponse: randomBorderCollisionResponse,
+        dangerousObjectCollisionResponse: randomDangerousObjectCollisionResponse,
         autoJoin: true
     });
 };
@@ -587,20 +840,23 @@ function updateOverlay() {
         return;
     }
 
-    overlay.innerHTML = `<strong>Connected Users: ${countOtherSnakes()} </strong><br>`;
-    overlay.innerHTML += `<strong>Bots: ${countBotSnakes()} </strong><br>`;
-    overlay.innerHTML += `<strong>Mode: ${getPlayingTypeLabel(currentMatchState?.playingType ?? playingTypeConfig.playingType)} </strong><br>`;
-    overlay.innerHTML += `<strong>Steering: ${getSteeringLabel()} </strong><br>`;
-    overlay.innerHTML += `<strong>Goal: ${getPlayingTypeObjectiveText()} </strong><br>`;
-    overlay.innerHTML += `<strong>You: ${localPlayerName} </strong><br>`;
+    overlayContent.innerHTML = `<strong>Connected Users: ${countOtherSnakes()} </strong><br>`;
+    overlayContent.innerHTML += `<strong>Bots: ${countBotSnakes()} </strong><br>`;
+    overlayContent.innerHTML += `<strong>Mode: ${getPlayingTypeLabel(currentMatchState?.playingType ?? playingTypeConfig.playingType)} </strong><br>`;
+    overlayContent.innerHTML += `<strong>Steering: ${getSteeringLabel()} </strong><br>`;
+    overlayContent.innerHTML += `<strong>Goal: ${getPlayingTypeObjectiveText()} </strong><br>`;
+    overlayContent.innerHTML += `<strong>You: ${localPlayerName} </strong><br>`;
 
     for (const id in snakeStates) {
         const snake = snakeStates[id];
-        overlay.innerHTML += `<div style="color: ${snake.color};">
+        overlayContent.innerHTML += `<div style="color: ${snake.color};">
 
             ${snake.name ?? id}: (${snake.coordinates[0].x}, ${snake.coordinates[0].y}), ${snake.length} L
         </div>`;
     }
+
+    const canGoToLobby = currentGameId && !isGameOver && !isInLobbyWhilePlaying;
+    goToLobbyButton.style.display = canGoToLobby ? 'inline-block' : 'none';
 
 }
 
@@ -641,6 +897,8 @@ socket.on(GAME_SOCKET_EVENTS.JOINED_GAME, ({ gameId, playerName, playingType }) 
         };
     }
     snakeStates.mySnake.name = localPlayerName;
+    isGameOver = false;
+    isPaused = false;
     showGameCanvas();
     resetGameTimer();
     drawScene();
@@ -649,6 +907,24 @@ socket.on(GAME_SOCKET_EVENTS.JOINED_GAME, ({ gameId, playerName, playingType }) 
 
 socket.on(GAME_SOCKET_EVENTS.JOIN_GAME_ERROR, (message) => {
     alert(message || 'Could not join game');
+});
+
+socket.on(GAME_SOCKET_EVENTS.GAME_ENDED, ({ gameId, gameName }) => {
+    if (currentGameId !== gameId) {
+        return;
+    }
+
+    currentGameId = null;
+    hasJoinedGame = false;
+    isGameOver = true;
+    isInLobbyWhilePlaying = false;
+    canvas.style.display = 'none';
+    overlay.style.display = 'none';
+    timerOverlay.style.display = 'none';
+    lobbyOverlay.style.display = 'flex';
+    updateRejoinButtonVisibility();
+    alert(`Game "${gameName}" was ended by the owner.`);
+    socket.emit(GAME_SOCKET_EVENTS.LIST_ACTIVE_GAMES);
 });
 
 socket.on(GAME_SOCKET_EVENTS.UPDATE_COORDINATES_OF_HEAD, (headCoordinatesUpdate) => {
@@ -737,6 +1013,8 @@ socket.on(GAME_SOCKET_EVENTS.MATCH_STATE_UPDATE, (matchState) => {
 
     if (matchState?.isEnded) {
         isGameOver = true;
+        isInLobbyWhilePlaying = false;
+        lobbyOverlay.style.display = 'flex';
         if (!hasShownMatchEndAlert) {
             if (matchState.winnerId) {
                 const winnerLabel = matchState.winnerId === localSocketId ? 'You' : matchState.winnerId;
@@ -748,6 +1026,7 @@ socket.on(GAME_SOCKET_EVENTS.MATCH_STATE_UPDATE, (matchState) => {
         }
     }
 
+    updateRejoinButtonVisibility();
     updateOverlay();
     updateGameTimer();
 });
@@ -771,9 +1050,11 @@ socket.on(GAME_SOCKET_EVENTS.SET_VIRTUAL_DIMENSIONS, (virtualDimensions) => {
 
 socket.on(GAME_SOCKET_EVENTS.SET_START_POSITION, (position) => {
     isGameOver = false;
+    hasShownMatchEndAlert = false;
     snakeStates.mySnake.coordinates[0].x = position.x;
     snakeStates.mySnake.coordinates[0].y = position.y;
     resetGameTimer();
+    updateRejoinButtonVisibility();
     drawScene();
 });
 
@@ -877,12 +1158,16 @@ function drawSnake(snake) {
         if (index === 0) {
             const headCenterX = coordinate.x + baseSegmentSize / 2 - normalizedNeckDirectionX * headForwardOffset;
             const headCenterY = coordinate.y + baseSegmentSize / 2 - normalizedNeckDirectionY * headForwardOffset;
+            const headingAngle = Math.atan2(-normalizedNeckDirectionY, -normalizedNeckDirectionX);
+
+            ctx.save();
+            ctx.translate(headCenterX, headCenterY);
+            ctx.rotate(headingAngle + Math.PI / 2);
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.font = `${Math.max(32, Math.round(segmentSize * 2))}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
-            ctx.fillText(snake.headEmoji ?? '🐍', headCenterX, headCenterY);
-            ctx.textAlign = 'start';
-            ctx.textBaseline = 'alphabetic';
+            ctx.fillText(snake.headEmoji ?? '🐍', 0, 0);
+            ctx.restore();
             return;
         }
 
@@ -1004,6 +1289,10 @@ const stopMovementLoop = () => {
 
 startMovementLoop();
 
+steeringModeSelect.addEventListener('change', () => {
+    applySteeringMode(steeringModeSelect.value);
+});
+
 window.addEventListener('keydown', (event) => {
     if (!hasJoinedGame) {
         return;
@@ -1058,6 +1347,14 @@ window.addEventListener('keydown', (event) => {
             case 'b':
                 isBoostEnabled = !isBoostEnabled;
                 movementStep = isBoostEnabled ? baseStep * boostMultiplier : baseStep;
+                break;
+            case 'm':
+            case 'M':
+                applySteeringMode(
+                    steeringMode === STEERING_MODES.FREE
+                        ? STEERING_MODES.CLASSIC
+                        : STEERING_MODES.FREE
+                );
                 break;
             case 'o':
                 overlay.style.display = overlay.style.display === 'none' ? 'block' : 'none';
@@ -1229,9 +1526,35 @@ function updatePosition() {
                 }
 
                 if (worldObjectDefinition.effects.instantLose) {
-                    isGameOver = true;
-                    alert('Game Over, hit a dangerous object!');
-                    return;
+                    const dangerousObjectCollisionEndsGame =
+                        gameRules.dangerousObjectCollisionResponse === COLLISION_RESPONSES.BOUNCE
+                            ? false
+                            : true;
+
+                    if (dangerousObjectCollisionEndsGame) {
+                        isGameOver = true;
+                        alert('Game Over, hit a dangerous object!');
+                        return;
+                    }
+
+                    reverseMovementDirection();
+                    const bouncedPosition = steeringMode === STEERING_MODES.FREE
+                        ? applySteeringAngleToPosition(
+                            snakeStates.mySnake.coordinates[0].x,
+                            snakeStates.mySnake.coordinates[0].y,
+                            steeringAngle,
+                            movementStep
+                        )
+                        : applyDirectionToPosition(
+                        snakeStates.mySnake.coordinates[0].x,
+                        snakeStates.mySnake.coordinates[0].y,
+                        movementDirection,
+                        movementStep
+                    );
+                    nextX = bouncedPosition.nextX;
+                    nextY = bouncedPosition.nextY;
+                    hasBounced = true;
+                    break;
                 }
 
                 notifyOfHitWorldObject(worldObjectId);
@@ -1310,13 +1633,38 @@ function updatePosition() {
             }
         }
 
-        if (gameRules.borderCollisionEndsGame && (
+        const hasBorderCollision =
             nextX - SPHERE_RADIUS < 0 || nextX + SPHERE_RADIUS > boardWidth ||
-            nextY - SPHERE_RADIUS < 0 || nextY + SPHERE_RADIUS > boardHeight
-        )) {
-            isGameOver = true;
-            alert('Game Over!');
-            return;
+            nextY - SPHERE_RADIUS < 0 || nextY + SPHERE_RADIUS > boardHeight;
+
+        if (hasBorderCollision) {
+            const borderCollisionEndsGame = gameRules.borderCollisionResponse === COLLISION_RESPONSES.BOUNCE
+                ? false
+                : gameRules.borderCollisionEndsGame !== false;
+
+            if (borderCollisionEndsGame) {
+                isGameOver = true;
+                alert('Game Over!');
+                return;
+            }
+
+            reverseMovementDirection();
+            const bouncedPosition = steeringMode === STEERING_MODES.FREE
+                ? applySteeringAngleToPosition(
+                    snakeStates.mySnake.coordinates[0].x,
+                    snakeStates.mySnake.coordinates[0].y,
+                    steeringAngle,
+                    movementStep
+                )
+                : applyDirectionToPosition(
+                snakeStates.mySnake.coordinates[0].x,
+                snakeStates.mySnake.coordinates[0].y,
+                movementDirection,
+                movementStep
+            );
+            nextX = bouncedPosition.nextX;
+            nextY = bouncedPosition.nextY;
+            hasBounced = true;
         }
 
         if (hasBounced) {
