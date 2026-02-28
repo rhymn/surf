@@ -2,14 +2,15 @@
   "name": "monsters-and-trees",
   "version": "1.0.0",
   "main": "server.js",
+  "description": "Realtime multiplayer snake arena with map objects, bots, and Socket.IO updates.",
   "scripts": {
     "dev": "node --watch server.js",
+    "check": "node --check server.js && node --check public/scripts.js && node --check public/socket-events.js && node --check public/world-object-definitions.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "express": "^4.21.2",
     "pg-promise": "^11.10.2",

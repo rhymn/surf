@@ -1,15 +1,31 @@
 const socket = io();
-const canvas = document.getElementById('myCanvas');
+const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+canvas.style.display = 'none';
 
 const SPHERE_RADIUS = 12.5;
 let boardWidth = 0;
 let boardHeight = 0;
 
 let movementDirection = null;
+const STEERING_MODES = {
+    CLASSIC: 'classicDirectional',
+    FREE: 'freeSteering'
+};
+const STEERING_MODE_LABELS = {
+    [STEERING_MODES.CLASSIC]: 'Classic (up/down/left/right)',
+    [STEERING_MODES.FREE]: '360° (mouse + steer keys)'
+};
+const TURN_STEP_RADIANS = 0.12;
+let steeringMode = STEERING_MODES.CLASSIC;
+let steeringAngle = 0;
+const activeSteerKeys = new Set();
 let isPaused = false;
 let isGameOver = false;
 let isBoostEnabled = false;
+let hasJoinedGame = false;
+let localPlayerName = 'Anonymous';
+let currentGameId = null;
 
 const DEFAULT_BASE_STEP = 2;
 const DEFAULT_TICKS_PER_SECOND = 20;
@@ -24,10 +40,23 @@ const OBJECT_TYPE_TREE = GAME_WORLD_OBJECT_TYPES.TREE;
 const OBJECT_TYPE_MONSTER = GAME_WORLD_OBJECT_TYPES.MONSTER;
 const OBJECT_TYPE_CLOUD = GAME_WORLD_OBJECT_TYPES.CLOUD;
 const OBJECT_TYPE_THORN = GAME_WORLD_OBJECT_TYPES.THORN;
+const OBJECT_TYPE_DOT = GAME_WORLD_OBJECT_TYPES.DOT;
 let movementStep = baseStep;
 let localSnakeColor = 'red';
-const INITIAL_USER_LENGTH = 100;
+let localSnakeHeadEmoji = '🐍';
+const INITIAL_USER_LENGTH = 1;
+const MIN_SNAKE_WIDTH = 1;
 const GAME_SOCKET_EVENTS = window.SOCKET_EVENTS;
+const PLAYING_TYPES = {
+    TIMER: 'timer',
+    FIRST_TO_SCORE: 'firstTo1000',
+    LAST_MAN_STANDING: 'lastManStanding'
+};
+const MAP_TYPES = {
+    CLASSIC: 'classic',
+    FOREST: 'forest',
+    THORNS: 'thorns'
+};
 let gameRules = {
     borderCollisionEndsGame: true,
     playerCollisionEndsGame: true,
@@ -82,13 +111,15 @@ const initializeLocalSnake = () => {
     snakeStates.mySnake = {
         coordinates: [{ x: boardWidth / 2, y: boardHeight / 2 }],
         color: localSnakeColor,
-        l: INITIAL_USER_LENGTH
+        length: INITIAL_USER_LENGTH,
+        width: gameRules.snakeSegmentSize,
+        headEmoji: localSnakeHeadEmoji
     }
 }
 
 initializeLocalSnake();
 
-const updateSnakeColor = (snakeId, color) => {
+const setSnakeColorById = (snakeId, color) => {
     if (snakeId === localSocketId) {
         return;
     }
@@ -98,13 +129,9 @@ const updateSnakeColor = (snakeId, color) => {
     }
 }
 
-const upsertSnakeState = (snakeId, headCoordinates, length, score) => {
+const upsertSnakeById = (snakeId, headCoordinates, nextLength, nextScore, nextWidth) => {
     if (snakeId === localSocketId) {
         return;
-    }
-
-    if (snakeId !== 'mySnake') {
-        console.log('setting new coords')
     }
 
     if (!snakeStates[snakeId]) {
@@ -114,21 +141,30 @@ const upsertSnakeState = (snakeId, headCoordinates, length, score) => {
                 y: headCoordinates.y,
             }],
             color: 'black',
-            l: INITIAL_USER_LENGTH,
-            score: 0
+            name: 'Anonymous',
+            length: INITIAL_USER_LENGTH,
+            score: 0,
+            width: gameRules.snakeSegmentSize,
+            headEmoji: '🐍'
         }
     }
 
-    if (score) {
-        snakeStates[snakeId].score = score;
+    const snakeState = snakeStates[snakeId];
+
+    if (typeof nextScore === 'number') {
+        snakeState.score = nextScore;
     }
 
-    if (length > 0) {
-        snakeStates[snakeId].l = length;
+    if (nextLength > 0) {
+        snakeState.length = nextLength;
     }
 
-    snakeStates[snakeId].coordinates.unshift(headCoordinates);
-    snakeStates[snakeId].coordinates.splice(snakeStates[snakeId].l);
+    if (typeof nextWidth === 'number' && nextWidth > 0) {
+        snakeState.width = nextWidth;
+    }
+
+    snakeState.coordinates.unshift(headCoordinates);
+    snakeState.coordinates.splice(snakeState.length);
 }
 
 const overlay = document.createElement('div');
@@ -141,47 +177,463 @@ overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
 overlay.style.border = '1px solid black';
 overlay.style.padding = '10px';
 overlay.style.overflowY = 'auto';
+overlay.style.display = 'none';
 document.body.appendChild(overlay);
 
-function getConnectedSnakeCount() {
+const timerOverlay = document.createElement('div');
+timerOverlay.style.position = 'absolute';
+timerOverlay.style.top = '10px';
+timerOverlay.style.right = '10px';
+timerOverlay.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
+timerOverlay.style.border = '1px solid black';
+timerOverlay.style.padding = '8px 10px';
+timerOverlay.style.fontFamily = 'Arial, sans-serif';
+timerOverlay.style.fontSize = '16px';
+timerOverlay.style.fontWeight = 'bold';
+timerOverlay.textContent = '00:00';
+timerOverlay.style.display = 'none';
+document.body.appendChild(timerOverlay);
+
+const lobbyOverlay = document.createElement('div');
+lobbyOverlay.style.position = 'absolute';
+lobbyOverlay.style.top = '0';
+lobbyOverlay.style.left = '0';
+lobbyOverlay.style.width = '100%';
+lobbyOverlay.style.height = '100%';
+lobbyOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.75)';
+lobbyOverlay.style.display = 'flex';
+lobbyOverlay.style.alignItems = 'center';
+lobbyOverlay.style.justifyContent = 'center';
+lobbyOverlay.style.zIndex = '1000';
+
+const lobbyPanel = document.createElement('div');
+lobbyPanel.style.width = 'min(560px, 92vw)';
+lobbyPanel.style.maxHeight = '85vh';
+lobbyPanel.style.overflowY = 'auto';
+lobbyPanel.style.background = '#FFFFFF';
+lobbyPanel.style.border = '1px solid #222';
+lobbyPanel.style.padding = '16px';
+lobbyPanel.style.fontFamily = 'Arial, sans-serif';
+
+const lobbyTitle = document.createElement('h2');
+lobbyTitle.textContent = 'Choose or create game';
+lobbyTitle.style.margin = '0 0 10px 0';
+lobbyPanel.appendChild(lobbyTitle);
+
+const nameLabel = document.createElement('label');
+nameLabel.textContent = 'Your name';
+nameLabel.style.display = 'block';
+lobbyPanel.appendChild(nameLabel);
+
+const nameInput = document.createElement('input');
+nameInput.type = 'text';
+nameInput.placeholder = 'Name';
+nameInput.maxLength = 24;
+nameInput.style.width = '100%';
+nameInput.style.margin = '6px 0 12px 0';
+nameInput.style.padding = '8px';
+lobbyPanel.appendChild(nameInput);
+
+const createRow = document.createElement('div');
+createRow.style.display = 'flex';
+createRow.style.gap = '8px';
+createRow.style.marginBottom = '12px';
+
+const gameNameInput = document.createElement('input');
+gameNameInput.type = 'text';
+gameNameInput.placeholder = 'New game name';
+gameNameInput.maxLength = 40;
+gameNameInput.style.flex = '1';
+gameNameInput.style.padding = '8px';
+
+const createButton = document.createElement('button');
+createButton.textContent = 'Create';
+createButton.style.padding = '8px 12px';
+
+const randomButton = document.createElement('button');
+randomButton.textContent = 'Random';
+randomButton.style.padding = '8px 12px';
+
+const mapTypeSelect = document.createElement('select');
+mapTypeSelect.style.padding = '8px';
+mapTypeSelect.style.marginBottom = '12px';
+mapTypeSelect.style.width = '100%';
+
+const mapTypeOptions = [
+    { value: MAP_TYPES.CLASSIC, label: 'Classic Plains' },
+    { value: MAP_TYPES.FOREST, label: 'Dense Forest' },
+    { value: MAP_TYPES.THORNS, label: 'Thorn Field' }
+];
+
+for (const mapTypeOption of mapTypeOptions) {
+    const optionElement = document.createElement('option');
+    optionElement.value = mapTypeOption.value;
+    optionElement.textContent = mapTypeOption.label;
+    mapTypeSelect.appendChild(optionElement);
+}
+
+mapTypeSelect.value = MAP_TYPES.CLASSIC;
+
+const playingTypeSelect = document.createElement('select');
+playingTypeSelect.style.padding = '8px';
+playingTypeSelect.style.marginBottom = '12px';
+playingTypeSelect.style.width = '100%';
+
+const steeringModeSelect = document.createElement('select');
+steeringModeSelect.style.padding = '8px';
+steeringModeSelect.style.marginBottom = '12px';
+steeringModeSelect.style.width = '100%';
+
+const playingTypeOptions = [
+    { value: PLAYING_TYPES.LAST_MAN_STANDING, label: 'Last man standing' },
+    { value: PLAYING_TYPES.TIMER, label: 'Most points in 60s' },
+    { value: PLAYING_TYPES.FIRST_TO_SCORE, label: 'First to 1000 points' }
+];
+
+for (const playingTypeOption of playingTypeOptions) {
+    const optionElement = document.createElement('option');
+    optionElement.value = playingTypeOption.value;
+    optionElement.textContent = playingTypeOption.label;
+    playingTypeSelect.appendChild(optionElement);
+}
+
+const steeringModeOptions = [
+    { value: STEERING_MODES.CLASSIC, label: STEERING_MODE_LABELS[STEERING_MODES.CLASSIC] },
+    { value: STEERING_MODES.FREE, label: STEERING_MODE_LABELS[STEERING_MODES.FREE] }
+];
+
+for (const steeringModeOption of steeringModeOptions) {
+    const optionElement = document.createElement('option');
+    optionElement.value = steeringModeOption.value;
+    optionElement.textContent = steeringModeOption.label;
+    steeringModeSelect.appendChild(optionElement);
+}
+
+playingTypeSelect.value = PLAYING_TYPES.LAST_MAN_STANDING;
+steeringModeSelect.value = STEERING_MODES.CLASSIC;
+
+createRow.appendChild(gameNameInput);
+createRow.appendChild(createButton);
+createRow.appendChild(randomButton);
+lobbyPanel.appendChild(playingTypeSelect);
+lobbyPanel.appendChild(mapTypeSelect);
+lobbyPanel.appendChild(steeringModeSelect);
+lobbyPanel.appendChild(createRow);
+
+const listTitle = document.createElement('h3');
+listTitle.textContent = 'Active games';
+listTitle.style.margin = '6px 0';
+lobbyPanel.appendChild(listTitle);
+
+const activeGamesList = document.createElement('div');
+activeGamesList.style.display = 'grid';
+activeGamesList.style.gap = '6px';
+lobbyPanel.appendChild(activeGamesList);
+
+lobbyOverlay.appendChild(lobbyPanel);
+document.body.appendChild(lobbyOverlay);
+
+const getEnteredPlayerName = () => {
+    const enteredName = nameInput.value.trim();
+    if (!enteredName) {
+        return 'Anonymous';
+    }
+
+    return enteredName;
+};
+
+const showGameCanvas = () => {
+    hasJoinedGame = true;
+    steeringMode = steeringModeSelect.value === STEERING_MODES.FREE ? STEERING_MODES.FREE : STEERING_MODES.CLASSIC;
+    activeSteerKeys.clear();
+    canvas.style.display = 'block';
+    overlay.style.display = 'block';
+    timerOverlay.style.display = 'block';
+    lobbyOverlay.style.display = 'none';
+};
+
+const normalizeAngle = (angleInRadians) => {
+    const fullTurn = Math.PI * 2;
+    return ((angleInRadians % fullTurn) + fullTurn) % fullTurn;
+};
+
+const getSnakeHeadCenter = () => {
+    const head = snakeStates.mySnake.coordinates[0];
+    const headSize = snakeStates.mySnake.width ?? gameRules.snakeSegmentSize;
+    return {
+        x: head.x + headSize / 2,
+        y: head.y + headSize / 2
+    };
+};
+
+const setSteeringAngleTowardScreenPoint = (screenX, screenY) => {
+    if (steeringMode !== STEERING_MODES.FREE) {
+        return;
+    }
+
+    const headCenter = getSnakeHeadCenter();
+    const cameraOffsetX = canvas.width / 2 - snakeStates.mySnake.coordinates[0].x;
+    const cameraOffsetY = canvas.height / 2 - snakeStates.mySnake.coordinates[0].y;
+    const headScreenX = headCenter.x + cameraOffsetX;
+    const headScreenY = headCenter.y + cameraOffsetY;
+
+    const diffX = screenX - headScreenX;
+    const diffY = screenY - headScreenY;
+
+    if (diffX === 0 && diffY === 0) {
+        return;
+    }
+
+    steeringAngle = normalizeAngle(Math.atan2(diffY, diffX));
+};
+
+const applySteeringRotationFromKeys = () => {
+    if (steeringMode !== STEERING_MODES.FREE) {
+        return;
+    }
+
+    if (activeSteerKeys.has('left') && !activeSteerKeys.has('right')) {
+        steeringAngle = normalizeAngle(steeringAngle - TURN_STEP_RADIANS);
+    }
+
+    if (activeSteerKeys.has('right') && !activeSteerKeys.has('left')) {
+        steeringAngle = normalizeAngle(steeringAngle + TURN_STEP_RADIANS);
+    }
+};
+
+const getSteeringLabel = () => STEERING_MODE_LABELS[steeringMode] ?? STEERING_MODE_LABELS[STEERING_MODES.CLASSIC];
+
+const renderActiveGames = (games) => {
+    activeGamesList.innerHTML = '';
+
+    if (!games || games.length === 0) {
+        const emptyText = document.createElement('div');
+        emptyText.textContent = 'No active games yet.';
+        activeGamesList.appendChild(emptyText);
+        return;
+    }
+
+    for (const game of games) {
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.justifyContent = 'space-between';
+        row.style.alignItems = 'center';
+        row.style.border = '1px solid #DDD';
+        row.style.padding = '8px';
+
+        const gameMeta = document.createElement('div');
+        gameMeta.innerHTML = `<strong>${game.name}</strong><br><small>${getPlayingTypeLabel(game.playingType)} · ${game.mapName ?? 'Map'} · Host: ${game.ownerName} · Players: ${game.playerCount}</small>`;
+
+        const joinButton = document.createElement('button');
+        joinButton.textContent = 'Join';
+        joinButton.onclick = () => {
+            const playerName = getEnteredPlayerName();
+            socket.emit(GAME_SOCKET_EVENTS.JOIN_GAME, {
+                gameId: game.id,
+                playerName
+            });
+        };
+
+        row.appendChild(gameMeta);
+        row.appendChild(joinButton);
+        activeGamesList.appendChild(row);
+    }
+};
+
+createButton.onclick = () => {
+    const playerName = getEnteredPlayerName();
+    const gameName = gameNameInput.value.trim();
+    const playingType = playingTypeSelect.value;
+    const mapType = mapTypeSelect.value;
+    socket.emit(GAME_SOCKET_EVENTS.CREATE_GAME, {
+        gameName,
+        playerName,
+        playingType,
+        mapType
+    });
+};
+
+const getRandomItem = (items) => items[Math.floor(Math.random() * items.length)];
+
+const getRandomGameName = () => {
+    const adjectives = ['Swift', 'Wild', 'Spiky', 'Foggy', 'Hungry', 'Sneaky'];
+    const nouns = ['Monsters', 'Thorns', 'Forest', 'Snakes', 'Clouds', 'Hunters'];
+    const suffix = Math.floor(Math.random() * 1000);
+    return `${getRandomItem(adjectives)} ${getRandomItem(nouns)} ${suffix}`;
+};
+
+randomButton.onclick = () => {
+    const playerName = getEnteredPlayerName();
+    const randomPlayingType = getRandomItem(playingTypeOptions).value;
+    const randomMapType = getRandomItem(mapTypeOptions).value;
+
+    playingTypeSelect.value = randomPlayingType;
+    mapTypeSelect.value = randomMapType;
+
+    socket.emit(GAME_SOCKET_EVENTS.CREATE_GAME, {
+        gameName: getRandomGameName(),
+        playerName,
+        playingType: randomPlayingType,
+        mapType: randomMapType,
+        autoJoin: true
+    });
+};
+
+let gameStartTime = Date.now();
+const MS_PER_SECOND = 1000;
+const SECONDS_PER_MINUTE = 60;
+let playingTypeConfig = {
+    playingType: PLAYING_TYPES.LAST_MAN_STANDING,
+    timerDurationSeconds: 60,
+    scoreTarget: 1000
+};
+let currentMatchState = null;
+let hasShownMatchEndAlert = false;
+
+const formatDurationAsMinutesSeconds = (durationMs) => {
+    const totalSeconds = Math.floor(durationMs / MS_PER_SECOND);
+    const minutes = Math.floor(totalSeconds / SECONDS_PER_MINUTE);
+    const seconds = totalSeconds % SECONDS_PER_MINUTE;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+};
+
+const resetGameTimer = () => {
+    gameStartTime = Date.now();
+    hasShownMatchEndAlert = false;
+    timerOverlay.textContent = '00:00';
+};
+
+const getPlayingTypeLabel = (playingType) => {
+    if (playingType === PLAYING_TYPES.TIMER) {
+        return 'Most points in time';
+    }
+
+    if (playingType === PLAYING_TYPES.FIRST_TO_SCORE) {
+        return 'First to score';
+    }
+
+    return 'Last man standing';
+};
+
+const getPlayingTypeObjectiveText = () => {
+    const playingType = currentMatchState?.playingType ?? playingTypeConfig.playingType;
+
+    if (playingType === PLAYING_TYPES.TIMER) {
+        const duration = currentMatchState?.timerDurationSeconds ?? playingTypeConfig.timerDurationSeconds;
+        return `${duration}s`; 
+    }
+
+    if (playingType === PLAYING_TYPES.FIRST_TO_SCORE) {
+        const scoreTarget = currentMatchState?.scoreTarget ?? playingTypeConfig.scoreTarget;
+        return `Target: ${scoreTarget}`;
+    }
+
+    return 'Stay alive';
+};
+
+const updateGameTimer = () => {
+    if (isGameOver && !(currentMatchState?.playingType === PLAYING_TYPES.TIMER && currentMatchState?.isEnded)) {
+        return;
+    }
+
+    const activePlayingType = currentMatchState?.playingType ?? playingTypeConfig.playingType;
+    if (activePlayingType === PLAYING_TYPES.TIMER) {
+        const startedAtMs = currentMatchState?.startedAtMs ?? gameStartTime;
+        const durationSeconds = currentMatchState?.timerDurationSeconds ?? playingTypeConfig.timerDurationSeconds;
+        const elapsedMs = Date.now() - startedAtMs;
+        const remainingMs = Math.max(0, durationSeconds * MS_PER_SECOND - elapsedMs);
+        timerOverlay.textContent = formatDurationAsMinutesSeconds(remainingMs);
+        return;
+    }
+
+    const elapsedMs = Date.now() - gameStartTime;
+    timerOverlay.textContent = formatDurationAsMinutesSeconds(elapsedMs);
+};
+
+setInterval(updateGameTimer, MS_PER_SECOND);
+
+function countOtherSnakes() {
     return Object.keys(snakeStates).filter((key) => key !== 'mySnake' && key !== localSocketId).length
 }
 
-function getBotSnakeCount() {
+function countBotSnakes() {
     return Object.keys(snakeStates).filter((key) => key.startsWith('bot-')).length
 }
 
 function updateOverlay() {
-    overlay.innerHTML = `<strong>Connected Users: ${getConnectedSnakeCount()} </strong><br>`;
-    overlay.innerHTML += `<strong>Bots: ${getBotSnakeCount()} </strong><br>`;
+    if (!hasJoinedGame) {
+        return;
+    }
+
+    overlay.innerHTML = `<strong>Connected Users: ${countOtherSnakes()} </strong><br>`;
+    overlay.innerHTML += `<strong>Bots: ${countBotSnakes()} </strong><br>`;
+    overlay.innerHTML += `<strong>Mode: ${getPlayingTypeLabel(currentMatchState?.playingType ?? playingTypeConfig.playingType)} </strong><br>`;
+    overlay.innerHTML += `<strong>Steering: ${getSteeringLabel()} </strong><br>`;
+    overlay.innerHTML += `<strong>Goal: ${getPlayingTypeObjectiveText()} </strong><br>`;
+    overlay.innerHTML += `<strong>You: ${localPlayerName} </strong><br>`;
 
     for (const id in snakeStates) {
         const snake = snakeStates[id];
         overlay.innerHTML += `<div style="color: ${snake.color};">
 
-            (${snake.coordinates[0].x}, ${snake.coordinates[0].y}), ${snake.l} L
+            ${snake.name ?? id}: (${snake.coordinates[0].x}, ${snake.coordinates[0].y}), ${snake.length} L
         </div>`;
     }
 
 }
 
-let lastHeadCoordinates = { x: 0, y: 0 };
+let lastEmittedHeadCoordinates = { x: 0, y: 0 };
 
 function emitHeadCoordinates(x, y) {
-
-    if (lastHeadCoordinates.x === x && lastHeadCoordinates.y === y) {
+    if (!hasJoinedGame || !currentGameId) {
         return;
     }
 
-    socket.emit(GAME_SOCKET_EVENTS.SEND_COORDINATES_OF_HEAD, { x, y, l: snakeStates.mySnake.l });
-    lastHeadCoordinates = { x, y };
+    if (lastEmittedHeadCoordinates.x === x && lastEmittedHeadCoordinates.y === y) {
+        return;
+    }
+
+    socket.emit(GAME_SOCKET_EVENTS.SEND_COORDINATES_OF_HEAD, {
+        x,
+        y,
+        l: snakeStates.mySnake.length,
+        w: snakeStates.mySnake.width
+    });
+    lastEmittedHeadCoordinates = { x, y };
 }
 
-socket.on(GAME_SOCKET_EVENTS.CONNECT, () => localSocketId = socket.id);
+socket.on(GAME_SOCKET_EVENTS.CONNECT, () => {
+    localSocketId = socket.id;
+    socket.emit(GAME_SOCKET_EVENTS.LIST_ACTIVE_GAMES);
+});
 
-socket.on(GAME_SOCKET_EVENTS.UPDATE_COORDINATES_OF_HEAD, (data) => {
-    const { id, coordinatesOfHead } = data;
-    upsertSnakeState(id, { x: coordinatesOfHead.x, y: coordinatesOfHead.y }, data.l, data.score);
+socket.on(GAME_SOCKET_EVENTS.ACTIVE_GAMES_UPDATED, (games) => {
+    renderActiveGames(games);
+});
+
+socket.on(GAME_SOCKET_EVENTS.JOINED_GAME, ({ gameId, playerName, playingType }) => {
+    currentGameId = gameId;
+    localPlayerName = playerName;
+    if (playingType) {
+        playingTypeConfig = {
+            ...playingTypeConfig,
+            playingType
+        };
+    }
+    snakeStates.mySnake.name = localPlayerName;
+    showGameCanvas();
+    resetGameTimer();
+    drawScene();
+    updateOverlay();
+});
+
+socket.on(GAME_SOCKET_EVENTS.JOIN_GAME_ERROR, (message) => {
+    alert(message || 'Could not join game');
+});
+
+socket.on(GAME_SOCKET_EVENTS.UPDATE_COORDINATES_OF_HEAD, (headCoordinatesUpdate) => {
+    const { id: snakeId, coordinatesOfHead } = headCoordinatesUpdate;
+    upsertSnakeById(snakeId, { x: coordinatesOfHead.x, y: coordinatesOfHead.y }, headCoordinatesUpdate.l, headCoordinatesUpdate.score, headCoordinatesUpdate.w);
 
     drawScene();
     updateOverlay();
@@ -189,7 +641,18 @@ socket.on(GAME_SOCKET_EVENTS.UPDATE_COORDINATES_OF_HEAD, (data) => {
 
 socket.on(GAME_SOCKET_EVENTS.ASSIGN_COLOR, (color) => {
     localSnakeColor = color;
-    console.log('Assigned color:', localSnakeColor);
+    snakeStates.mySnake.color = color;
+    updateOverlay();
+});
+
+socket.on(GAME_SOCKET_EVENTS.ASSIGN_HEAD_EMOJI, (headEmoji) => {
+    if (typeof headEmoji !== 'string' || !headEmoji.trim()) {
+        return;
+    }
+
+    localSnakeHeadEmoji = headEmoji;
+    snakeStates.mySnake.headEmoji = headEmoji;
+    drawScene();
     updateOverlay();
 });
 
@@ -224,13 +687,49 @@ const applyMovementConfig = ({ baseStep: configuredBaseStep, ticksPerSecond: con
     hasMovementConfig = true;
 
     if (!isPaused) {
-        stop();
-        start();
+        stopMovementLoop();
+        startMovementLoop();
     }
 };
 
 socket.on(GAME_SOCKET_EVENTS.SET_MOVEMENT_CONFIG, (movementConfig) => {
     applyMovementConfig(movementConfig);
+});
+
+socket.on(GAME_SOCKET_EVENTS.SET_PLAYING_TYPE, (playingTypeConfigFromServer) => {
+    playingTypeConfig = {
+        ...playingTypeConfig,
+        ...playingTypeConfigFromServer
+    };
+    updateOverlay();
+    updateGameTimer();
+});
+
+socket.on(GAME_SOCKET_EVENTS.MATCH_STATE_UPDATE, (matchState) => {
+    currentMatchState = {
+        ...matchState,
+        playingType: playingTypeConfig.playingType
+    };
+
+    if (typeof matchState?.startedAtMs === 'number') {
+        gameStartTime = matchState.startedAtMs;
+    }
+
+    if (matchState?.isEnded) {
+        isGameOver = true;
+        if (!hasShownMatchEndAlert) {
+            if (matchState.winnerId) {
+                const winnerLabel = matchState.winnerId === localSocketId ? 'You' : matchState.winnerId;
+                alert(`Game Over! Winner: ${winnerLabel}`);
+            } else {
+                alert('Game Over! No single winner this round.');
+            }
+            hasShownMatchEndAlert = true;
+        }
+    }
+
+    updateOverlay();
+    updateGameTimer();
 });
 
 const applyGameRules = (rulesConfig) => {
@@ -244,35 +743,65 @@ socket.on(GAME_SOCKET_EVENTS.SET_GAME_RULES, (rulesConfig) => {
     applyGameRules(rulesConfig);
 });
 
-socket.on(GAME_SOCKET_EVENTS.SET_VIRTUAL_DIMENSIONS, (data) => {
-    boardWidth = data.virtualWidth;
-    boardHeight = data.virtualHeight;
+socket.on(GAME_SOCKET_EVENTS.SET_VIRTUAL_DIMENSIONS, (virtualDimensions) => {
+    boardWidth = virtualDimensions.virtualWidth;
+    boardHeight = virtualDimensions.virtualHeight;
     drawScene();
 });
 
 socket.on(GAME_SOCKET_EVENTS.SET_START_POSITION, (position) => {
+    isGameOver = false;
     snakeStates.mySnake.coordinates[0].x = position.x;
     snakeStates.mySnake.coordinates[0].y = position.y;
+    resetGameTimer();
     drawScene();
 });
 
-socket.on(GAME_SOCKET_EVENTS.UPDATE_USERS, (users) => {
-    console.log('updating users')
-    for (const id in snakeStates) {
-        if (id === 'mySnake') {
+socket.on(GAME_SOCKET_EVENTS.YOU_WERE_EATEN, () => {
+    if (isGameOver) {
+        return;
+    }
+
+    isGameOver = true;
+    alert('Game Over, you were eaten by a bigger snake!');
+});
+
+socket.on(GAME_SOCKET_EVENTS.UPDATE_USERS, (usersById) => {
+    for (const snakeId in snakeStates) {
+        if (snakeId === 'mySnake') {
             continue;
         }
 
-        if (!users[id]) {
-            delete snakeStates[id];
+        if (!usersById[snakeId]) {
+            delete snakeStates[snakeId];
         }
     }
 
-    for (const id in users) {
-        const user = users[id];
+    for (const snakeId in usersById) {
+        const userState = usersById[snakeId];
 
-        upsertSnakeState(id, user.coordinates, user.l, user.score);
-        updateSnakeColor(id, user.color);
+        if (snakeId === localSocketId) {
+            snakeStates.mySnake.length = userState.l ?? snakeStates.mySnake.length;
+            snakeStates.mySnake.width = userState.w ?? snakeStates.mySnake.width;
+            snakeStates.mySnake.score = userState.score ?? snakeStates.mySnake.score;
+            snakeStates.mySnake.name = userState.name ?? snakeStates.mySnake.name;
+            snakeStates.mySnake.color = userState.color ?? snakeStates.mySnake.color;
+            snakeStates.mySnake.headEmoji = userState.headEmoji ?? snakeStates.mySnake.headEmoji;
+            continue;
+        }
+
+        upsertSnakeById(snakeId, userState.coordinates, userState.l, userState.score, userState.w);
+        setSnakeColorById(snakeId, userState.color);
+        if (snakeStates[snakeId]) {
+            snakeStates[snakeId].name = userState.name ?? snakeStates[snakeId].name;
+            snakeStates[snakeId].headEmoji = userState.headEmoji ?? snakeStates[snakeId].headEmoji;
+        }
+    }
+
+    for (const eatenSnakeId of eatenSnakeIds) {
+        if (!usersById[eatenSnakeId]) {
+            eatenSnakeIds.delete(eatenSnakeId);
+        }
     }
 
     updateOverlay();
@@ -299,9 +828,22 @@ function drawTrees() {
 
 function drawSnake(snake) {
     ctx.fillStyle = snake.color;
-    const baseSegmentSize = gameRules.snakeSegmentSize;
+    const baseSegmentSize = snake.width ?? gameRules.snakeSegmentSize;
     const headSize = baseSegmentSize * gameRules.snakeHeadSizeMultiplier;
     const headOffset = (headSize - baseSegmentSize) / 2;
+    const headCoordinate = snake.coordinates[0];
+    const neckCoordinate = snake.coordinates[1] ?? headCoordinate;
+    let neckDirectionX = neckCoordinate.x - headCoordinate.x;
+    let neckDirectionY = neckCoordinate.y - headCoordinate.y;
+
+    if (neckDirectionX === 0 && neckDirectionY === 0) {
+        neckDirectionY = baseSegmentSize;
+    }
+
+    const neckDirectionLength = Math.hypot(neckDirectionX, neckDirectionY) || 1;
+    const normalizedNeckDirectionX = neckDirectionX / neckDirectionLength;
+    const normalizedNeckDirectionY = neckDirectionY / neckDirectionLength;
+    const headForwardOffset = baseSegmentSize * 0.8;
 
 
     snake.coordinates.forEach((coordinate, index) => {
@@ -311,30 +853,20 @@ function drawSnake(snake) {
 
         const segmentOffset = index === 0 ? headOffset : 0;
 
+        if (index === 0) {
+            const headCenterX = coordinate.x + baseSegmentSize / 2 - normalizedNeckDirectionX * headForwardOffset;
+            const headCenterY = coordinate.y + baseSegmentSize / 2 - normalizedNeckDirectionY * headForwardOffset;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = `${Math.max(32, Math.round(segmentSize * 2))}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
+            ctx.fillText(snake.headEmoji ?? '🐍', headCenterX, headCenterY);
+            ctx.textAlign = 'start';
+            ctx.textBaseline = 'alphabetic';
+            return;
+        }
+
         ctx.fillRect(coordinate.x - segmentOffset, coordinate.y - segmentOffset, segmentSize, segmentSize);
     });
-
-    ctx.fillStyle = snake.color;
-    ctx.font = "12px Arial";
-    const tailCoordinate = snake.coordinates[snake.coordinates.length - 1] ?? snake.coordinates[0];
-    const previousToTailCoordinate = snake.coordinates[snake.coordinates.length - 2] ?? tailCoordinate;
-    const deltaX = tailCoordinate.x - previousToTailCoordinate.x;
-    const deltaY = tailCoordinate.y - previousToTailCoordinate.y;
-    const isHorizontalTail = Math.abs(deltaX) >= Math.abs(deltaY);
-    const tailDirectionX = isHorizontalTail ? Math.sign(deltaX || 1) : 0;
-    const tailDirectionY = isHorizontalTail ? 0 : Math.sign(deltaY || 1);
-    const tailLabelOffset = baseSegmentSize * 3.0;
-    const tailCenterX = tailCoordinate.x + baseSegmentSize / 2;
-    const tailCenterY = tailCoordinate.y + baseSegmentSize / 2;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(
-        snake.l,
-        tailCenterX + tailDirectionX * tailLabelOffset,
-        tailCenterY + tailDirectionY * tailLabelOffset
-    );
-    ctx.textAlign = 'start';
-    ctx.textBaseline = 'alphabetic';
 
 }
 
@@ -382,6 +914,17 @@ function drawWorldObjects() {
             ctx.fillRect(worldObject.x, worldObject.y, worldObjectDefinition.size, worldObjectDefinition.size);
             continue;
         }
+
+        if (worldObject.type === OBJECT_TYPE_DOT) {
+            const dotCenterX = worldObject.x + worldObjectDefinition.size / 2;
+            const dotCenterY = worldObject.y + worldObjectDefinition.size / 2;
+
+            ctx.fillStyle = '#FFCA28';
+            ctx.beginPath();
+            ctx.arc(dotCenterX, dotCenterY, worldObjectDefinition.size / 2, 0, Math.PI * 2);
+            ctx.fill();
+            continue;
+        }
     }
 }
 
@@ -398,6 +941,10 @@ const getWorldObjectHitbox = (worldObject, worldObjectDefinition) => {
 };
 
 function drawScene() {
+    if (!hasJoinedGame) {
+        return;
+    }
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
 
@@ -421,39 +968,71 @@ function drawScene() {
     ctx.restore();
 }
 
-let intervalId;
+let movementIntervalId;
 
-const start = () => {
+const startMovementLoop = () => {
     if (!hasMovementConfig) {
         return;
     }
-    intervalId = setInterval(updatePosition, updateIntervalMs);
+    movementIntervalId = setInterval(updatePosition, updateIntervalMs);
 }
 
-const stop = () => {
-    clearInterval(intervalId);
+const stopMovementLoop = () => {
+    clearInterval(movementIntervalId);
 }
 
-start();
+startMovementLoop();
 
 window.addEventListener('keydown', (event) => {
+    if (!hasJoinedGame) {
+        return;
+    }
+
     if (!isGameOver) {
+        if (event.key === 'ArrowUp' || event.key === 'ArrowDown' || event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === ' ') {
+            event.preventDefault();
+        }
+
         switch (event.key) {
             case 'ArrowUp':
-                movementDirection = 'up';
+                if (steeringMode === STEERING_MODES.CLASSIC) {
+                    movementDirection = 'up';
+                }
                 break;
             case 'ArrowDown':
-                movementDirection = 'down';
+                if (steeringMode === STEERING_MODES.CLASSIC) {
+                    movementDirection = 'down';
+                }
                 break;
             case 'ArrowLeft':
-                movementDirection = 'left';
+                if (steeringMode === STEERING_MODES.CLASSIC) {
+                    movementDirection = 'left';
+                } else {
+                    activeSteerKeys.add('left');
+                }
                 break;
             case 'ArrowRight':
-                movementDirection = 'right';
+                if (steeringMode === STEERING_MODES.CLASSIC) {
+                    movementDirection = 'right';
+                } else {
+                    activeSteerKeys.add('right');
+                }
+                break;
+            case 'a':
+            case 'A':
+                if (steeringMode === STEERING_MODES.FREE) {
+                    activeSteerKeys.add('left');
+                }
+                break;
+            case 'd':
+            case 'D':
+                if (steeringMode === STEERING_MODES.FREE) {
+                    activeSteerKeys.add('right');
+                }
                 break;
             case ' ':
                 isPaused = !isPaused;
-                isPaused ? stop() : start();
+                isPaused ? stopMovementLoop() : startMovementLoop();
                 break;
             case 'b':
                 isBoostEnabled = !isBoostEnabled;
@@ -468,13 +1047,103 @@ window.addEventListener('keydown', (event) => {
     requestAnimationFrame(drawScene);
 });
 
-const sendWeHitAnotherSnake = () => socket.emit(GAME_SOCKET_EVENTS.TURNED_INTO_MONSTERS, {coordinates: snakeStates.mySnake.coordinates});
+window.addEventListener('keyup', (event) => {
+    if (steeringMode !== STEERING_MODES.FREE) {
+        return;
+    }
+
+    switch (event.key) {
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+            activeSteerKeys.delete('left');
+            break;
+        case 'ArrowRight':
+        case 'd':
+        case 'D':
+            activeSteerKeys.delete('right');
+            break;
+    }
+});
+
+const eatenSnakeIds = new Set();
+const sendSnakeEaten = (victimId) => socket.emit(GAME_SOCKET_EVENTS.SNAKE_EATEN, { victimId });
+const sendSnakeTailBitten = (victimId, collisionX, collisionY) => socket.emit(GAME_SOCKET_EVENTS.SNAKE_TAIL_BITTEN, {
+    victimId,
+    collisionX,
+    collisionY
+});
+
+const getOppositeDirection = (direction) => {
+    switch (direction) {
+        case 'up':
+            return 'down';
+        case 'down':
+            return 'up';
+        case 'left':
+            return 'right';
+        case 'right':
+            return 'left';
+        default:
+            return direction;
+    }
+};
+
+const applyDirectionToPosition = (originX, originY, direction, step) => {
+    let nextX = originX;
+    let nextY = originY;
+
+    switch (direction) {
+        case 'up':
+            nextY -= step;
+            break;
+        case 'down':
+            nextY += step;
+            break;
+        case 'left':
+            nextX -= step;
+            break;
+        case 'right':
+            nextX += step;
+            break;
+    }
+
+    return { nextX, nextY };
+};
+
+const applySteeringAngleToPosition = (originX, originY, angleInRadians, step) => {
+    return {
+        nextX: originX + Math.cos(angleInRadians) * step,
+        nextY: originY + Math.sin(angleInRadians) * step
+    };
+};
+
+const reverseMovementDirection = () => {
+    if (steeringMode === STEERING_MODES.FREE) {
+        steeringAngle = normalizeAngle(steeringAngle + Math.PI);
+        return;
+    }
+
+    movementDirection = getOppositeDirection(movementDirection);
+};
 
 canvas.addEventListener('touchstart', (event) => {
+    if (!hasJoinedGame) {
+        return;
+    }
+
     if (!isGameOver) {
+        event.preventDefault();
+
         const touch = event.touches[0];
         const touchX = touch.clientX;
         const touchY = touch.clientY;
+
+        if (steeringMode === STEERING_MODES.FREE) {
+            setSteeringAngleTowardScreenPoint(touchX, touchY);
+            requestAnimationFrame(drawScene);
+            return;
+        }
 
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
@@ -492,44 +1161,44 @@ canvas.addEventListener('touchstart', (event) => {
     requestAnimationFrame(drawScene);
 });
 
+canvas.addEventListener('mousemove', (event) => {
+    if (!hasJoinedGame || isGameOver || steeringMode !== STEERING_MODES.FREE) {
+        return;
+    }
+
+    setSteeringAngleTowardScreenPoint(event.clientX, event.clientY);
+});
+
 function updatePosition() {
+    if (!hasJoinedGame || !currentGameId) {
+        return;
+    }
+
     let nextX;
     let nextY;
     let nextLength = 0;
+    let nextWidth = 0;
+    let hasBounced = false;
 
     nextX = snakeStates.mySnake.coordinates[0].x;
     nextY = snakeStates.mySnake.coordinates[0].y;
 
     if (!isPaused && !isGameOver) {
-        switch (movementDirection) {
-            case 'up':
-                nextY -= movementStep;
-                break;
-            case 'down':
-                nextY += movementStep;
-                break;
-            case 'left':
-                nextX -= movementStep;
-                break;
-            case 'right':
-                nextX += movementStep;
-                break;
-        }
+        applySteeringRotationFromKeys();
 
-        if (gameRules.borderCollisionEndsGame && (
-            nextX - SPHERE_RADIUS < 0 || nextX + SPHERE_RADIUS > boardWidth ||
-            nextY - SPHERE_RADIUS < 0 || nextY + SPHERE_RADIUS > boardHeight
-        )) {
-            isGameOver = true;
-            alert('Game Over!');
-        }
+        const movedPosition = steeringMode === STEERING_MODES.FREE
+            ? applySteeringAngleToPosition(nextX, nextY, steeringAngle, movementStep)
+            : applyDirectionToPosition(nextX, nextY, movementDirection, movementStep);
+        nextX = movedPosition.nextX;
+        nextY = movedPosition.nextY;
 
         if (gameRules.worldObjectsEnabled) {
+            const currentSnakeWidth = snakeStates.mySnake.width ?? gameRules.snakeSegmentSize;
             const snakeHitbox = {
                 x: nextX,
                 y: nextY,
-                width: gameRules.snakeSegmentSize,
-                height: gameRules.snakeSegmentSize
+                width: currentSnakeWidth,
+                height: currentSnakeWidth
             };
 
             for (const worldObjectId in worldObjects) {
@@ -552,7 +1221,11 @@ function updatePosition() {
                 }
 
                 notifyOfHitWorldObject(worldObjectId);
-                nextLength = snakeStates.mySnake.l + worldObjectDefinition.effects.growthDelta;
+                nextLength = snakeStates.mySnake.length + worldObjectDefinition.effects.growthDelta;
+                const widthGain = typeof worldObjectDefinition.effects.widthDelta === 'number'
+                    ? worldObjectDefinition.effects.widthDelta
+                    : 0;
+                nextWidth = Math.max(MIN_SNAKE_WIDTH, currentSnakeWidth + widthGain);
 
                 if (!worldObjectDefinition.removeOnHit) {
                     continue;
@@ -561,32 +1234,98 @@ function updatePosition() {
         }
 
         if (gameRules.playerCollisionEndsGame) {
+            let collidedSnakeId = null;
+            const myLength = snakeStates.mySnake.length;
+            const myWidthAfterMove = nextWidth > 0
+                ? nextWidth
+                : (snakeStates.mySnake.width ?? gameRules.snakeSegmentSize);
+            const mySnakeHitbox = {
+                x: nextX,
+                y: nextY,
+                width: myWidthAfterMove,
+                height: myWidthAfterMove
+            };
+
             for (const id in snakeStates) {
                 if (id === 'mySnake') {
                     continue;
                 }
 
-                for (let i = 0; i < snakeStates[id].coordinates.length; i++) {
-                    const coordinate = snakeStates[id].coordinates[i];
-                    if (
-                        nextX >= coordinate.x &&
-                        nextX <= coordinate.x + gameRules.playerCollisionSize &&
-                        nextY >= coordinate.y &&
-                        nextY <= coordinate.y + gameRules.playerCollisionSize
-                    ) {
-                        isGameOver = true;
-                        sendWeHitAnotherSnake();
-                        alert('Game Over, hit another player!');
-                        return;
+                if (eatenSnakeIds.has(id)) {
+                    continue;
+                }
+
+                const otherSnake = snakeStates[id];
+                const otherLength = otherSnake.length ?? INITIAL_USER_LENGTH;
+
+                for (let i = 0; i < otherSnake.coordinates.length; i++) {
+                    const coordinate = otherSnake.coordinates[i];
+                    const otherWidth = otherSnake.width ?? gameRules.playerCollisionSize;
+                    const otherSegmentHitbox = {
+                        x: coordinate.x,
+                        y: coordinate.y,
+                        width: otherWidth,
+                        height: otherWidth
+                    };
+
+                    if (rectanglesOverlap(mySnakeHitbox, otherSegmentHitbox)) {
+                        collidedSnakeId = id;
+
+                        if (myLength > otherLength) {
+                            eatenSnakeIds.add(id);
+                            sendSnakeEaten(id);
+                        } else {
+                            const isTailSegment = i === otherSnake.coordinates.length - 1;
+                            if (myLength < otherLength && isTailSegment) {
+                                sendSnakeTailBitten(id, nextX, nextY);
+                            } else {
+                                reverseMovementDirection();
+                                const bouncedPosition = steeringMode === STEERING_MODES.FREE
+                                    ? applySteeringAngleToPosition(
+                                        snakeStates.mySnake.coordinates[0].x,
+                                        snakeStates.mySnake.coordinates[0].y,
+                                        steeringAngle,
+                                        movementStep
+                                    )
+                                    : applyDirectionToPosition(
+                                    snakeStates.mySnake.coordinates[0].x,
+                                    snakeStates.mySnake.coordinates[0].y,
+                                    movementDirection,
+                                    movementStep
+                                );
+                                nextX = bouncedPosition.nextX;
+                                nextY = bouncedPosition.nextY;
+                                hasBounced = true;
+                            }
+                        }
+                        break;
                     }
                 }
+
+                if (collidedSnakeId) {
+                    break;
+                }
             }
+        }
+
+        if (gameRules.borderCollisionEndsGame && (
+            nextX - SPHERE_RADIUS < 0 || nextX + SPHERE_RADIUS > boardWidth ||
+            nextY - SPHERE_RADIUS < 0 || nextY + SPHERE_RADIUS > boardHeight
+        )) {
+            isGameOver = true;
+            alert('Game Over!');
+            return;
+        }
+
+        if (hasBounced) {
+            nextX = Math.max(0, Math.min(nextX, boardWidth - (snakeStates.mySnake.width ?? gameRules.snakeSegmentSize)));
+            nextY = Math.max(0, Math.min(nextY, boardHeight - (snakeStates.mySnake.width ?? gameRules.snakeSegmentSize)));
         }
 
     }
 
     emitHeadCoordinates(nextX, nextY);
-    upsertSnakeState('mySnake', { x: nextX, y: nextY }, nextLength);
+    upsertSnakeById('mySnake', { x: nextX, y: nextY }, nextLength, undefined, nextWidth);
 
     updateOverlay();
     if (!isGameOver) {
