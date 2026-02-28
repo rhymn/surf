@@ -1,4 +1,3 @@
-const pgp = require('pg-promise')();
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
@@ -9,8 +8,6 @@ const {
 } = require('./public/world-object-definitions.js');
 
 const DEFAULT_PORT = 4000;
-const DATABASE_CONNECTION_URL = 'postgres://username:password@localhost:5432/mydatabase';
-const UPDATE_COORDINATES_QUERY = 'UPDATE coordinates SET x = $1, y = $2 WHERE id = 1';
 const HEX_COLOR_CHARS = '0123456789ABCDEF';
 const HEX_BASE = 16;
 const HEX_COLOR_LENGTH = 6;
@@ -58,7 +55,7 @@ const INITIAL_MONSTER_COUNT = 20;
 const INITIAL_CLOUD_COUNT = 8;
 const INITIAL_THORN_COUNT = 10;
 const INITIAL_USER_SCORE = 0;
-const INITIAL_USER_LENGTH = 1;
+const INITIAL_USER_LENGTH = 6;
 const INITIAL_USER_WIDTH = RULE_SNAKE_SEGMENT_SIZE;
 const PUBLIC_DIRECTORY = 'public';
 const WORLD_OBJECT_TYPE_DEFINITIONS = JSON.parse(JSON.stringify(DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS));
@@ -112,17 +109,6 @@ const MAP_DEFINITIONS = {
     }
 };
 
-const database = pgp(DATABASE_CONNECTION_URL);
-
-async function updateCoordinatesInDatabase(x, y) {
-    try {
-        await database.none(UPDATE_COORDINATES_QUERY, [x, y]);
-        console.log('Coordinates updated in the database');
-    } catch (error) {
-        console.error('Error updating coordinates in the database:', error);
-    }
-}
-
 function getRandomColor() {
     let color = '#';
     for (let i = 0; i < HEX_COLOR_LENGTH; i++) {
@@ -154,6 +140,36 @@ const setSnakeWidthForUser = (userState, nextWidth) => {
     }
 
     userState.w = Math.max(1, nextWidth);
+};
+
+const growSnakeAfterEatingSnake = (attackerUser, victimUser) => {
+    if (!attackerUser || !victimUser) {
+        return;
+    }
+
+    const attackerLength = getSnakeLengthForUser(attackerUser);
+    const victimLength = getSnakeLengthForUser(victimUser);
+    setSnakeLengthForUser(attackerUser, attackerLength + victimLength);
+};
+
+const applyWorldObjectEffectsToUser = (userState, worldObjectDefinition) => {
+    if (!userState || !worldObjectDefinition) {
+        return;
+    }
+
+    const scoreDelta = Number.isFinite(worldObjectDefinition.effects.scoreDelta)
+        ? worldObjectDefinition.effects.scoreDelta
+        : 0;
+    const growthDelta = Number.isFinite(worldObjectDefinition.effects.growthDelta)
+        ? worldObjectDefinition.effects.growthDelta
+        : 0;
+    const widthDelta = Number.isFinite(worldObjectDefinition.effects.widthDelta)
+        ? worldObjectDefinition.effects.widthDelta
+        : 0;
+
+    userState.score += scoreDelta;
+    setSnakeLengthForUser(userState, getSnakeLengthForUser(userState) + growthDelta);
+    setSnakeWidthForUser(userState, getSnakeWidthForUser(userState) + widthDelta);
 };
 
 
@@ -645,8 +661,7 @@ const getSnakeCollision = (attackerId, attackerPosition) => {
             if (rectanglesOverlap(attackerHitbox, victimSegmentHitbox)) {
                 return {
                     victimId,
-                    segmentIndex,
-                    victimTailIndex: victimTrail.length - 1
+                    segmentIndex
                 };
             }
         }
@@ -672,23 +687,6 @@ const removeSnakeAndSpawnDots = (victimId) => {
 
     delete snakeTrailById[victimId];
     delete connectedUsers[victimId];
-    return true;
-};
-
-const shortenSnakeFromTail = (victimId) => {
-    const victimUser = connectedUsers[victimId];
-    if (!victimUser) {
-        return false;
-    }
-
-    const victimTrail = getSnakeTrailForId(victimId);
-    if (victimTrail.length <= 1 || getSnakeLengthForUser(victimUser) <= 1) {
-        return false;
-    }
-
-    victimTrail.pop();
-    setSnakeLengthForUser(victimUser, getSnakeLengthForUser(victimUser) - 1);
-    snakeTrailById[victimId] = victimTrail;
     return true;
 };
 
@@ -844,12 +842,7 @@ const applyWorldObjectHitForBot = (botId, worldObjectId) => {
         return { usersChanged: true, worldObjectsChanged: false };
     }
 
-    botUser.score += worldObjectDefinition.effects.scoreDelta;
-    setSnakeLengthForUser(botUser, getSnakeLengthForUser(botUser) + worldObjectDefinition.effects.growthDelta);
-    const widthGain = typeof worldObjectDefinition.effects.widthDelta === 'number'
-        ? worldObjectDefinition.effects.widthDelta
-        : 0;
-    setSnakeWidthForUser(botUser, getSnakeWidthForUser(botUser) + widthGain);
+    applyWorldObjectEffectsToUser(botUser, worldObjectDefinition);
 
     if (worldObjectDefinition.removeOnHit) {
         delete worldObjects[worldObjectId];
@@ -985,14 +978,11 @@ const updateBotPositions = () => {
 
             if (attackerLength > victimLength) {
                 const removed = removeSnakeAndSpawnDots(snakeCollision.victimId);
+                if (removed) {
+                    growSnakeAfterEatingSnake(botUser, victimUser);
+                }
                 usersChanged = usersChanged || removed;
                 worldObjectsChanged = worldObjectsChanged || removed;
-                continue;
-            }
-
-            if (attackerLength < victimLength && snakeCollision.segmentIndex === snakeCollision.victimTailIndex) {
-                const shortened = shortenSnakeFromTail(snakeCollision.victimId);
-                usersChanged = usersChanged || shortened;
                 continue;
             }
 
@@ -1176,48 +1166,9 @@ io.on('connection', (socket) => {
             return;
         }
 
+        growSnakeAfterEatingSnake(attackerUser, victimUser);
+
         broadcastWorldObjects(gameId);
-        broadcastUsers(gameId);
-        evaluateMatchState();
-    });
-
-    socket.on(SOCKET_EVENTS.SNAKE_TAIL_BITTEN, ({ victimId, collisionX, collisionY }) => {
-        const attackerUser = connectedUsers[socket.id];
-        const victimUser = connectedUsers[victimId];
-        const gameId = socketGameById[socket.id];
-
-        if (!attackerUser || !victimUser || victimId === socket.id) {
-            return;
-        }
-
-        if (victimUser.gameId !== gameId) {
-            return;
-        }
-
-        if (getSnakeLengthForUser(attackerUser) >= getSnakeLengthForUser(victimUser)) {
-            return;
-        }
-
-        const victimTrail = getSnakeTrailForId(victimId);
-        const tailCoordinates = victimTrail[victimTrail.length - 1];
-        const attackX = typeof collisionX === 'number' ? collisionX : attackerUser.coordinates.x;
-        const attackY = typeof collisionY === 'number' ? collisionY : attackerUser.coordinates.y;
-        const victimWidth = getSnakeWidthForUser(victimUser);
-
-        const attackerIsAtTail =
-            attackX >= tailCoordinates.x &&
-            attackX <= tailCoordinates.x + victimWidth &&
-            attackY >= tailCoordinates.y &&
-            attackY <= tailCoordinates.y + victimWidth;
-
-        if (!attackerIsAtTail) {
-            return;
-        }
-
-        if (!shortenSnakeFromTail(victimId)) {
-            return;
-        }
-
         broadcastUsers(gameId);
         evaluateMatchState();
     });
@@ -1250,12 +1201,7 @@ io.on('connection', (socket) => {
             return;
         }
 
-        hitterUser.score += worldObjectDefinition.effects.scoreDelta;
-        setSnakeLengthForUser(hitterUser, getSnakeLengthForUser(hitterUser) + worldObjectDefinition.effects.growthDelta);
-        const widthGain = typeof worldObjectDefinition.effects.widthDelta === 'number'
-            ? worldObjectDefinition.effects.widthDelta
-            : 0;
-        setSnakeWidthForUser(hitterUser, getSnakeWidthForUser(hitterUser) + widthGain);
+        applyWorldObjectEffectsToUser(hitterUser, worldObjectDefinition);
 
         if (worldObjectDefinition.removeOnHit) {
             delete worldObjects[worldObjectId];
@@ -1276,18 +1222,34 @@ io.on('connection', (socket) => {
             return;
         }
 
-        io.to(getRoomNameForGame(gameId)).emit(SOCKET_EVENTS.UPDATE_COORDINATES_OF_HEAD, {
-            id: socket.id,
-            coordinatesOfHead: { x: headCoordinatesUpdate.x, y: headCoordinatesUpdate.y },
-            l: headCoordinatesUpdate.l,
-            w: headCoordinatesUpdate.w
-        });
-
         if (connectedUsers[socket.id]) {
             connectedUsers[socket.id].coordinates = { x: headCoordinatesUpdate.x, y: headCoordinatesUpdate.y };
-            setSnakeLengthForUser(connectedUsers[socket.id], headCoordinatesUpdate.l);
-            setSnakeWidthForUser(connectedUsers[socket.id], headCoordinatesUpdate.w);
-            updateSnakeTrail(socket.id, connectedUsers[socket.id].coordinates, getSnakeLengthForUser(connectedUsers[socket.id]));
+            const authoritativeLength = getSnakeLengthForUser(connectedUsers[socket.id]);
+            const authoritativeWidth = getSnakeWidthForUser(connectedUsers[socket.id]);
+            updateSnakeTrail(socket.id, connectedUsers[socket.id].coordinates, authoritativeLength);
+
+            const snakeCollision = getSnakeCollision(socket.id, connectedUsers[socket.id].coordinates);
+            if (snakeCollision) {
+                const attackerUser = connectedUsers[socket.id];
+                const victimUser = connectedUsers[snakeCollision.victimId];
+
+                if (attackerUser && victimUser && getSnakeLengthForUser(attackerUser) > getSnakeLengthForUser(victimUser)) {
+                    const removed = removeSnakeAndSpawnDots(snakeCollision.victimId);
+                    if (removed) {
+                        growSnakeAfterEatingSnake(attackerUser, victimUser);
+                        broadcastWorldObjects(gameId);
+                        broadcastUsers(gameId);
+                        evaluateMatchState();
+                    }
+                }
+            }
+
+            io.to(getRoomNameForGame(gameId)).emit(SOCKET_EVENTS.UPDATE_COORDINATES_OF_HEAD, {
+                id: socket.id,
+                coordinatesOfHead: { x: headCoordinatesUpdate.x, y: headCoordinatesUpdate.y },
+                l: getSnakeLengthForUser(connectedUsers[socket.id]),
+                w: authoritativeWidth
+            });
         }
     });
 

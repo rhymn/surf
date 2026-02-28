@@ -44,8 +44,7 @@ const OBJECT_TYPE_DOT = GAME_WORLD_OBJECT_TYPES.DOT;
 let movementStep = baseStep;
 let localSnakeColor = 'red';
 let localSnakeHeadEmoji = '🐍';
-const INITIAL_USER_LENGTH = 1;
-const MIN_SNAKE_WIDTH = 1;
+const INITIAL_USER_LENGTH = 6;
 const GAME_SOCKET_EVENTS = window.SOCKET_EVENTS;
 const PLAYING_TYPES = {
     TIMER: 'timer',
@@ -129,6 +128,29 @@ const setSnakeColorById = (snakeId, color) => {
     }
 }
 
+const ensureSnakeCoordinateCountMatchesLength = (snakeState) => {
+    if (!snakeState || !Array.isArray(snakeState.coordinates)) {
+        return;
+    }
+
+    const targetLength = Math.max(
+        1,
+        Number.parseInt(`${snakeState.length ?? INITIAL_USER_LENGTH}`, 10) || INITIAL_USER_LENGTH
+    );
+
+    if (snakeState.coordinates.length === 0) {
+        snakeState.coordinates.push({ x: boardWidth / 2, y: boardHeight / 2 });
+    }
+
+    const tailCoordinate = snakeState.coordinates[snakeState.coordinates.length - 1];
+
+    while (snakeState.coordinates.length < targetLength) {
+        snakeState.coordinates.push({ x: tailCoordinate.x, y: tailCoordinate.y });
+    }
+
+    snakeState.coordinates.splice(targetLength);
+};
+
 const upsertSnakeById = (snakeId, headCoordinates, nextLength, nextScore, nextWidth) => {
     if (snakeId === localSocketId) {
         return;
@@ -164,7 +186,7 @@ const upsertSnakeById = (snakeId, headCoordinates, nextLength, nextScore, nextWi
     }
 
     snakeState.coordinates.unshift(headCoordinates);
-    snakeState.coordinates.splice(snakeState.length);
+    ensureSnakeCoordinateCountMatchesLength(snakeState);
 }
 
 const overlay = document.createElement('div');
@@ -595,9 +617,7 @@ function emitHeadCoordinates(x, y) {
 
     socket.emit(GAME_SOCKET_EVENTS.SEND_COORDINATES_OF_HEAD, {
         x,
-        y,
-        l: snakeStates.mySnake.length,
-        w: snakeStates.mySnake.width
+        y
     });
     lastEmittedHeadCoordinates = { x, y };
 }
@@ -787,6 +807,7 @@ socket.on(GAME_SOCKET_EVENTS.UPDATE_USERS, (usersById) => {
             snakeStates.mySnake.name = userState.name ?? snakeStates.mySnake.name;
             snakeStates.mySnake.color = userState.color ?? snakeStates.mySnake.color;
             snakeStates.mySnake.headEmoji = userState.headEmoji ?? snakeStates.mySnake.headEmoji;
+            ensureSnakeCoordinateCountMatchesLength(snakeStates.mySnake);
             continue;
         }
 
@@ -1068,11 +1089,6 @@ window.addEventListener('keyup', (event) => {
 
 const eatenSnakeIds = new Set();
 const sendSnakeEaten = (victimId) => socket.emit(GAME_SOCKET_EVENTS.SNAKE_EATEN, { victimId });
-const sendSnakeTailBitten = (victimId, collisionX, collisionY) => socket.emit(GAME_SOCKET_EVENTS.SNAKE_TAIL_BITTEN, {
-    victimId,
-    collisionX,
-    collisionY
-});
 
 const getOppositeDirection = (direction) => {
     switch (direction) {
@@ -1176,8 +1192,6 @@ function updatePosition() {
 
     let nextX;
     let nextY;
-    let nextLength = 0;
-    let nextWidth = 0;
     let hasBounced = false;
 
     nextX = snakeStates.mySnake.coordinates[0].x;
@@ -1221,11 +1235,6 @@ function updatePosition() {
                 }
 
                 notifyOfHitWorldObject(worldObjectId);
-                nextLength = snakeStates.mySnake.length + worldObjectDefinition.effects.growthDelta;
-                const widthGain = typeof worldObjectDefinition.effects.widthDelta === 'number'
-                    ? worldObjectDefinition.effects.widthDelta
-                    : 0;
-                nextWidth = Math.max(MIN_SNAKE_WIDTH, currentSnakeWidth + widthGain);
 
                 if (!worldObjectDefinition.removeOnHit) {
                     continue;
@@ -1236,9 +1245,7 @@ function updatePosition() {
         if (gameRules.playerCollisionEndsGame) {
             let collidedSnakeId = null;
             const myLength = snakeStates.mySnake.length;
-            const myWidthAfterMove = nextWidth > 0
-                ? nextWidth
-                : (snakeStates.mySnake.width ?? gameRules.snakeSegmentSize);
+            const myWidthAfterMove = snakeStates.mySnake.width ?? gameRules.snakeSegmentSize;
             const mySnakeHitbox = {
                 x: nextX,
                 y: nextY,
@@ -1275,28 +1282,23 @@ function updatePosition() {
                             eatenSnakeIds.add(id);
                             sendSnakeEaten(id);
                         } else {
-                            const isTailSegment = i === otherSnake.coordinates.length - 1;
-                            if (myLength < otherLength && isTailSegment) {
-                                sendSnakeTailBitten(id, nextX, nextY);
-                            } else {
-                                reverseMovementDirection();
-                                const bouncedPosition = steeringMode === STEERING_MODES.FREE
-                                    ? applySteeringAngleToPosition(
-                                        snakeStates.mySnake.coordinates[0].x,
-                                        snakeStates.mySnake.coordinates[0].y,
-                                        steeringAngle,
-                                        movementStep
-                                    )
-                                    : applyDirectionToPosition(
+                            reverseMovementDirection();
+                            const bouncedPosition = steeringMode === STEERING_MODES.FREE
+                                ? applySteeringAngleToPosition(
                                     snakeStates.mySnake.coordinates[0].x,
                                     snakeStates.mySnake.coordinates[0].y,
-                                    movementDirection,
+                                    steeringAngle,
                                     movementStep
-                                );
-                                nextX = bouncedPosition.nextX;
-                                nextY = bouncedPosition.nextY;
-                                hasBounced = true;
-                            }
+                                )
+                                : applyDirectionToPosition(
+                                snakeStates.mySnake.coordinates[0].x,
+                                snakeStates.mySnake.coordinates[0].y,
+                                movementDirection,
+                                movementStep
+                            );
+                            nextX = bouncedPosition.nextX;
+                            nextY = bouncedPosition.nextY;
+                            hasBounced = true;
                         }
                         break;
                     }
@@ -1325,7 +1327,7 @@ function updatePosition() {
     }
 
     emitHeadCoordinates(nextX, nextY);
-    upsertSnakeById('mySnake', { x: nextX, y: nextY }, nextLength, undefined, nextWidth);
+    upsertSnakeById('mySnake', { x: nextX, y: nextY });
 
     updateOverlay();
     if (!isGameOver) {

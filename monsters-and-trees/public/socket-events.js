@@ -21,7 +21,6 @@ const GAME_SOCKET_EVENT_NAMES = {
     SEND_COORDINATES_OF_HEAD: 'sendCoordinatesOfHead',
     WORLD_OBJECT_HIT: 'worldObjectHit',
     SNAKE_EATEN: 'snakeEaten',
-    SNAKE_TAIL_BITTEN: 'snakeTailBitten',
     YOU_WERE_EATEN: 'youWereEaten'
 };
 
