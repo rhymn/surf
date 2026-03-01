@@ -47,22 +47,25 @@
 
         const render = () => {
             const canUseVoice = latestStatus.enabledByServer && latestStatus.supportedByBrowser;
-            panel.style.display = canUseVoice ? 'block' : 'none';
-
-            if (!canUseVoice) {
-                return;
-            }
+            panel.style.display = 'block';
 
             connectButton.textContent = latestStatus.isConnected ? 'Disconnect voice' : 'Connect voice';
             micButton.textContent = latestStatus.isMicEnabled ? 'Mute mic' : 'Unmute mic';
             deafenButton.textContent = latestStatus.isDeafened ? 'Undeafen' : 'Deafen';
+            connectButton.disabled = !canUseVoice;
             micButton.disabled = !latestStatus.isConnected;
             deafenButton.disabled = !latestStatus.isConnected;
 
             const statusParts = [];
-            statusParts.push(latestStatus.isConnected
-                ? `Connected · peers: ${latestStatus.peerCount}`
-                : 'Not connected');
+            if (!latestStatus.supportedByBrowser) {
+                statusParts.push('Not supported by this browser');
+            } else if (!latestStatus.enabledByServer) {
+                statusParts.push('Not enabled on server');
+            } else {
+                statusParts.push(latestStatus.isConnected
+                    ? `Connected · peers: ${latestStatus.peerCount}`
+                    : 'Not connected');
+            }
 
             if (latestStatus.lastError) {
                 statusParts.push(`Error: ${latestStatus.lastError}`);

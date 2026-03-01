@@ -8,29 +8,162 @@ let boardWidth = 0;
 let boardHeight = 0;
 let currentMapType = 'classic';
 
-const MAP_BACKGROUNDS = {
+const MAPS = {
     classic: {
-        type: 'solid',
-        color: '#dbeafe'
+        label: 'Classic Plains',
+        description: 'Open plains with a balanced mix of objects.',
+        size: '1600 × 1600',
+        highlights: ['Many trees', 'Monsters & clouds', 'Scattered thorns'],
+        respawnRule: 'Edibles always respawn elsewhere — food supply stays constant.',
+        drawBackground(ctx, width, height) {
+            ctx.fillStyle = '#dbeafe';
+            ctx.fillRect(0, 0, width, height);
+        },
+        drawTexture(octx, width, height, r) {
+            // Ground variation patches
+            for (let i = 0; i < 220; i++) {
+                octx.fillStyle = `rgba(160,130,70,${0.04 + r() * 0.07})`;
+                octx.beginPath();
+                octx.ellipse(r() * width, r() * height, 8 + r() * 22, 4 + r() * 10, r() * Math.PI, 0, Math.PI * 2);
+                octx.fill();
+            }
+            // Grass tufts (V-shapes)
+            for (let i = 0; i < 600; i++) {
+                const x = r() * width;
+                const y = r() * height;
+                const size = 4 + r() * 9;
+                octx.strokeStyle = `rgba(45,120,25,${0.15 + r() * 0.25})`;
+                octx.lineWidth = 1;
+                octx.beginPath(); octx.moveTo(x, y); octx.lineTo(x - size * 0.45, y - size); octx.stroke();
+                octx.beginPath(); octx.moveTo(x, y); octx.lineTo(x + size * 0.45, y - size); octx.stroke();
+            }
+            // Wildflowers
+            for (let i = 0; i < 250; i++) {
+                octx.fillStyle = `hsla(${40 + r() * 60},90%,65%,${0.25 + r() * 0.35})`;
+                octx.beginPath();
+                octx.arc(r() * width, r() * height, 1.5 + r() * 2.5, 0, Math.PI * 2);
+                octx.fill();
+            }
+        }
     },
     forest: {
-        type: 'linear',
-        direction: 'vertical',
-        stops: [
-            { offset: 0, color: '#e8f5e2' },
-            { offset: 1, color: '#f5fff2' }
-        ]
+        label: 'Dense Forest',
+        description: 'Dense woodland with lots of trees and scarce food.',
+        size: '1800 × 1400',
+        highlights: ['120 trees', 'Few monsters & clouds', 'Rare thorns'],
+        respawnRule: '50 % chance to respawn — food is naturally scarce under the canopy.',
+        drawBackground(ctx, width, height) {
+            const gradient = ctx.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, '#e8f5e2');
+            gradient.addColorStop(1, '#f5fff2');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+        },
+        drawTexture(octx, width, height, r) {
+            // Dappled light blobs
+            for (let i = 0; i < 160; i++) {
+                octx.fillStyle = `rgba(255,255,170,${0.05 + r() * 0.09})`;
+                octx.beginPath();
+                octx.arc(r() * width, r() * height, 20 + r() * 65, 0, Math.PI * 2);
+                octx.fill();
+            }
+            // Fallen leaf ellipses
+            for (let i = 0; i < 420; i++) {
+                const g = 80 + Math.floor(r() * 65);
+                octx.fillStyle = `rgba(20,${g},20,${0.09 + r() * 0.17})`;
+                octx.save();
+                octx.translate(r() * width, r() * height);
+                octx.rotate(r() * Math.PI);
+                octx.beginPath();
+                octx.ellipse(0, 0, 3 + r() * 11, 2 + r() * 5, 0, 0, Math.PI * 2);
+                octx.fill();
+                octx.restore();
+            }
+            // Forest-floor speckles
+            for (let i = 0; i < 450; i++) {
+                octx.fillStyle = `rgba(0,55,0,${0.07 + r() * 0.12})`;
+                octx.beginPath();
+                octx.arc(r() * width, r() * height, 0.8 + r() * 2.5, 0, Math.PI * 2);
+                octx.fill();
+            }
+        }
     },
     thorns: {
-        type: 'linear',
-        direction: 'diagonal',
-        stops: [
-            { offset: 0, color: '#f3e8ff' },
-            { offset: 0.5, color: '#fce7f3' },
-            { offset: 1, color: '#fff3e0' }
-        ]
+        label: 'Thorn Field',
+        description: 'Dangerous thorn field where every meal could be your last.',
+        size: '1500 × 1500',
+        highlights: ['Many thorns', 'Plentiful monsters', 'Few trees'],
+        respawnRule: 'Edibles never respawn — the world depletes over time.',
+        drawBackground(ctx, width, height) {
+            const gradient = ctx.createLinearGradient(0, 0, width, height);
+            gradient.addColorStop(0, '#f3e8ff');
+            gradient.addColorStop(0.5, '#fce7f3');
+            gradient.addColorStop(1, '#fff3e0');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, width, height);
+        },
+        drawTexture(octx, width, height, r) {
+            // Cracked-earth line network
+            for (let i = 0; i < 240; i++) {
+                const x = r() * width;
+                const y = r() * height;
+                const len = 8 + r() * 22;
+                const angle = r() * Math.PI;
+                octx.strokeStyle = `rgba(110,50,90,${0.10 + r() * 0.15})`;
+                octx.lineWidth = 0.5 + r();
+                octx.beginPath(); octx.moveTo(x, y); octx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len); octx.stroke();
+                if (r() > 0.45) {
+                    const ba = angle + (r() - 0.5) * 1.6;
+                    const bx = x + Math.cos(angle) * len * 0.5;
+                    const by = y + Math.sin(angle) * len * 0.5;
+                    octx.beginPath(); octx.moveTo(bx, by); octx.lineTo(bx + Math.cos(ba) * len * 0.45, by + Math.sin(ba) * len * 0.45); octx.stroke();
+                }
+            }
+            // Thorn spike triangles
+            for (let i = 0; i < 260; i++) {
+                const rv = Math.floor(75 + r() * 65);
+                octx.fillStyle = `rgba(${rv},15,75,${0.10 + r() * 0.18})`;
+                const sz = 3 + r() * 10;
+                octx.save();
+                octx.translate(r() * width, r() * height);
+                octx.rotate(r() * Math.PI * 2);
+                octx.beginPath(); octx.moveTo(0, -sz); octx.lineTo(sz * 0.4, sz * 0.5); octx.lineTo(-sz * 0.4, sz * 0.5); octx.closePath();
+                octx.fill();
+                octx.restore();
+            }
+            // Dry speckles
+            for (let i = 0; i < 350; i++) {
+                octx.fillStyle = `rgba(140,55,75,${0.07 + r() * 0.12})`;
+                octx.beginPath();
+                octx.arc(r() * width, r() * height, 0.8 + r() * 2.5, 0, Math.PI * 2);
+                octx.fill();
+            }
+        }
     }
 };
+
+// Simple LCG-based seeded PRNG so textures are deterministic frame-to-frame.
+function makeSeededRandom(seed) {
+    let s = seed >>> 0;
+    return () => {
+        s = Math.imul(s, 1664525) + 1013904223 >>> 0;
+        return s / 0x100000000;
+    };
+}
+
+let mapTextureCanvas = null;
+
+function generateMapTexture(mapType, width, height) {
+    const offscreen = document.createElement('canvas');
+    offscreen.width = width;
+    offscreen.height = height;
+    const octx = offscreen.getContext('2d');
+    const r = makeSeededRandom(0xdeadbeef);
+
+    MAPS[mapType]?.drawTexture?.(octx, width, height, r);
+
+    return offscreen;
+}
 
 let movementDirection = null;
 const STEERING_MODES = {
@@ -86,31 +219,7 @@ const PLAYING_TYPES = {
     FIRST_TO_SCORE: 'firstTo1000',
     LAST_MAN_STANDING: 'lastManStanding'
 };
-const MAP_TYPES = {
-    CLASSIC: 'classic',
-    FOREST: 'forest',
-    THORNS: 'thorns'
-};
-const MAP_INFO = {
-    [MAP_TYPES.CLASSIC]: {
-        description: 'Open plains with a balanced mix of objects.',
-        size: '1600 × 1600',
-        highlights: ['Many trees', 'Monsters & clouds', 'Scattered thorns'],
-        respawnRule: 'Edibles always respawn elsewhere — food supply stays constant.'
-    },
-    [MAP_TYPES.FOREST]: {
-        description: 'Dense woodland with lots of trees and scarce food.',
-        size: '1800 × 1400',
-        highlights: ['120 trees', 'Few monsters & clouds', 'Rare thorns'],
-        respawnRule: '50 % chance to respawn — food is naturally scarce under the canopy.'
-    },
-    [MAP_TYPES.THORNS]: {
-        description: 'Dangerous thorn field where every meal could be your last.',
-        size: '1500 × 1500',
-        highlights: ['Many thorns', 'Plentiful monsters', 'Few trees'],
-        respawnRule: 'Edibles never respawn — the world depletes over time.'
-    }
-};
+const MAP_TYPES = Object.fromEntries(Object.keys(MAPS).map(k => [k.toUpperCase(), k]));
 const COLLISION_RESPONSES = {
     GAME_OVER: 'gameOver',
     BOUNCE: 'bounce'
@@ -432,11 +541,7 @@ mapTypeSelect.style.padding = '8px';
 mapTypeSelect.style.marginBottom = '12px';
 mapTypeSelect.style.width = '100%';
 
-const mapTypeOptions = [
-    { value: MAP_TYPES.CLASSIC, label: 'Classic Plains' },
-    { value: MAP_TYPES.FOREST, label: 'Dense Forest' },
-    { value: MAP_TYPES.THORNS, label: 'Thorn Field' }
-];
+const mapTypeOptions = Object.entries(MAPS).map(([value, map]) => ({ value, label: map.label }));
 
 for (const mapTypeOption of mapTypeOptions) {
     const optionElement = document.createElement('option');
@@ -458,17 +563,17 @@ mapInfoPanel.style.lineHeight = '1.5';
 mapInfoPanel.style.color = '#333';
 
 const updateMapInfoPanel = (mapType) => {
-    const info = MAP_INFO[mapType];
-    if (!info) {
+    const map = MAPS[mapType];
+    if (!map) {
         mapInfoPanel.style.display = 'none';
         return;
     }
     mapInfoPanel.style.display = 'block';
     mapInfoPanel.innerHTML = [
-        `<strong>${info.description}</strong>`,
-        `<div style="margin-top:4px">📐 Size: ${info.size}</div>`,
-        `<div>🗺️ ${info.highlights.join(' · ')}</div>`,
-        `<div style="margin-top:4px;color:#555">🔄 ${info.respawnRule}</div>`
+        `<strong>${map.description}</strong>`,
+        `<div style="margin-top:4px">📐 Size: ${map.size}</div>`,
+        `<div>🗺️ ${map.highlights.join(' · ')}</div>`,
+        `<div style="margin-top:4px;color:#555">🔄 ${map.respawnRule}</div>`
     ].join('');
 };
 
@@ -609,27 +714,30 @@ rejoinCurrentGameButton.style.marginTop = '12px';
 rejoinCurrentGameButton.style.display = 'none';
 lobbyPanel.appendChild(rejoinCurrentGameButton);
 
-const audioUi = (typeof window.createAudioUi === 'function' && audioRtcClient)
-    ? window.createAudioUi({
-        onConnect: () => {
-            audioRtcClient.joinRoom();
-        },
-        onDisconnect: () => {
-            audioRtcClient.leaveRoom();
-        },
-        onToggleMic: (isMicEnabled) => {
-            audioRtcClient.setMicEnabled(isMicEnabled);
-        },
-        onToggleDeafen: (isDeafened) => {
-            audioRtcClient.setDeafened(isDeafened);
-        }
-    })
-    : null;
+const makeAudioUiCallbacks = () => ({
+    onConnect: () => { audioRtcClient.joinRoom(); },
+    onDisconnect: () => { audioRtcClient.leaveRoom(); },
+    onToggleMic: (isMicEnabled) => { audioRtcClient.setMicEnabled(isMicEnabled); },
+    onToggleDeafen: (isDeafened) => { audioRtcClient.setDeafened(isDeafened); }
+});
+
+const canCreateAudioUi = typeof window.createAudioUi === 'function' && audioRtcClient;
+
+const audioUi = canCreateAudioUi ? window.createAudioUi(makeAudioUiCallbacks()) : null;
+const inGameAudioUi = canCreateAudioUi ? window.createAudioUi(makeAudioUiCallbacks()) : null;
 
 if (audioUi) {
     lobbyPanel.appendChild(audioUi.element);
+}
+
+if (inGameAudioUi) {
+    overlay.appendChild(inGameAudioUi.element);
+}
+
+if (audioRtcClient) {
     audioRtcClient.setStatusListener((status) => {
-        audioUi.updateStatus(status);
+        audioUi?.updateStatus(status);
+        inGameAudioUi?.updateStatus(status);
     });
 }
 
@@ -1237,6 +1345,7 @@ socket.on(GAME_SOCKET_EVENTS.SET_VIRTUAL_DIMENSIONS, (virtualDimensions) => {
     if (virtualDimensions.mapType) {
         currentMapType = virtualDimensions.mapType;
     }
+    mapTextureCanvas = generateMapTexture(currentMapType, boardWidth, boardHeight);
     drawScene();
 });
 
@@ -1457,33 +1566,16 @@ const getWorldObjectHitbox = (worldObject, worldObjectDefinition) => {
 };
 
 function drawBackground() {
-    const bg = MAP_BACKGROUNDS[currentMapType];
-    if (!bg) {
+    const map = MAPS[currentMapType];
+    if (map) {
+        map.drawBackground(ctx, boardWidth, boardHeight);
+    } else {
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, boardWidth, boardHeight);
-        return;
     }
 
-    if (bg.type === 'solid') {
-        ctx.fillStyle = bg.color;
-        ctx.fillRect(0, 0, boardWidth, boardHeight);
-        return;
-    }
-
-    if (bg.type === 'linear') {
-        let gradient;
-        if (bg.direction === 'vertical') {
-            gradient = ctx.createLinearGradient(0, 0, 0, boardHeight);
-        } else if (bg.direction === 'diagonal') {
-            gradient = ctx.createLinearGradient(0, 0, boardWidth, boardHeight);
-        } else {
-            gradient = ctx.createLinearGradient(0, 0, boardWidth, 0);
-        }
-        for (const stop of bg.stops) {
-            gradient.addColorStop(stop.offset, stop.color);
-        }
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, boardWidth, boardHeight);
+    if (mapTextureCanvas) {
+        ctx.drawImage(mapTextureCanvas, 0, 0);
     }
 }
 
