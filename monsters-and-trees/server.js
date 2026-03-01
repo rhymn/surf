@@ -113,7 +113,7 @@ const MAP_DEFINITIONS = {
         name: 'Dense Forest',
         width: 1800,
         height: 1400,
-        treeCount: 55,
+        treeCount: 120,
         monsterCount: 16,
         cloudCount: 6,
         thornCount: 6
@@ -150,7 +150,8 @@ const setSnakeLengthForUser = (userState, nextLength) => {
         return;
     }
 
-    const safeLength = Math.max(1, Number.parseInt(`${nextLength ?? INITIAL_USER_LENGTH}`, 10) || INITIAL_USER_LENGTH);
+    const parsed = Number.parseInt(`${nextLength ?? INITIAL_USER_LENGTH}`, 10);
+    const safeLength = Math.max(1, Number.isNaN(parsed) ? INITIAL_USER_LENGTH : parsed);
     userState.l = safeLength;
 };
 
@@ -656,7 +657,8 @@ const updateSnakeTrail = (snakeId, headCoordinates, length) => {
     const nextTrail = snakeTrailById[snakeId];
     nextTrail.unshift({ x: headCoordinates.x, y: headCoordinates.y });
 
-    const safeLength = Math.max(1, Number.parseInt(`${length ?? INITIAL_USER_LENGTH}`, 10) || INITIAL_USER_LENGTH);
+    const parsedLength = Number.parseInt(`${length ?? INITIAL_USER_LENGTH}`, 10);
+    const safeLength = Math.max(1, Number.isNaN(parsedLength) ? INITIAL_USER_LENGTH : parsedLength);
     nextTrail.splice(safeLength);
 };
 
@@ -727,7 +729,7 @@ const getSnakeCollision = (attackerId, attackerPosition) => {
     return null;
 };
 
-const removeSnakeAndFreezeBody = (victimId, fallbackGameId) => {
+const removeSnakeAndFreezeBody = (victimId, fallbackGameId, createCorpse = true) => {
     const victimUser = connectedUsers[victimId];
     if (!victimUser) {
         return false;
@@ -737,7 +739,7 @@ const removeSnakeAndFreezeBody = (victimId, fallbackGameId) => {
     const bodySegments = victimTrail.slice(1); // exclude head
     const corpseGameId = victimUser.gameId ?? fallbackGameId;
 
-    if (bodySegments.length > 0) {
+    if (createCorpse && bodySegments.length > 0) {
         const corpseId = `corpse-${nextCorpseId}`;
         nextCorpseId += 1;
         frozenSnakeCorpses[corpseId] = {
@@ -1046,11 +1048,15 @@ const updateBotPositions = () => {
             const victimLength = getSnakeLengthForUser(victimUser);
 
             if (attackerLength > victimLength) {
-                const victimGameId = victimUser.gameId;
-                const removed = removeSnakeAndFreezeBody(snakeCollision.victimId, botUser.gameId);
+                const victimGameId = victimUser.gameId ?? botUser.gameId;
+                // Pass createCorpse=false: bot already absorbs the full reward via
+                // growSnakeAfterEatingSnake, so no corpse is created to avoid double-counting.
+                const removed = removeSnakeAndFreezeBody(snakeCollision.victimId, botUser.gameId, false);
                 if (removed) {
                     growSnakeAfterEatingSnake(botUser, victimUser);
-                    broadcastFrozenSnakeCorpses(victimGameId);
+                    if (victimGameId) {
+                        broadcastFrozenSnakeCorpses(victimGameId);
+                    }
                 }
                 usersChanged = usersChanged || removed;
                 worldObjectsChanged = worldObjectsChanged || removed;
@@ -1226,9 +1232,11 @@ const joinUserToGame = (socket, gameId, playerName) => {
         boostMultiplier: MOVEMENT_BOOST_MULTIPLIER
     });
     socket.emit(SOCKET_EVENTS.SET_GAME_RULES, getGameRulesForGame(gameId));
+    const mapConfigForJoin = getMapConfigForGame(gameId);
     socket.emit(SOCKET_EVENTS.SET_VIRTUAL_DIMENSIONS, {
-        virtualWidth: getMapConfigForGame(gameId).width,
-        virtualHeight: getMapConfigForGame(gameId).height
+        virtualWidth: mapConfigForJoin.width,
+        virtualHeight: mapConfigForJoin.height,
+        mapType: mapConfigForJoin.mapType
     });
     socket.emit(SOCKET_EVENTS.SET_START_POSITION, startPosition);
 

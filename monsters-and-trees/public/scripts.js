@@ -6,6 +6,31 @@ canvas.style.display = 'none';
 const SPHERE_RADIUS = 12.5;
 let boardWidth = 0;
 let boardHeight = 0;
+let currentMapType = 'classic';
+
+const MAP_BACKGROUNDS = {
+    classic: {
+        type: 'solid',
+        color: '#dbeafe'
+    },
+    forest: {
+        type: 'linear',
+        direction: 'vertical',
+        stops: [
+            { offset: 0, color: '#e8f5e2' },
+            { offset: 1, color: '#f5fff2' }
+        ]
+    },
+    thorns: {
+        type: 'linear',
+        direction: 'diagonal',
+        stops: [
+            { offset: 0, color: '#f3e8ff' },
+            { offset: 0.5, color: '#fce7f3' },
+            { offset: 1, color: '#fff3e0' }
+        ]
+    }
+};
 
 let movementDirection = null;
 const STEERING_MODES = {
@@ -801,6 +826,16 @@ const getRandomGameName = () => {
 
 randomButton.onclick = () => {
     const playerName = getEnteredPlayerName();
+
+    if (currentActiveGames.length > 0) {
+        const randomGame = getRandomItem(currentActiveGames);
+        socket.emit(GAME_SOCKET_EVENTS.JOIN_GAME, {
+            gameId: randomGame.id,
+            playerName
+        });
+        return;
+    }
+
     const randomPlayingType = getRandomItem(playingTypeOptions).value;
     const randomMapType = getRandomItem(mapTypeOptions).value;
     const randomBorderCollisionResponse = getRandomItem(COLLISION_RESPONSE_OPTIONS).value;
@@ -919,11 +954,11 @@ function updateOverlay() {
         const snake = snakeStates[id];
         overlayContent.innerHTML += `<div style="color: ${snake.color};">
 
-            ${snake.name ?? id}: (${snake.coordinates[0].x}, ${snake.coordinates[0].y}), ${snake.length} L
+            ${snake.name ?? id}: ${snake.length} L
         </div>`;
     }
 
-    const canGoToLobby = currentGameId && !isGameOver && !isInLobbyWhilePlaying;
+    const canGoToLobby = currentGameId && !isInLobbyWhilePlaying;
     goToLobbyButton.style.display = canGoToLobby ? 'inline-block' : 'none';
 
 }
@@ -951,7 +986,10 @@ socket.on(GAME_SOCKET_EVENTS.CONNECT, () => {
     socket.emit(GAME_SOCKET_EVENTS.LIST_ACTIVE_GAMES);
 });
 
+let currentActiveGames = [];
+
 socket.on(GAME_SOCKET_EVENTS.ACTIVE_GAMES_UPDATED, (games) => {
+    currentActiveGames = games ?? [];
     renderActiveGames(games);
 });
 
@@ -1123,6 +1161,9 @@ socket.on(GAME_SOCKET_EVENTS.SET_GAME_RULES, (rulesConfig) => {
 socket.on(GAME_SOCKET_EVENTS.SET_VIRTUAL_DIMENSIONS, (virtualDimensions) => {
     boardWidth = virtualDimensions.virtualWidth;
     boardHeight = virtualDimensions.virtualHeight;
+    if (virtualDimensions.mapType) {
+        currentMapType = virtualDimensions.mapType;
+    }
     drawScene();
 });
 
@@ -1339,6 +1380,37 @@ const getWorldObjectHitbox = (worldObject, worldObjectDefinition) => {
     };
 };
 
+function drawBackground() {
+    const bg = MAP_BACKGROUNDS[currentMapType];
+    if (!bg) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, boardWidth, boardHeight);
+        return;
+    }
+
+    if (bg.type === 'solid') {
+        ctx.fillStyle = bg.color;
+        ctx.fillRect(0, 0, boardWidth, boardHeight);
+        return;
+    }
+
+    if (bg.type === 'linear') {
+        let gradient;
+        if (bg.direction === 'vertical') {
+            gradient = ctx.createLinearGradient(0, 0, 0, boardHeight);
+        } else if (bg.direction === 'diagonal') {
+            gradient = ctx.createLinearGradient(0, 0, boardWidth, boardHeight);
+        } else {
+            gradient = ctx.createLinearGradient(0, 0, boardWidth, 0);
+        }
+        for (const stop of bg.stops) {
+            gradient.addColorStop(stop.offset, stop.color);
+        }
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, boardWidth, boardHeight);
+    }
+}
+
 function drawScene() {
     if (!hasJoinedGame) {
         return;
@@ -1348,6 +1420,8 @@ function drawScene() {
     ctx.save();
 
     ctx.translate(canvas.width / 2 - snakeStates.mySnake.coordinates[0].x, canvas.height / 2 - snakeStates.mySnake.coordinates[0].y);
+
+    drawBackground();
 
     ctx.strokeStyle = 'black';
     ctx.lineWidth = 5;
