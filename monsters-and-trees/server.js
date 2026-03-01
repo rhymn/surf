@@ -129,6 +129,16 @@ const MAP_DEFINITIONS = {
     }
 };
 
+// Per-map rules for whether an edible object respawns elsewhere after being eaten.
+// classic: always respawn (stable world — the food supply stays constant).
+// forest:  50 % chance to respawn (food is naturally scarce among the trees).
+// thorns:  never respawn (the field depletes over time, raising the stakes).
+const MAP_RESPAWN_RULES = {
+    [MAP_TYPES.CLASSIC]: { respawnChance: 1.0 },
+    [MAP_TYPES.FOREST]:  { respawnChance: 0.5 },
+    [MAP_TYPES.THORNS]:  { respawnChance: 0.0 }
+};
+
 function getRandomColor() {
     let color = '#';
     for (let i = 0; i < HEX_COLOR_LENGTH; i++) {
@@ -380,6 +390,16 @@ let matchState = {
 };
 
 app.use(express.static(PUBLIC_DIRECTORY));
+
+// Respawn an edible world object at a new random location according to
+// the current map's MAP_RESPAWN_RULES.  Returns the new object, or null.
+const maybeRespawnWorldObject = (objectType) => {
+    const rules = MAP_RESPAWN_RULES[currentMapType];
+    if (!rules || Math.random() >= rules.respawnChance) {
+        return null;
+    }
+    return addWorldObject(objectType);
+};
 
 const appendDotCoordinates = (coordinatesList) => {
     for (let i = 0; i < coordinatesList.length; i++) {
@@ -917,6 +937,7 @@ const applyWorldObjectHitForBot = (botId, worldObjectId) => {
 
     if (worldObjectDefinition.removeOnHit) {
         delete worldObjects[worldObjectId];
+        maybeRespawnWorldObject(worldObject.type);
         return { usersChanged: true, worldObjectsChanged: true };
     }
 
@@ -1176,6 +1197,9 @@ const joinUserToGame = (socket, gameId, playerName) => {
 
     if (isFirstPlayerInGame || isRejoiningAfterMatchEnd) {
         resetMatchStateForGame(game);
+        for (const botId in botStateById) {
+            resetBotUser(botId);
+        }
     }
 
     const userColor = getRandomColor();
@@ -1392,6 +1416,21 @@ io.on('connection', (socket) => {
         evaluateMatchState();
     });
 
+    socket.on(SOCKET_EVENTS.PLAYER_SELF_DESTRUCTED, () => {
+        const gameId = socketGameById[socket.id];
+        if (!gameId) {
+            return;
+        }
+
+        if (!removeSnakeAndFreezeBody(socket.id, gameId)) {
+            return;
+        }
+
+        broadcastFrozenSnakeCorpses(gameId);
+        broadcastUsers(gameId);
+        evaluateMatchState();
+    });
+
     socket.on(SOCKET_EVENTS.CONSUME_CORPSE_SEGMENT, ({ corpseId, segmentIndex }) => {
         const gameId = socketGameById[socket.id];
         if (!gameId) {
@@ -1471,6 +1510,7 @@ io.on('connection', (socket) => {
 
         if (worldObjectDefinition.removeOnHit) {
             delete worldObjects[worldObjectId];
+            maybeRespawnWorldObject(worldObject.type);
             broadcastWorldObjects(gameId);
         }
 

@@ -47,6 +47,7 @@ let steeringAngle = 0;
 const activeSteerKeys = new Set();
 let isPaused = false;
 let isGameOver = false;
+let isEaten = false;
 let isBoostEnabled = false;
 let hasJoinedGame = false;
 let isInLobbyWhilePlaying = false;
@@ -89,6 +90,26 @@ const MAP_TYPES = {
     CLASSIC: 'classic',
     FOREST: 'forest',
     THORNS: 'thorns'
+};
+const MAP_INFO = {
+    [MAP_TYPES.CLASSIC]: {
+        description: 'Open plains with a balanced mix of objects.',
+        size: '1600 × 1600',
+        highlights: ['Many trees', 'Monsters & clouds', 'Scattered thorns'],
+        respawnRule: 'Edibles always respawn elsewhere — food supply stays constant.'
+    },
+    [MAP_TYPES.FOREST]: {
+        description: 'Dense woodland with lots of trees and scarce food.',
+        size: '1800 × 1400',
+        highlights: ['120 trees', 'Few monsters & clouds', 'Rare thorns'],
+        respawnRule: '50 % chance to respawn — food is naturally scarce under the canopy.'
+    },
+    [MAP_TYPES.THORNS]: {
+        description: 'Dangerous thorn field where every meal could be your last.',
+        size: '1500 × 1500',
+        highlights: ['Many thorns', 'Plentiful monsters', 'Few trees'],
+        respawnRule: 'Edibles never respawn — the world depletes over time.'
+    }
 };
 const COLLISION_RESPONSES = {
     GAME_OVER: 'gameOver',
@@ -271,6 +292,22 @@ goToLobbyButton.onclick = () => {
 };
 overlay.appendChild(goToLobbyButton);
 
+const spectatingBanner = document.createElement('div');
+spectatingBanner.style.position = 'absolute';
+spectatingBanner.style.top = '50%';
+spectatingBanner.style.left = '50%';
+spectatingBanner.style.transform = 'translate(-50%, -50%)';
+spectatingBanner.style.backgroundColor = 'rgba(0, 0, 0, 0.65)';
+spectatingBanner.style.color = '#fff';
+spectatingBanner.style.fontFamily = 'Arial, sans-serif';
+spectatingBanner.style.fontSize = '22px';
+spectatingBanner.style.fontWeight = 'bold';
+spectatingBanner.style.padding = '16px 28px';
+spectatingBanner.style.borderRadius = '8px';
+spectatingBanner.style.pointerEvents = 'none';
+spectatingBanner.style.display = 'none';
+document.body.appendChild(spectatingBanner);
+
 const timerOverlay = document.createElement('div');
 timerOverlay.style.position = 'absolute';
 timerOverlay.style.top = '10px';
@@ -410,6 +447,34 @@ for (const mapTypeOption of mapTypeOptions) {
 
 mapTypeSelect.value = MAP_TYPES.CLASSIC;
 
+const mapInfoPanel = document.createElement('div');
+mapInfoPanel.style.marginBottom = '12px';
+mapInfoPanel.style.padding = '8px 10px';
+mapInfoPanel.style.background = '#f0f7ff';
+mapInfoPanel.style.border = '1px solid #c3d9f0';
+mapInfoPanel.style.borderRadius = '6px';
+mapInfoPanel.style.fontSize = '12px';
+mapInfoPanel.style.lineHeight = '1.5';
+mapInfoPanel.style.color = '#333';
+
+const updateMapInfoPanel = (mapType) => {
+    const info = MAP_INFO[mapType];
+    if (!info) {
+        mapInfoPanel.style.display = 'none';
+        return;
+    }
+    mapInfoPanel.style.display = 'block';
+    mapInfoPanel.innerHTML = [
+        `<strong>${info.description}</strong>`,
+        `<div style="margin-top:4px">📐 Size: ${info.size}</div>`,
+        `<div>🗺️ ${info.highlights.join(' · ')}</div>`,
+        `<div style="margin-top:4px;color:#555">🔄 ${info.respawnRule}</div>`
+    ].join('');
+};
+
+updateMapInfoPanel(mapTypeSelect.value);
+mapTypeSelect.addEventListener('change', () => updateMapInfoPanel(mapTypeSelect.value));
+
 const playingTypeSelect = document.createElement('select');
 playingTypeSelect.style.padding = '8px';
 playingTypeSelect.style.marginBottom = '12px';
@@ -516,6 +581,7 @@ lobbyPanel.appendChild(gameTypeLabel);
 lobbyPanel.appendChild(playingTypeSelect);
 lobbyPanel.appendChild(mapTypeLabel);
 lobbyPanel.appendChild(mapTypeSelect);
+lobbyPanel.appendChild(mapInfoPanel);
 lobbyPanel.appendChild(borderCollisionLabel);
 lobbyPanel.appendChild(borderCollisionSelect);
 lobbyPanel.appendChild(dangerousCollisionLabel);
@@ -843,6 +909,7 @@ randomButton.onclick = () => {
 
     playingTypeSelect.value = randomPlayingType;
     mapTypeSelect.value = randomMapType;
+    updateMapInfoPanel(randomMapType);
     borderCollisionSelect.value = randomBorderCollisionResponse;
     dangerousObjectCollisionSelect.value = randomDangerousObjectCollisionResponse;
 
@@ -1008,6 +1075,8 @@ socket.on(GAME_SOCKET_EVENTS.JOINED_GAME, ({ gameId, playerName, playingType }) 
     }
     snakeStates.mySnake.name = localPlayerName;
     isGameOver = false;
+    isEaten = false;
+    spectatingBanner.style.display = 'none';
     isPaused = false;
     showGameCanvas();
     resetGameTimer();
@@ -1028,6 +1097,8 @@ socket.on(GAME_SOCKET_EVENTS.GAME_ENDED, ({ gameId, gameName }) => {
     currentGameId = null;
     hasJoinedGame = false;
     isGameOver = true;
+    isEaten = false;
+    spectatingBanner.style.display = 'none';
     isInLobbyWhilePlaying = false;
     canvas.style.display = 'none';
     overlay.style.display = 'none';
@@ -1129,6 +1200,8 @@ socket.on(GAME_SOCKET_EVENTS.MATCH_STATE_UPDATE, (matchState) => {
 
     if (matchState?.isEnded) {
         isGameOver = true;
+        isEaten = false;
+        spectatingBanner.style.display = 'none';
         isInLobbyWhilePlaying = false;
         lobbyOverlay.style.display = 'flex';
         if (!hasShownMatchEndAlert) {
@@ -1169,6 +1242,8 @@ socket.on(GAME_SOCKET_EVENTS.SET_VIRTUAL_DIMENSIONS, (virtualDimensions) => {
 
 socket.on(GAME_SOCKET_EVENTS.SET_START_POSITION, (position) => {
     isGameOver = false;
+    isEaten = false;
+    spectatingBanner.style.display = 'none';
     hasShownMatchEndAlert = false;
     snakeStates.mySnake.coordinates[0].x = position.x;
     snakeStates.mySnake.coordinates[0].y = position.y;
@@ -1178,12 +1253,13 @@ socket.on(GAME_SOCKET_EVENTS.SET_START_POSITION, (position) => {
 });
 
 socket.on(GAME_SOCKET_EVENTS.YOU_WERE_EATEN, () => {
-    if (isGameOver) {
+    if (isGameOver || isEaten) {
         return;
     }
 
-    isGameOver = true;
-    alert('Game Over, you were eaten by a bigger snake!');
+    isEaten = true;
+    spectatingBanner.textContent = 'Game over';
+    spectatingBanner.style.display = 'block';
 });
 
 socket.on(GAME_SOCKET_EVENTS.UPDATE_USERS, (usersById) => {
@@ -1466,7 +1542,7 @@ window.addEventListener('keydown', (event) => {
         return;
     }
 
-    if (!isGameOver) {
+    if (!isGameOver && !isEaten) {
         if (event.key === 'ArrowUp' || event.key === 'ArrowDown' || event.key === 'ArrowLeft' || event.key === 'ArrowRight' || event.key === ' ') {
             event.preventDefault();
         }
@@ -1613,7 +1689,7 @@ canvas.addEventListener('touchstart', (event) => {
         return;
     }
 
-    if (!isGameOver) {
+    if (!isGameOver && !isEaten) {
         event.preventDefault();
 
         const touch = event.touches[0];
@@ -1643,7 +1719,7 @@ canvas.addEventListener('touchstart', (event) => {
 });
 
 canvas.addEventListener('mousemove', (event) => {
-    if (!hasJoinedGame || isGameOver || steeringMode !== STEERING_MODES.FREE) {
+    if (!hasJoinedGame || isGameOver || isEaten || steeringMode !== STEERING_MODES.FREE) {
         return;
     }
 
@@ -1662,7 +1738,7 @@ function updatePosition() {
     nextX = snakeStates.mySnake.coordinates[0].x;
     nextY = snakeStates.mySnake.coordinates[0].y;
 
-    if (!isPaused && !isGameOver) {
+    if (!isPaused && !isGameOver && !isEaten) {
         applySteeringRotationFromKeys();
 
         const movedPosition = steeringMode === STEERING_MODES.FREE
@@ -1700,8 +1776,10 @@ function updatePosition() {
                             : true;
 
                     if (dangerousObjectCollisionEndsGame) {
-                        isGameOver = true;
-                        alert('Game Over, hit a dangerous object!');
+                        socket.emit(GAME_SOCKET_EVENTS.PLAYER_SELF_DESTRUCTED);
+                        isEaten = true;
+                        spectatingBanner.textContent = 'Game over';
+                        spectatingBanner.style.display = 'block';
                         return;
                     }
 
@@ -1811,8 +1889,10 @@ function updatePosition() {
                 : gameRules.borderCollisionEndsGame !== false;
 
             if (borderCollisionEndsGame) {
-                isGameOver = true;
-                alert('Game Over!');
+                socket.emit(GAME_SOCKET_EVENTS.PLAYER_SELF_DESTRUCTED);
+                isEaten = true;
+                spectatingBanner.textContent = 'Game over';
+                spectatingBanner.style.display = 'block';
                 return;
             }
 

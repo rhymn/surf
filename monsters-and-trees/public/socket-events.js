@@ -24,6 +24,7 @@ const GAME_SOCKET_EVENT_NAMES = {
     WORLD_OBJECT_HIT: 'worldObjectHit',
     SNAKE_EATEN: 'snakeEaten',
     YOU_WERE_EATEN: 'youWereEaten',
+    PLAYER_SELF_DESTRUCTED: 'playerSelfDestructed',
     UPDATE_FROZEN_SNAKES: 'updateFrozenSnakes',
     CONSUME_CORPSE_SEGMENT: 'consumeCorpseSegment'
 };
