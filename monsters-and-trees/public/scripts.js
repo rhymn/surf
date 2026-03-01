@@ -47,6 +47,14 @@ let localSnakeColor = 'red';
 let localSnakeHeadEmoji = '🐍';
 const INITIAL_USER_LENGTH = 6;
 const GAME_SOCKET_EVENTS = window.SOCKET_EVENTS;
+const RTC_SOCKET_EVENTS = window.RTC_EVENTS;
+const audioRtcClient = typeof window.createAudioRtcClient === 'function'
+    ? window.createAudioRtcClient({
+        socket,
+        rtcEvents: RTC_SOCKET_EVENTS,
+        getCurrentGameId: () => currentGameId
+    })
+    : null;
 const PLAYING_TYPES = {
     TIMER: 'timer',
     FIRST_TO_SCORE: 'firstTo1000',
@@ -438,6 +446,41 @@ steeringModeSelect.value = STEERING_MODES.CLASSIC;
 borderCollisionSelect.value = COLLISION_RESPONSES.GAME_OVER;
 dangerousObjectCollisionSelect.value = COLLISION_RESPONSES.GAME_OVER;
 
+const PREFS_KEY = 'monstersAndTreesPrefs';
+
+const savePreferences = () => {
+    try {
+        const prefs = {
+            playerName: nameInput.value,
+            steeringMode: steeringModeSelect.value
+        };
+        localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+    } catch (e) {
+        // localStorage unavailable
+    }
+};
+
+const loadPreferences = () => {
+    try {
+        const raw = localStorage.getItem(PREFS_KEY);
+        if (!raw) return;
+        const prefs = JSON.parse(raw);
+        if (typeof prefs.playerName === 'string') {
+            nameInput.value = prefs.playerName;
+        }
+        if (typeof prefs.steeringMode === 'string' && Object.values(STEERING_MODES).includes(prefs.steeringMode)) {
+            steeringModeSelect.value = prefs.steeringMode;
+        }
+    } catch (e) {
+        // localStorage unavailable or invalid JSON
+    }
+};
+
+loadPreferences();
+
+nameInput.addEventListener('input', savePreferences);
+steeringModeSelect.addEventListener('change', savePreferences);
+
 createRow.appendChild(gameNameInput);
 createRow.appendChild(createButton);
 createRow.appendChild(randomButton);
@@ -473,6 +516,30 @@ rejoinCurrentGameButton.style.padding = '8px 12px';
 rejoinCurrentGameButton.style.marginTop = '12px';
 rejoinCurrentGameButton.style.display = 'none';
 lobbyPanel.appendChild(rejoinCurrentGameButton);
+
+const audioUi = (typeof window.createAudioUi === 'function' && audioRtcClient)
+    ? window.createAudioUi({
+        onConnect: () => {
+            audioRtcClient.joinRoom();
+        },
+        onDisconnect: () => {
+            audioRtcClient.leaveRoom();
+        },
+        onToggleMic: (isMicEnabled) => {
+            audioRtcClient.setMicEnabled(isMicEnabled);
+        },
+        onToggleDeafen: (isDeafened) => {
+            audioRtcClient.setDeafened(isDeafened);
+        }
+    })
+    : null;
+
+if (audioUi) {
+    lobbyPanel.appendChild(audioUi.element);
+    audioRtcClient.setStatusListener((status) => {
+        audioUi.updateStatus(status);
+    });
+}
 
 lobbyOverlay.appendChild(lobbyPanel);
 document.body.appendChild(lobbyOverlay);
@@ -888,6 +955,10 @@ socket.on(GAME_SOCKET_EVENTS.ACTIVE_GAMES_UPDATED, (games) => {
 });
 
 socket.on(GAME_SOCKET_EVENTS.JOINED_GAME, ({ gameId, playerName, playingType }) => {
+    if (currentGameId && currentGameId !== gameId) {
+        audioRtcClient?.handleGameLeft();
+    }
+
     currentGameId = gameId;
     localPlayerName = playerName;
     if (playingType) {
@@ -914,6 +985,7 @@ socket.on(GAME_SOCKET_EVENTS.GAME_ENDED, ({ gameId, gameName }) => {
         return;
     }
 
+    audioRtcClient?.handleGameLeft();
     currentGameId = null;
     hasJoinedGame = false;
     isGameOver = true;
@@ -1107,6 +1179,10 @@ socket.on(GAME_SOCKET_EVENTS.UPDATE_USERS, (usersById) => {
     }
 
     updateOverlay();
+});
+
+socket.on('disconnect', () => {
+    audioRtcClient?.handleGameLeft();
 });
 
 

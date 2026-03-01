@@ -2,6 +2,9 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const SOCKET_EVENTS = require('./public/socket-events.js');
+const RTC_EVENTS = require('./public/rtc-events.js');
+const { isAudioRtcEnabled } = require('./server/audio-feature-flag.js');
+const { createRtcSignalingState, registerRtcSignalingHandlers } = require('./server/rtc-signaling.js');
 const {
     WORLD_OBJECT_TYPES,
     DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS
@@ -80,6 +83,7 @@ const SCORE_TARGET = Math.max(1, Number.parseInt(process.env.SCORE_TARGET ?? `${
 const PLAYING_TYPE = Object.values(PLAYING_TYPES).includes(process.env.PLAYING_TYPE)
     ? process.env.PLAYING_TYPE
     : PLAYING_TYPES.LAST_MAN_STANDING;
+const AUDIO_RTC_ENABLED = isAudioRtcEnabled(process.env);
 const DEFAULT_MAP_TYPE = MAP_TYPES.CLASSIC;
 const DEFAULT_BORDER_COLLISION_RESPONSE = COLLISION_RESPONSES.GAME_OVER;
 const DEFAULT_DANGEROUS_OBJECT_COLLISION_RESPONSE = COLLISION_RESPONSES.GAME_OVER;
@@ -357,6 +361,7 @@ let botStateById = {};
 let snakeTrailById = {};
 let activeGamesById = {};
 let socketGameById = {};
+const rtcSignalingState = createRtcSignalingState();
 let maxParticipantsSeen = 0;
 let matchState = {
     playingType: PLAYING_TYPE,
@@ -1207,6 +1212,20 @@ const endGameByOwner = (socket, gameId) => {
 io.on('connection', (socket) => {
     console.log('A user connected');
     socket.emit(SOCKET_EVENTS.ACTIVE_GAMES_UPDATED, getActiveGamesPayload());
+    socket.emit(RTC_EVENTS.CAPABILITIES, {
+        enabled: AUDIO_RTC_ENABLED
+    });
+
+    if (AUDIO_RTC_ENABLED) {
+        registerRtcSignalingHandlers({
+            io,
+            socket,
+            rtcEvents: RTC_EVENTS,
+            getGameIdForSocketId: (socketId) => socketGameById[socketId],
+            getRoomNameForGame,
+            signalingState: rtcSignalingState
+        });
+    }
 
     socket.on(SOCKET_EVENTS.LIST_ACTIVE_GAMES, () => {
         socket.emit(SOCKET_EVENTS.ACTIVE_GAMES_UPDATED, getActiveGamesPayload());
