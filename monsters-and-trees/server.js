@@ -170,6 +170,7 @@ const growSnakeAfterEatingSnake = (attackerUser, victimUser) => {
     const attackerLength = getSnakeLengthForUser(attackerUser);
     const victimLength = getSnakeLengthForUser(victimUser);
     setSnakeLengthForUser(attackerUser, attackerLength + victimLength);
+    attackerUser.score += victimLength;
 };
 
 const applyWorldObjectEffectsToUser = (userState, worldObjectDefinition) => {
@@ -240,6 +241,8 @@ const getWorldObjectRect = (worldObject, padding = 0) => {
 
 let worldObjects = {};
 let nextWorldObjectId = 1;
+let frozenSnakeCorpses = {};
+let nextCorpseId = 1;
 
 const addWorldObject = (type, position) => {
     const objectDefinition = WORLD_OBJECT_TYPE_DEFINITIONS[type];
@@ -336,6 +339,8 @@ const applyMapToWorld = (mapType) => {
     boardHeight = mapDefinition.height;
     worldObjects = {};
     nextWorldObjectId = 1;
+    frozenSnakeCorpses = {};
+    nextCorpseId = 1;
 
     for (let i = 0; i < mapDefinition.treeCount; i++) {
         addWorldObject(WORLD_OBJECT_TYPES.TREE);
@@ -699,7 +704,9 @@ const getSnakeCollision = (attackerId, attackerPosition) => {
             continue;
         }
 
-        if (victimUser.gameId !== attackerGameId) {
+        const attackerIsBot = Boolean(botStateById[attackerId]);
+        const victimIsBot = Boolean(botStateById[victimId]);
+        if (!attackerIsBot && !victimIsBot && victimUser.gameId !== attackerGameId) {
             continue;
         }
 
@@ -720,14 +727,26 @@ const getSnakeCollision = (attackerId, attackerPosition) => {
     return null;
 };
 
-const removeSnakeAndSpawnDots = (victimId) => {
+const removeSnakeAndFreezeBody = (victimId, fallbackGameId) => {
     const victimUser = connectedUsers[victimId];
     if (!victimUser) {
         return false;
     }
 
     const victimTrail = getSnakeTrailForId(victimId);
-    appendDotCoordinates(victimTrail);
+    const bodySegments = victimTrail.slice(1); // exclude head
+    const corpseGameId = victimUser.gameId ?? fallbackGameId;
+
+    if (bodySegments.length > 0) {
+        const corpseId = `corpse-${nextCorpseId}`;
+        nextCorpseId += 1;
+        frozenSnakeCorpses[corpseId] = {
+            segments: bodySegments,
+            width: getSnakeWidthForUser(victimUser),
+            color: victimUser.color,
+            gameId: corpseGameId
+        };
+    }
 
     if (botStateById[victimId]) {
         delete botStateById[victimId];
@@ -1027,9 +1046,11 @@ const updateBotPositions = () => {
             const victimLength = getSnakeLengthForUser(victimUser);
 
             if (attackerLength > victimLength) {
-                const removed = removeSnakeAndSpawnDots(snakeCollision.victimId);
+                const victimGameId = victimUser.gameId;
+                const removed = removeSnakeAndFreezeBody(snakeCollision.victimId, botUser.gameId);
                 if (removed) {
                     growSnakeAfterEatingSnake(botUser, victimUser);
+                    broadcastFrozenSnakeCorpses(victimGameId);
                 }
                 usersChanged = usersChanged || removed;
                 worldObjectsChanged = worldObjectsChanged || removed;
@@ -1049,10 +1070,36 @@ const updateBotPositions = () => {
             usersChanged = usersChanged || result.usersChanged;
             worldObjectsChanged = worldObjectsChanged || result.worldObjectsChanged;
         }
+
+        // Bot consumes frozen snake corpse segments
+        const botHitbox = getSnakeHitbox(botUser.coordinates, botWidth);
+        for (const corpseId in frozenSnakeCorpses) {
+            const corpse = frozenSnakeCorpses[corpseId];
+            if (corpse.gameId !== botUser.gameId) {
+                continue;
+            }
+
+            for (let segIdx = corpse.segments.length - 1; segIdx >= 0; segIdx--) {
+                const seg = corpse.segments[segIdx];
+                const segHitbox = { x: seg.x, y: seg.y, width: corpse.width, height: corpse.width };
+                if (rectanglesOverlap(botHitbox, segHitbox)) {
+                    botUser.score += 1;
+                    setSnakeLengthForUser(botUser, getSnakeLengthForUser(botUser) + 1);
+                    corpse.segments.splice(segIdx, 1);
+                    usersChanged = true;
+                    worldObjectsChanged = true;
+                }
+            }
+
+            if (corpse.segments.length === 0) {
+                delete frozenSnakeCorpses[corpseId];
+            }
+        }
     }
 
     if (worldObjectsChanged) {
         broadcastWorldObjects();
+        broadcastFrozenSnakeCorpses();
     }
 
     if (usersChanged) {
@@ -1089,6 +1136,21 @@ const broadcastWorldObjects = (gameId) => {
     }
 
     io.emit(SOCKET_EVENTS.UPDATE_WORLD_OBJECTS, worldObjects);
+};
+
+const broadcastFrozenSnakeCorpses = (gameId) => {
+    if (gameId) {
+        const corpsesForGame = {};
+        for (const corpseId in frozenSnakeCorpses) {
+            if (frozenSnakeCorpses[corpseId].gameId === gameId) {
+                corpsesForGame[corpseId] = frozenSnakeCorpses[corpseId];
+            }
+        }
+        io.to(getRoomNameForGame(gameId)).emit(SOCKET_EVENTS.UPDATE_FROZEN_SNAKES, corpsesForGame);
+        return;
+    }
+
+    io.emit(SOCKET_EVENTS.UPDATE_FROZEN_SNAKES, frozenSnakeCorpses);
 };
 
 const joinUserToGame = (socket, gameId, playerName) => {
@@ -1149,6 +1211,15 @@ const joinUserToGame = (socket, gameId, playerName) => {
     socket.emit(SOCKET_EVENTS.MATCH_STATE_UPDATE, getMatchStatePayload());
     socket.emit(SOCKET_EVENTS.SET_WORLD_OBJECT_DEFINITIONS, getWorldObjectDefinitionsForClient());
     socket.emit(SOCKET_EVENTS.UPDATE_WORLD_OBJECTS, worldObjects);
+    socket.emit(SOCKET_EVENTS.UPDATE_FROZEN_SNAKES, (() => {
+        const corpsesForGame = {};
+        for (const corpseId in frozenSnakeCorpses) {
+            if (frozenSnakeCorpses[corpseId].gameId === gameId) {
+                corpsesForGame[corpseId] = frozenSnakeCorpses[corpseId];
+            }
+        }
+        return corpsesForGame;
+    })());
     socket.emit(SOCKET_EVENTS.SET_MOVEMENT_CONFIG, {
         baseStep: MOVEMENT_BASE_STEP,
         ticksPerSecond: MOVEMENT_TICKS_PER_SECOND,
@@ -1203,6 +1274,13 @@ const endGameByOwner = (socket, gameId) => {
 
     game.playerIds.clear();
     delete activeGamesById[gameId];
+
+    // Clear frozen snake corpses for the ended game
+    for (const corpseId in frozenSnakeCorpses) {
+        if (frozenSnakeCorpses[corpseId].gameId === gameId) {
+            delete frozenSnakeCorpses[corpseId];
+        }
+    }
 
     broadcastUsers(gameId);
     broadcastActiveGames();
@@ -1274,7 +1352,8 @@ io.on('connection', (socket) => {
             return;
         }
 
-        if (victimUser.gameId !== gameId) {
+        const victimIsBot = Boolean(botStateById[victimId]);
+        if (!victimIsBot && victimUser.gameId !== gameId) {
             return;
         }
 
@@ -1282,13 +1361,72 @@ io.on('connection', (socket) => {
             return;
         }
 
-        if (!removeSnakeAndSpawnDots(victimId)) {
+        const attackerWidth = getSnakeWidthForUser(attackerUser);
+        const attackerHitbox = getSnakeHitbox(attackerUser.coordinates, attackerWidth);
+        const victimWidth = getSnakeWidthForUser(victimUser);
+        const victimTrail = getSnakeTrailForId(victimId);
+        const actuallyOverlaps = victimTrail.some((segment) =>
+            rectanglesOverlap(attackerHitbox, getSnakeSegmentHitbox(segment, victimWidth))
+        );
+        if (!actuallyOverlaps) {
+            return;
+        }
+
+        if (!removeSnakeAndFreezeBody(victimId, gameId)) {
             return;
         }
 
         growSnakeAfterEatingSnake(attackerUser, victimUser);
 
+        broadcastFrozenSnakeCorpses(gameId);
         broadcastWorldObjects(gameId);
+        broadcastUsers(gameId);
+        evaluateMatchState();
+    });
+
+    socket.on(SOCKET_EVENTS.CONSUME_CORPSE_SEGMENT, ({ corpseId, segmentIndex }) => {
+        const gameId = socketGameById[socket.id];
+        if (!gameId) {
+            return;
+        }
+
+        const consumer = connectedUsers[socket.id];
+        if (!consumer) {
+            return;
+        }
+
+        const corpse = frozenSnakeCorpses[corpseId];
+        if (!corpse || corpse.gameId !== gameId) {
+            return;
+        }
+
+        const segment = corpse.segments[segmentIndex];
+        if (!segment) {
+            return;
+        }
+
+        const consumerWidth = getSnakeWidthForUser(consumer);
+        const consumerHitbox = getSnakeHitbox(consumer.coordinates, consumerWidth);
+        const segmentHitbox = {
+            x: segment.x,
+            y: segment.y,
+            width: corpse.width,
+            height: corpse.width
+        };
+
+        if (!rectanglesOverlap(consumerHitbox, segmentHitbox)) {
+            return;
+        }
+
+        consumer.score += 1;
+        setSnakeLengthForUser(consumer, getSnakeLengthForUser(consumer) + 1);
+
+        corpse.segments.splice(segmentIndex, 1);
+        if (corpse.segments.length === 0) {
+            delete frozenSnakeCorpses[corpseId];
+        }
+
+        broadcastFrozenSnakeCorpses(gameId);
         broadcastUsers(gameId);
         evaluateMatchState();
     });
@@ -1354,9 +1492,10 @@ io.on('connection', (socket) => {
                 const victimUser = connectedUsers[snakeCollision.victimId];
 
                 if (attackerUser && victimUser && getSnakeLengthForUser(attackerUser) > getSnakeLengthForUser(victimUser)) {
-                    const removed = removeSnakeAndSpawnDots(snakeCollision.victimId);
+                    const removed = removeSnakeAndFreezeBody(snakeCollision.victimId, gameId);
                     if (removed) {
                         growSnakeAfterEatingSnake(attackerUser, victimUser);
+                        broadcastFrozenSnakeCorpses(gameId);
                         broadcastWorldObjects(gameId);
                         broadcastUsers(gameId);
                         evaluateMatchState();

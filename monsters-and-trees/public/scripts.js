@@ -118,6 +118,7 @@ const monsterSVG = 'data:image/svg+xml;base64,' + btoa(`
 `);
 
 let worldObjects = {};
+let frozenSnakeCorpses = {};
 const treeImage = new Image();
 treeImage.src = treeSVG;
 const monsterImage = new Image();
@@ -1037,6 +1038,11 @@ socket.on(GAME_SOCKET_EVENTS.UPDATE_WORLD_OBJECTS, (nextWorldObjects) => {
     drawScene();
 });
 
+socket.on(GAME_SOCKET_EVENTS.UPDATE_FROZEN_SNAKES, (nextFrozenSnakeCorpses) => {
+    frozenSnakeCorpses = nextFrozenSnakeCorpses;
+    drawScene();
+});
+
 const applyMovementConfig = ({ baseStep: configuredBaseStep, ticksPerSecond: configuredTicksPerSecond, boostMultiplier: configuredBoostMultiplier }) => {
     if (typeof configuredBaseStep === 'number' && configuredBaseStep > 0) {
         baseStep = configuredBaseStep;
@@ -1256,6 +1262,17 @@ function notifyOfHitWorldObject(worldObjectId) {
     socket.emit(GAME_SOCKET_EVENTS.WORLD_OBJECT_HIT, worldObjectId);
 }
 
+function drawFrozenSnakeCorpses() {
+    for (const corpseId in frozenSnakeCorpses) {
+        const corpse = frozenSnakeCorpses[corpseId];
+        const segWidth = corpse.width ?? gameRules.snakeSegmentSize;
+        ctx.fillStyle = corpse.color ?? '#888888';
+        for (const segment of corpse.segments) {
+            ctx.fillRect(segment.x, segment.y, segWidth, segWidth);
+        }
+    }
+}
+
 function drawWorldObjects() {
     for (const worldObjectId in worldObjects) {
         const worldObject = worldObjects[worldObjectId];
@@ -1338,6 +1355,7 @@ function drawScene() {
 
     drawTrees();
     drawWorldObjects();
+    drawFrozenSnakeCorpses();
 
     drawSnake(snakeStates.mySnake);
 
@@ -1746,6 +1764,39 @@ function updatePosition() {
         if (hasBounced) {
             nextX = Math.max(0, Math.min(nextX, boardWidth - (snakeStates.mySnake.width ?? gameRules.snakeSegmentSize)));
             nextY = Math.max(0, Math.min(nextY, boardHeight - (snakeStates.mySnake.width ?? gameRules.snakeSegmentSize)));
+        }
+
+        // Consume frozen snake corpse segments
+        const myWidthForCorpse = snakeStates.mySnake.width ?? gameRules.snakeSegmentSize;
+        const myHitboxForCorpse = {
+            x: nextX,
+            y: nextY,
+            width: myWidthForCorpse,
+            height: myWidthForCorpse
+        };
+        const consumedSegments = [];
+        for (const corpseId in frozenSnakeCorpses) {
+            const corpse = frozenSnakeCorpses[corpseId];
+            const segWidth = corpse.width ?? gameRules.snakeSegmentSize;
+            for (let i = 0; i < corpse.segments.length; i++) {
+                const segment = corpse.segments[i];
+                const segHitbox = { x: segment.x, y: segment.y, width: segWidth, height: segWidth };
+                if (rectanglesOverlap(myHitboxForCorpse, segHitbox)) {
+                    consumedSegments.push({ corpseId, segmentIndex: i });
+                }
+            }
+        }
+        // Process descending to avoid index-shift issues on local optimistic update
+        consumedSegments.sort((a, b) => b.segmentIndex - a.segmentIndex);
+        for (const { corpseId, segmentIndex } of consumedSegments) {
+            socket.emit(GAME_SOCKET_EVENTS.CONSUME_CORPSE_SEGMENT, { corpseId, segmentIndex });
+            const corpse = frozenSnakeCorpses[corpseId];
+            if (corpse) {
+                corpse.segments.splice(segmentIndex, 1);
+                if (corpse.segments.length === 0) {
+                    delete frozenSnakeCorpses[corpseId];
+                }
+            }
         }
 
     }
