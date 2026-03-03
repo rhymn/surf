@@ -9,6 +9,21 @@ const {
     WORLD_OBJECT_TYPES,
     DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS
 } = require('./public/world-object-definitions.js');
+const {
+    COLLISION_RESPONSES,
+    INITIAL_USER_LENGTH,
+    INITIAL_USER_WIDTH,
+    resolveCollisionResponse,
+    toSafeCollisionResponse,
+    rectanglesOverlap,
+    createWorldObjectHelpers,
+    getSnakeLengthForUser,
+    getSnakeWidthForUser,
+    setSnakeLengthForUser,
+    setSnakeWidthForUser,
+    growSnakeAfterEatingSnake,
+    applyWorldObjectEffectsToUser
+} = require('./server/game-logic.js');
 
 const DEFAULT_PORT = 4000;
 const HEX_COLOR_CHARS = '0123456789ABCDEF';
@@ -31,10 +46,6 @@ const VIRTUAL_HEIGHT = 1600;
 const MOVEMENT_BASE_STEP = 2;
 const MOVEMENT_TICKS_PER_SECOND = 30;
 const MOVEMENT_BOOST_MULTIPLIER = 2;
-const COLLISION_RESPONSES = {
-    GAME_OVER: 'gameOver',
-    BOUNCE: 'bounce'
-};
 const RULE_PLAYER_COLLISION_ENDS_GAME = true;
 const RULE_SNAKE_SEGMENT_SIZE = 6;
 const RULE_SNAKE_HEAD_SIZE_MULTIPLIER = 2;
@@ -61,10 +72,9 @@ const INITIAL_MONSTER_COUNT = 20;
 const INITIAL_CLOUD_COUNT = 8;
 const INITIAL_THORN_COUNT = 10;
 const INITIAL_USER_SCORE = 0;
-const INITIAL_USER_LENGTH = 6;
-const INITIAL_USER_WIDTH = RULE_SNAKE_SEGMENT_SIZE;
 const PUBLIC_DIRECTORY = 'public';
 const WORLD_OBJECT_TYPE_DEFINITIONS = JSON.parse(JSON.stringify(DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS));
+const { getCollisionInsetForObject, getWorldObjectRect } = createWorldObjectHelpers(WORLD_OBJECT_TYPE_DEFINITIONS);
 
 const app = express();
 const server = http.createServer(app);
@@ -87,17 +97,6 @@ const AUDIO_RTC_ENABLED = isAudioRtcEnabled();
 const DEFAULT_MAP_TYPE = MAP_TYPES.CLASSIC;
 const DEFAULT_BORDER_COLLISION_RESPONSE = COLLISION_RESPONSES.GAME_OVER;
 const DEFAULT_DANGEROUS_OBJECT_COLLISION_RESPONSE = COLLISION_RESPONSES.GAME_OVER;
-const resolveCollisionResponse = (configuredValue, fallback) => {
-    if (Object.values(COLLISION_RESPONSES).includes(configuredValue)) {
-        return configuredValue;
-    }
-
-    return fallback;
-};
-
-const toSafeCollisionResponse = (collisionResponse, fallback) => {
-    return resolveCollisionResponse(collisionResponse, fallback);
-};
 
 const MAP_DEFINITIONS = {
     [MAP_TYPES.CLASSIC]: {
@@ -152,59 +151,6 @@ function getRandomAnimalHeadEmoji() {
     return ANIMAL_HEAD_EMOJIS[randomIndex];
 }
 
-const getSnakeLengthForUser = (userState) => userState?.l ?? INITIAL_USER_LENGTH;
-const getSnakeWidthForUser = (userState) => userState?.w ?? INITIAL_USER_WIDTH;
-
-const setSnakeLengthForUser = (userState, nextLength) => {
-    if (!userState) {
-        return;
-    }
-
-    const parsed = Number.parseInt(`${nextLength ?? INITIAL_USER_LENGTH}`, 10);
-    const safeLength = Math.max(1, Number.isNaN(parsed) ? INITIAL_USER_LENGTH : parsed);
-    userState.l = safeLength;
-};
-
-const setSnakeWidthForUser = (userState, nextWidth) => {
-    if (!userState || typeof nextWidth !== 'number' || nextWidth <= 0) {
-        return;
-    }
-
-    userState.w = Math.max(1, nextWidth);
-};
-
-const growSnakeAfterEatingSnake = (attackerUser, victimUser) => {
-    if (!attackerUser || !victimUser) {
-        return;
-    }
-
-    const attackerLength = getSnakeLengthForUser(attackerUser);
-    const victimLength = getSnakeLengthForUser(victimUser);
-    setSnakeLengthForUser(attackerUser, attackerLength + victimLength);
-    attackerUser.score += victimLength;
-};
-
-const applyWorldObjectEffectsToUser = (userState, worldObjectDefinition) => {
-    if (!userState || !worldObjectDefinition) {
-        return;
-    }
-
-    const scoreDelta = Number.isFinite(worldObjectDefinition.effects.scoreDelta)
-        ? worldObjectDefinition.effects.scoreDelta
-        : 0;
-    const growthDelta = Number.isFinite(worldObjectDefinition.effects.growthDelta)
-        ? worldObjectDefinition.effects.growthDelta
-        : 0;
-    const widthDelta = Number.isFinite(worldObjectDefinition.effects.widthDelta)
-        ? worldObjectDefinition.effects.widthDelta
-        : 0;
-
-    userState.score += scoreDelta;
-    setSnakeLengthForUser(userState, getSnakeLengthForUser(userState) + growthDelta);
-    setSnakeWidthForUser(userState, getSnakeWidthForUser(userState) + widthDelta);
-};
-
-
 let boardWidth = VIRTUAL_WIDTH;
 let boardHeight = VIRTUAL_HEIGHT;
 let currentMapType = DEFAULT_MAP_TYPE;
@@ -217,38 +163,6 @@ const getRandomPosition = (width, height, size = RULE_SNAKE_SEGMENT_SIZE) => {
         y: Math.floor(Math.random() * (maxY + 1))
     };
 }
-
-const rectanglesOverlap = (firstRect, secondRect) => {
-    return (
-        firstRect.x < secondRect.x + secondRect.width &&
-        firstRect.x + firstRect.width > secondRect.x &&
-        firstRect.y < secondRect.y + secondRect.height &&
-        firstRect.y + firstRect.height > secondRect.y
-    );
-};
-
-const getCollisionInsetForObject = (worldObject) => {
-    const objectDefinition = WORLD_OBJECT_TYPE_DEFINITIONS[worldObject.type];
-    if (!objectDefinition) {
-        return 0;
-    }
-
-    const maxInset = Math.max(0, Math.floor((objectDefinition.size - 1) / 2));
-    return Math.max(0, Math.min(objectDefinition.collisionInset, maxInset));
-};
-
-const getWorldObjectRect = (worldObject, padding = 0) => {
-    const objectDefinition = WORLD_OBJECT_TYPE_DEFINITIONS[worldObject.type];
-    const collisionInset = getCollisionInsetForObject(worldObject);
-    const insetSize = objectDefinition.size - collisionInset * 2;
-
-    return {
-        x: worldObject.x + collisionInset - padding,
-        y: worldObject.y + collisionInset - padding,
-        width: insetSize + padding * 2,
-        height: insetSize + padding * 2
-    };
-};
 
 let worldObjects = {};
 let nextWorldObjectId = 1;

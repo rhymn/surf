@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node --watch server.js",
     "check": "node --check server.js && node --check public/scripts.js && node --check public/socket-events.js && node --check public/world-object-definitions.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "start": "node server.js"
   },
   "author": "",
@@ -15,5 +15,8 @@
     "express": "^4.21.2",
     "pg-promise": "^11.10.2",
     "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "jest": "^30.2.0"
   }
 }
