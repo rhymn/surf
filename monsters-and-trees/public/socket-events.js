@@ -13,6 +13,8 @@ const GAME_SOCKET_EVENT_NAMES = {
     SET_WORLD_OBJECT_DEFINITIONS: 'setWorldObjectDefinitions',
     UPDATE_WORLD_OBJECTS: 'updateWorldObjects',
     SET_MOVEMENT_CONFIG: 'setMovementConfig',
+    SET_BOOST: 'setBoost',
+    ENERGY_UPDATE: 'energyUpdate',
     SET_PLAYING_TYPE: 'setPlayingType',
     SET_GAME_RULES: 'setGameRules',
     MATCH_STATE_UPDATE: 'matchStateUpdate',

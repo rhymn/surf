@@ -193,6 +193,10 @@ const STEERING_MODE_LABELS = {
     [STEERING_MODES.CLASSIC]: 'Classic (up/down/left/right)',
     [STEERING_MODES.FREE]: '360° (mouse + steer keys)'
 };
+const STEERING_MODE_SHORT_LABELS = {
+    [STEERING_MODES.CLASSIC]: 'Classic',
+    [STEERING_MODES.FREE]: '360°'
+};
 const TURN_STEP_RADIANS = 0.12;
 let steeringMode = STEERING_MODES.CLASSIC;
 let steeringAngle = 0;
@@ -200,7 +204,8 @@ const activeSteerKeys = new Set();
 let isPaused = false;
 let isGameOver = false;
 let isEaten = false;
-let isBoostEnabled = false;
+let isBoostRequested = false;
+let isBoosting = false;
 let hasJoinedGame = false;
 let isInLobbyWhilePlaying = false;
 let localPlayerName = 'Anonymous';
@@ -209,9 +214,16 @@ let currentGameId = null;
 const DEFAULT_BASE_STEP = 2;
 const DEFAULT_TICKS_PER_SECOND = 20;
 const DEFAULT_BOOST_MULTIPLIER = 2;
+const DEFAULT_MAX_ENERGY = 1;
+const DEFAULT_BOOST_DRAIN_PER_SECOND = 0.2;
+const DEFAULT_MIN_ENERGY_TO_START_BOOST = 0.15;
 let baseStep = DEFAULT_BASE_STEP;
 let ticksPerSecond = DEFAULT_TICKS_PER_SECOND;
 let boostMultiplier = DEFAULT_BOOST_MULTIPLIER;
+let maxEnergy = DEFAULT_MAX_ENERGY;
+let boostDrainPerSecond = DEFAULT_BOOST_DRAIN_PER_SECOND;
+let minEnergyToStartBoost = DEFAULT_MIN_ENERGY_TO_START_BOOST;
+let currentEnergy = DEFAULT_MAX_ENERGY;
 let updateIntervalMs = 1000 / ticksPerSecond;
 let hasMovementConfig = false;
 const GAME_WORLD_OBJECT_TYPES = window.WORLD_OBJECT_TYPES;
@@ -391,25 +403,17 @@ const upsertSnakeById = (snakeId, headCoordinates, nextLength, nextScore, nextWi
 }
 
 const overlay = document.createElement('div');
-overlay.style.position = 'absolute';
-overlay.style.bottom = '10px';
-overlay.style.right = '10px';
-overlay.style.width = '200px';
-overlay.style.height = 'auto';
-overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.5)';
-overlay.style.border = '1px solid black';
-overlay.style.padding = '10px';
-overlay.style.overflowY = 'auto';
+overlay.className = 'hud-panel';
 overlay.style.display = 'none';
 document.body.appendChild(overlay);
 
 const overlayContent = document.createElement('div');
+overlayContent.className = 'hud-stats';
 overlay.appendChild(overlayContent);
 
 const goToLobbyButton = document.createElement('button');
+goToLobbyButton.className = 'btn hud-lobby-button';
 goToLobbyButton.textContent = 'Go to lobby';
-goToLobbyButton.style.marginTop = '8px';
-goToLobbyButton.style.padding = '6px 8px';
 goToLobbyButton.style.display = 'none';
 const openLobbyWhilePlaying = () => {
     isInLobbyWhilePlaying = true;
@@ -422,7 +426,7 @@ const openLobbyWhilePlaying = () => {
     overlay.style.display = 'none';
     timerOverlay.style.display = 'none';
     lobbyOverlay.style.display = 'flex';
-    updateRejoinButtonVisibility();
+    updateLobbyControls();
     socket.emit(GAME_SOCKET_EVENTS.LIST_ACTIVE_GAMES);
 };
 goToLobbyButton.onclick = () => {
@@ -431,149 +435,117 @@ goToLobbyButton.onclick = () => {
 overlay.appendChild(goToLobbyButton);
 
 const spectatingBanner = document.createElement('div');
-spectatingBanner.style.position = 'absolute';
-spectatingBanner.style.top = '50%';
-spectatingBanner.style.left = '50%';
-spectatingBanner.style.transform = 'translate(-50%, -50%)';
-spectatingBanner.style.backgroundColor = 'rgba(0, 0, 0, 0.65)';
-spectatingBanner.style.color = '#fff';
-spectatingBanner.style.fontFamily = 'Arial, sans-serif';
-spectatingBanner.style.fontSize = '22px';
-spectatingBanner.style.fontWeight = 'bold';
-spectatingBanner.style.padding = '16px 28px';
-spectatingBanner.style.borderRadius = '8px';
-spectatingBanner.style.pointerEvents = 'none';
+spectatingBanner.className = 'hud-banner';
 spectatingBanner.style.display = 'none';
 document.body.appendChild(spectatingBanner);
 
 const timerOverlay = document.createElement('div');
-timerOverlay.style.position = 'absolute';
-timerOverlay.style.top = '10px';
-timerOverlay.style.right = '10px';
-timerOverlay.style.backgroundColor = 'rgba(255, 255, 255, 0.7)';
-timerOverlay.style.border = '1px solid black';
-timerOverlay.style.padding = '8px 10px';
-timerOverlay.style.fontFamily = 'Arial, sans-serif';
-timerOverlay.style.fontSize = '16px';
-timerOverlay.style.fontWeight = 'bold';
+timerOverlay.className = 'hud-timer';
 timerOverlay.textContent = '00:00';
 timerOverlay.style.display = 'none';
 document.body.appendChild(timerOverlay);
 
 const lobbyOverlay = document.createElement('div');
+lobbyOverlay.className = 'lobby-overlay';
 lobbyOverlay.style.position = 'absolute';
 lobbyOverlay.style.top = '0';
 lobbyOverlay.style.left = '0';
 lobbyOverlay.style.width = '100%';
 lobbyOverlay.style.height = '100%';
-lobbyOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.75)';
 lobbyOverlay.style.display = 'flex';
 lobbyOverlay.style.alignItems = 'center';
 lobbyOverlay.style.justifyContent = 'center';
 lobbyOverlay.style.zIndex = '1000';
 
 const lobbyPanel = document.createElement('div');
-lobbyPanel.style.width = 'min(560px, 92vw)';
-lobbyPanel.style.maxHeight = '85vh';
-lobbyPanel.style.overflowY = 'auto';
-lobbyPanel.style.background = '#FFFFFF';
-lobbyPanel.style.border = '1px solid #222';
-lobbyPanel.style.padding = '16px';
-lobbyPanel.style.fontFamily = 'Arial, sans-serif';
+lobbyPanel.className = 'lobby-panel';
 
-const lobbyTitle = document.createElement('h2');
-lobbyTitle.textContent = 'Choose or create game';
-lobbyTitle.style.margin = '0 0 10px 0';
-lobbyPanel.appendChild(lobbyTitle);
+const lobbyHeader = document.createElement('div');
+lobbyHeader.className = 'lobby-header';
+
+const lobbyTitle = document.createElement('h1');
+lobbyTitle.className = 'lobby-title';
+lobbyTitle.textContent = '🐍 Monsters & Trees';
+lobbyHeader.appendChild(lobbyTitle);
+
+const lobbySubtitle = document.createElement('div');
+lobbySubtitle.className = 'lobby-subtitle';
+lobbySubtitle.textContent = 'Eat fruit · Grow · Survive';
+lobbyHeader.appendChild(lobbySubtitle);
+lobbyPanel.appendChild(lobbyHeader);
 
 const nameLabel = document.createElement('label');
+nameLabel.className = 'field-label';
 nameLabel.textContent = 'Your name';
-nameLabel.style.display = 'block';
 lobbyPanel.appendChild(nameLabel);
 
 const nameInput = document.createElement('input');
+nameInput.className = 'field-input';
 nameInput.type = 'text';
 nameInput.placeholder = 'Name';
 nameInput.maxLength = 24;
-nameInput.style.width = '100%';
-nameInput.style.margin = '6px 0 12px 0';
-nameInput.style.padding = '8px';
 lobbyPanel.appendChild(nameInput);
 
 const createRow = document.createElement('div');
-createRow.style.display = 'flex';
-createRow.style.gap = '8px';
-createRow.style.marginBottom = '12px';
+createRow.className = 'create-row';
 
 const newGameSettingsTitle = document.createElement('h3');
+newGameSettingsTitle.className = 'section-title';
 newGameSettingsTitle.textContent = 'New game settings';
-newGameSettingsTitle.style.margin = '8px 0 6px 0';
 
 const newGameSettingsHint = document.createElement('div');
+newGameSettingsHint.className = 'hint';
 newGameSettingsHint.textContent = 'These settings are used only when creating a new game.';
-newGameSettingsHint.style.fontSize = '12px';
-newGameSettingsHint.style.marginBottom = '8px';
-newGameSettingsHint.style.color = '#555';
 
 const gameTypeLabel = document.createElement('label');
+gameTypeLabel.className = 'field-label';
 gameTypeLabel.textContent = 'Game type';
-gameTypeLabel.style.display = 'block';
-gameTypeLabel.style.marginBottom = '4px';
 
 const mapTypeLabel = document.createElement('label');
+mapTypeLabel.className = 'field-label';
 mapTypeLabel.textContent = 'Map';
-mapTypeLabel.style.display = 'block';
-mapTypeLabel.style.marginBottom = '4px';
 
 const borderCollisionLabel = document.createElement('label');
+borderCollisionLabel.className = 'field-label';
 borderCollisionLabel.textContent = 'Border collision';
-borderCollisionLabel.style.display = 'block';
-borderCollisionLabel.style.marginBottom = '4px';
 
 const dangerousCollisionLabel = document.createElement('label');
+dangerousCollisionLabel.className = 'field-label';
 dangerousCollisionLabel.textContent = 'Dangerous object collision';
-dangerousCollisionLabel.style.display = 'block';
-dangerousCollisionLabel.style.marginBottom = '4px';
 
 const foodHitBehaviorLabel = document.createElement('label');
+foodHitBehaviorLabel.className = 'field-label';
 foodHitBehaviorLabel.textContent = 'Food on hit';
-foodHitBehaviorLabel.style.display = 'block';
-foodHitBehaviorLabel.style.marginBottom = '4px';
 
 const steeringSettingsTitle = document.createElement('h3');
+steeringSettingsTitle.className = 'section-title';
 steeringSettingsTitle.textContent = 'Your controls';
-steeringSettingsTitle.style.margin = '8px 0 6px 0';
 
 const steeringSettingsHint = document.createElement('div');
+steeringSettingsHint.className = 'hint';
 steeringSettingsHint.textContent = 'Steering is personal and can be changed in lobby or during play.';
-steeringSettingsHint.style.fontSize = '12px';
-steeringSettingsHint.style.marginBottom = '8px';
-steeringSettingsHint.style.color = '#555';
 
 const steeringModeLabel = document.createElement('label');
+steeringModeLabel.className = 'field-label';
 steeringModeLabel.textContent = 'Steering mode';
-steeringModeLabel.style.display = 'block';
-steeringModeLabel.style.marginBottom = '4px';
 
 const gameNameInput = document.createElement('input');
+gameNameInput.className = 'field-input';
 gameNameInput.type = 'text';
 gameNameInput.placeholder = 'New game name';
 gameNameInput.maxLength = 40;
 gameNameInput.style.flex = '1';
-gameNameInput.style.padding = '8px';
 
 const createButton = document.createElement('button');
+createButton.className = 'btn btn-primary';
 createButton.textContent = 'Create';
-createButton.style.padding = '8px 12px';
 
 const randomButton = document.createElement('button');
+randomButton.className = 'btn';
 randomButton.textContent = 'Random';
-randomButton.style.padding = '8px 12px';
 
 const mapTypeSelect = document.createElement('select');
-mapTypeSelect.style.padding = '8px';
-mapTypeSelect.style.marginBottom = '12px';
-mapTypeSelect.style.width = '100%';
+mapTypeSelect.className = 'field-select';
 
 const mapTypeOptions = Object.entries(MAPS).map(([value, map]) => ({ value, label: map.label }));
 
@@ -587,14 +559,7 @@ for (const mapTypeOption of mapTypeOptions) {
 mapTypeSelect.value = MAP_TYPES.CLASSIC;
 
 const mapInfoPanel = document.createElement('div');
-mapInfoPanel.style.marginBottom = '12px';
-mapInfoPanel.style.padding = '8px 10px';
-mapInfoPanel.style.background = '#f0f7ff';
-mapInfoPanel.style.border = '1px solid #c3d9f0';
-mapInfoPanel.style.borderRadius = '6px';
-mapInfoPanel.style.fontSize = '12px';
-mapInfoPanel.style.lineHeight = '1.5';
-mapInfoPanel.style.color = '#333';
+mapInfoPanel.className = 'map-info';
 
 const updateMapInfoPanel = (mapType) => {
     const map = MAPS[mapType];
@@ -607,7 +572,7 @@ const updateMapInfoPanel = (mapType) => {
         `<strong>${map.description}</strong>`,
         `<div style="margin-top:4px">📐 Size: ${map.size}</div>`,
         `<div>🗺️ ${map.highlights.join(' · ')}</div>`,
-        `<div style="margin-top:4px;color:#555">🔄 ${map.respawnRule}</div>`
+        `<div style="margin-top:4px">🔄 ${map.respawnRule}</div>`
     ].join('');
 };
 
@@ -615,29 +580,19 @@ updateMapInfoPanel(mapTypeSelect.value);
 mapTypeSelect.addEventListener('change', () => updateMapInfoPanel(mapTypeSelect.value));
 
 const playingTypeSelect = document.createElement('select');
-playingTypeSelect.style.padding = '8px';
-playingTypeSelect.style.marginBottom = '12px';
-playingTypeSelect.style.width = '100%';
+playingTypeSelect.className = 'field-select';
 
 const steeringModeSelect = document.createElement('select');
-steeringModeSelect.style.padding = '8px';
-steeringModeSelect.style.marginBottom = '12px';
-steeringModeSelect.style.width = '100%';
+steeringModeSelect.className = 'field-select';
 
 const borderCollisionSelect = document.createElement('select');
-borderCollisionSelect.style.padding = '8px';
-borderCollisionSelect.style.marginBottom = '12px';
-borderCollisionSelect.style.width = '100%';
+borderCollisionSelect.className = 'field-select';
 
 const dangerousObjectCollisionSelect = document.createElement('select');
-dangerousObjectCollisionSelect.style.padding = '8px';
-dangerousObjectCollisionSelect.style.marginBottom = '12px';
-dangerousObjectCollisionSelect.style.width = '100%';
+dangerousObjectCollisionSelect.className = 'field-select';
 
 const foodHitBehaviorSelect = document.createElement('select');
-foodHitBehaviorSelect.style.padding = '8px';
-foodHitBehaviorSelect.style.marginBottom = '12px';
-foodHitBehaviorSelect.style.width = '100%';
+foodHitBehaviorSelect.className = 'field-select';
 
 const playingTypeOptions = [
     { value: PLAYING_TYPES.LAST_MAN_STANDING, label: 'Last man standing' },
@@ -747,19 +702,17 @@ lobbyPanel.appendChild(steeringModeSelect);
 lobbyPanel.appendChild(createRow);
 
 const listTitle = document.createElement('h3');
+listTitle.className = 'section-title';
 listTitle.textContent = 'Active games';
-listTitle.style.margin = '6px 0';
 lobbyPanel.appendChild(listTitle);
 
 const activeGamesList = document.createElement('div');
-activeGamesList.style.display = 'grid';
-activeGamesList.style.gap = '6px';
+activeGamesList.className = 'games-list';
 lobbyPanel.appendChild(activeGamesList);
 
 const rejoinCurrentGameButton = document.createElement('button');
+rejoinCurrentGameButton.className = 'btn btn-primary rejoin-button';
 rejoinCurrentGameButton.textContent = 'Rejoin current game';
-rejoinCurrentGameButton.style.padding = '8px 12px';
-rejoinCurrentGameButton.style.marginTop = '12px';
 rejoinCurrentGameButton.style.display = 'none';
 lobbyPanel.appendChild(rejoinCurrentGameButton);
 
@@ -776,6 +729,7 @@ const audioUi = canCreateAudioUi ? window.createAudioUi(makeAudioUiCallbacks()) 
 const inGameAudioUi = canCreateAudioUi ? window.createAudioUi(makeAudioUiCallbacks()) : null;
 
 if (audioUi) {
+    audioUi.setVisible(false);
     lobbyPanel.appendChild(audioUi.element);
 }
 
@@ -802,10 +756,13 @@ const getEnteredPlayerName = () => {
     return enteredName;
 };
 
-const updateRejoinButtonVisibility = () => {
+const updateLobbyControls = () => {
     const canRejoinCurrentGame = Boolean(currentGameId) && (Boolean(currentMatchState?.isEnded) || isInLobbyWhilePlaying);
     rejoinCurrentGameButton.textContent = currentMatchState?.isEnded ? 'Rejoin current game' : 'Re-join';
     rejoinCurrentGameButton.style.display = canRejoinCurrentGame ? 'inline-block' : 'none';
+
+    // Voice is per game, so the lobby copy is only useful once you belong to one.
+    audioUi?.setVisible(Boolean(currentGameId));
 };
 
 const emitRejoinCurrentGame = () => {
@@ -822,7 +779,7 @@ const emitRejoinCurrentGame = () => {
         lobbyOverlay.style.display = 'none';
         stopMovementLoop();
         startMovementLoop();
-        updateRejoinButtonVisibility();
+        updateLobbyControls();
         requestAnimationFrame(drawScene);
         return;
     }
@@ -851,7 +808,7 @@ const showGameCanvas = () => {
     overlay.style.display = 'block';
     timerOverlay.style.display = 'block';
     lobbyOverlay.style.display = 'none';
-    updateRejoinButtonVisibility();
+    updateLobbyControls();
 };
 
 const normalizeAngle = (angleInRadians) => {
@@ -929,6 +886,7 @@ const applyTouchSteerVector = (deltaX, deltaY) => {
 };
 
 const getSteeringLabel = () => STEERING_MODE_LABELS[steeringMode] ?? STEERING_MODE_LABELS[STEERING_MODES.CLASSIC];
+const getShortSteeringLabel = () => STEERING_MODE_SHORT_LABELS[steeringMode] ?? STEERING_MODE_SHORT_LABELS[STEERING_MODES.CLASSIC];
 
 const getAngleForDirection = (direction) => {
     if (direction === 'up') {
@@ -989,7 +947,8 @@ const renderActiveGames = (games) => {
 
     if (!games || games.length === 0) {
         const emptyText = document.createElement('div');
-        emptyText.textContent = 'No active games yet.';
+        emptyText.className = 'empty-state';
+        emptyText.textContent = 'No active games yet. Create one above!';
         activeGamesList.appendChild(emptyText);
         return;
     }
@@ -1006,20 +965,27 @@ const renderActiveGames = (games) => {
             : 'Move';
 
         const row = document.createElement('div');
-        row.style.display = 'flex';
-        row.style.justifyContent = 'space-between';
-        row.style.alignItems = 'center';
-        row.style.border = '1px solid #DDD';
-        row.style.padding = '8px';
+        row.className = 'game-card';
 
         const gameMeta = document.createElement('div');
-        gameMeta.innerHTML = `<strong>${game.name}</strong><br><small>${getPlayingTypeLabel(game.playingType)} · ${game.mapName ?? 'Map'} · Host: ${game.ownerName} · Players: ${game.playerCount}</small><br><small>Locked for this game: Border ${borderCollisionLabel} · Dangerous ${dangerousCollisionLabel} · Food ${foodBehaviorLabel}</small>`;
+        gameMeta.className = 'game-meta';
+
+        const gameTitle = document.createElement('strong');
+        gameTitle.textContent = game.name;
+
+        const gameSummary = document.createElement('div');
+        gameSummary.textContent = `${getPlayingTypeLabel(game.playingType)} · ${game.mapName ?? 'Map'} · Host: ${game.ownerName} · Players: ${game.playerCount}`;
+
+        const gameLockedRules = document.createElement('div');
+        gameLockedRules.textContent = `Border ${borderCollisionLabel} · Dangerous ${dangerousCollisionLabel} · Food ${foodBehaviorLabel}`;
+
+        gameMeta.append(gameTitle, gameSummary, gameLockedRules);
 
         const actions = document.createElement('div');
-        actions.style.display = 'flex';
-        actions.style.gap = '6px';
+        actions.className = 'game-actions';
 
         const joinButton = document.createElement('button');
+        joinButton.className = 'btn btn-primary';
         joinButton.textContent = 'Join';
         joinButton.onclick = () => {
             const playerName = getEnteredPlayerName();
@@ -1034,6 +1000,7 @@ const renderActiveGames = (games) => {
         const isOwner = game.ownerSocketId === localSocketId;
         if (isOwner) {
             const endButton = document.createElement('button');
+            endButton.className = 'btn btn-danger';
             endButton.textContent = 'End';
             endButton.onclick = () => {
                 socket.emit(GAME_SOCKET_EVENTS.END_GAME, {
@@ -1200,19 +1167,57 @@ function updateOverlay() {
         return;
     }
 
-    overlayContent.innerHTML = `<strong>Connected Users: ${countOtherSnakes()} </strong><br>`;
-    overlayContent.innerHTML += `<strong>Bots: ${countBotSnakes()} </strong><br>`;
-    overlayContent.innerHTML += `<strong>Mode: ${getPlayingTypeLabel(currentMatchState?.playingType ?? playingTypeConfig.playingType)} </strong><br>`;
-    overlayContent.innerHTML += `<strong>Steering: ${getSteeringLabel()} </strong><br>`;
-    overlayContent.innerHTML += `<strong>Goal: ${getPlayingTypeObjectiveText()} </strong><br>`;
-    overlayContent.innerHTML += `<strong>You: ${localPlayerName} </strong><br>`;
+    // Player names come from other clients, so build nodes instead of HTML strings.
+    const addStatRow = (labelText, valueText) => {
+        const statRow = document.createElement('div');
+        statRow.className = 'hud-stat';
+
+        const statLabel = document.createElement('span');
+        statLabel.className = 'hud-stat-label';
+        statLabel.textContent = labelText;
+
+        const statValue = document.createElement('span');
+        statValue.className = 'hud-stat-value';
+        statValue.textContent = valueText;
+
+        statRow.append(statLabel, statValue);
+        overlayContent.appendChild(statRow);
+    };
+
+    overlayContent.textContent = '';
+    addStatRow('You', localPlayerName);
+    addStatRow('Mode', getPlayingTypeLabel(currentMatchState?.playingType ?? playingTypeConfig.playingType));
+    addStatRow('Goal', getPlayingTypeObjectiveText());
+    addStatRow('Steering', getShortSteeringLabel());
+    addStatRow('Rivals', `${countOtherSnakes()}`);
+    addStatRow('Bots', `${countBotSnakes()}`);
+
+    const playersHeading = document.createElement('div');
+    playersHeading.className = 'hud-section-label';
+    playersHeading.textContent = 'Scoreboard';
+    overlayContent.appendChild(playersHeading);
 
     for (const id in snakeStates) {
         const snake = snakeStates[id];
-        overlayContent.innerHTML += `<div style="color: ${snake.color};">
 
-            ${snake.name ?? id}: ${snake.length} L
-        </div>`;
+        const playerRow = document.createElement('div');
+        playerRow.className = 'hud-player';
+
+        const playerDot = document.createElement('span');
+        playerDot.className = 'hud-player-dot';
+        playerDot.style.color = snake.color ?? '#ffffff';
+        playerDot.style.background = snake.color ?? '#ffffff';
+
+        const playerName = document.createElement('span');
+        playerName.className = 'hud-player-name';
+        playerName.textContent = snake.name ?? id;
+
+        const playerLength = document.createElement('span');
+        playerLength.className = 'hud-player-length';
+        playerLength.textContent = `${snake.length} L`;
+
+        playerRow.append(playerDot, playerName, playerLength);
+        overlayContent.appendChild(playerRow);
     }
 
     const canGoToLobby = currentGameId && !isInLobbyWhilePlaying;
@@ -1294,7 +1299,7 @@ socket.on(GAME_SOCKET_EVENTS.GAME_ENDED, ({ gameId, gameName }) => {
     overlay.style.display = 'none';
     timerOverlay.style.display = 'none';
     lobbyOverlay.style.display = 'flex';
-    updateRejoinButtonVisibility();
+    updateLobbyControls();
     alert(`Game "${gameName}" was ended by the owner.`);
     socket.emit(GAME_SOCKET_EVENTS.LIST_ACTIVE_GAMES);
 });
@@ -1409,7 +1414,7 @@ socket.on(GAME_SOCKET_EVENTS.MATCH_STATE_UPDATE, (matchState) => {
         hasShownMatchEndAlert = false;
     }
 
-    updateRejoinButtonVisibility();
+    updateLobbyControls();
     updateOverlay();
     updateGameTimer();
 });
@@ -1443,7 +1448,7 @@ socket.on(GAME_SOCKET_EVENTS.SET_START_POSITION, (position) => {
     snakeStates.mySnake.coordinates[0].x = position.x;
     snakeStates.mySnake.coordinates[0].y = position.y;
     resetGameTimer();
-    updateRejoinButtonVisibility();
+    updateLobbyControls();
     drawScene();
 });
 

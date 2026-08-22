@@ -16,6 +16,12 @@ const DEFAULT_FOOD_HIT_BEHAVIOR = FOOD_HIT_BEHAVIORS.MOVE;
 const INITIAL_USER_LENGTH = 6;
 const INITIAL_USER_WIDTH = 6; // matches RULE_SNAKE_SEGMENT_SIZE
 
+// Boost runs off a small battery: a full charge lasts MAX_ENERGY_KWH / BOOST_DRAIN
+// seconds of boosting, and only food puts energy back in.
+const MAX_ENERGY_KWH = 1;
+const BOOST_DRAIN_KWH_PER_SECOND = 0.2;
+const MIN_ENERGY_TO_START_BOOST = 0.15;
+
 // ---------------------------------------------------------------------------
 // Collision response helpers
 // ---------------------------------------------------------------------------
@@ -139,10 +145,56 @@ const applyWorldObjectEffectsToUser = (userState, worldObjectDefinition) => {
     const widthDelta = Number.isFinite(worldObjectDefinition.effects.widthDelta)
         ? worldObjectDefinition.effects.widthDelta
         : 0;
+    const energyDelta = Number.isFinite(worldObjectDefinition.effects.energyDelta)
+        ? worldObjectDefinition.effects.energyDelta
+        : 0;
 
     userState.score += scoreDelta;
     setSnakeLengthForUser(userState, getSnakeLengthForUser(userState) + growthDelta);
     setSnakeWidthForUser(userState, getSnakeWidthForUser(userState) + widthDelta);
+    addEnergyToUser(userState, energyDelta);
+};
+
+// ---------------------------------------------------------------------------
+// Boost energy
+// ---------------------------------------------------------------------------
+
+const clampEnergy = (energyValue) => {
+    if (!Number.isFinite(energyValue)) {
+        return 0;
+    }
+
+    return Math.min(MAX_ENERGY_KWH, Math.max(0, energyValue));
+};
+
+const getEnergyForUser = (userState) => clampEnergy(userState?.energy ?? MAX_ENERGY_KWH);
+
+const setEnergyForUser = (userState, nextEnergy) => {
+    if (!userState) {
+        return 0;
+    }
+
+    userState.energy = clampEnergy(nextEnergy);
+    return userState.energy;
+};
+
+const addEnergyToUser = (userState, energyDelta) => {
+    if (!userState || !Number.isFinite(energyDelta)) {
+        return getEnergyForUser(userState);
+    }
+
+    return setEnergyForUser(userState, getEnergyForUser(userState) + energyDelta);
+};
+
+const canStartBoost = (userState) => getEnergyForUser(userState) >= MIN_ENERGY_TO_START_BOOST;
+
+const drainBoostEnergy = (userState, elapsedMs) => {
+    if (!userState || !Number.isFinite(elapsedMs) || elapsedMs <= 0) {
+        return getEnergyForUser(userState);
+    }
+
+    const drained = (elapsedMs / 1000) * BOOST_DRAIN_KWH_PER_SECOND;
+    return setEnergyForUser(userState, getEnergyForUser(userState) - drained);
 };
 
 // ---------------------------------------------------------------------------
@@ -153,6 +205,9 @@ module.exports = {
     DEFAULT_FOOD_HIT_BEHAVIOR,
     INITIAL_USER_LENGTH,
     INITIAL_USER_WIDTH,
+    MAX_ENERGY_KWH,
+    BOOST_DRAIN_KWH_PER_SECOND,
+    MIN_ENERGY_TO_START_BOOST,
     resolveCollisionResponse,
     toSafeCollisionResponse,
     toSafeFoodHitBehavior,
@@ -163,5 +218,10 @@ module.exports = {
     setSnakeLengthForUser,
     setSnakeWidthForUser,
     growSnakeAfterEatingSnake,
-    applyWorldObjectEffectsToUser
+    applyWorldObjectEffectsToUser,
+    getEnergyForUser,
+    setEnergyForUser,
+    addEnergyToUser,
+    canStartBoost,
+    drainBoostEnergy
 };

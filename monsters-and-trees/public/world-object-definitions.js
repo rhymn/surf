@@ -50,7 +50,8 @@ const DEFAULT_WORLD_OBJECT_DEFINITIONS = {
             instantLose: false,
             growthDelta: 5,
             scoreDelta: 1,
-            widthDelta: 0.15
+            widthDelta: 0.15,
+            energyDelta: 0.4
         }
     },
     [WORLD_OBJECT_TYPES.CLOUD]: {
@@ -63,7 +64,8 @@ const DEFAULT_WORLD_OBJECT_DEFINITIONS = {
             instantLose: false,
             growthDelta: 30,
             scoreDelta: 0,
-            widthDelta: 0.3
+            widthDelta: 0.3,
+            energyDelta: 0.25
         }
     },
     [WORLD_OBJECT_TYPES.THORN]: {
@@ -89,7 +91,8 @@ const DEFAULT_WORLD_OBJECT_DEFINITIONS = {
             instantLose: false,
             growthDelta: 1,
             scoreDelta: 1,
-            widthDelta: 0
+            widthDelta: 0,
+            energyDelta: 0.1
         }
     }
 };

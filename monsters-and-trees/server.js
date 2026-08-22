@@ -17,6 +17,9 @@ const {
     FOOD_HIT_BEHAVIORS,
     INITIAL_USER_LENGTH,
     INITIAL_USER_WIDTH,
+    MAX_ENERGY_KWH,
+    BOOST_DRAIN_KWH_PER_SECOND,
+    MIN_ENERGY_TO_START_BOOST,
     toSafeCollisionResponse,
     toSafeFoodHitBehavior,
     rectanglesOverlap,
@@ -26,7 +29,10 @@ const {
     setSnakeLengthForUser,
     setSnakeWidthForUser,
     growSnakeAfterEatingSnake,
-    applyWorldObjectEffectsToUser
+    applyWorldObjectEffectsToUser,
+    getEnergyForUser,
+    canStartBoost,
+    drainBoostEnergy
 } = require('./server/game-logic.js');
 
 const DEFAULT_PORT = 4000;
@@ -524,6 +530,20 @@ const broadcastFrozenSnakeCorpses = (gameId) => {
     }
 
     io.to(getRoomNameForGame(gameId)).emit(SOCKET_EVENTS.UPDATE_FROZEN_SNAKES, world.frozenSnakeCorpses);
+};
+
+// Energy is private: a player only ever sees their own battery.
+const emitEnergyUpdate = (socketId) => {
+    const user = connectedUsers[socketId];
+    if (!user) {
+        return;
+    }
+
+    io.to(socketId).emit(SOCKET_EVENTS.ENERGY_UPDATE, {
+        energy: getEnergyForUser(user),
+        maxEnergy: MAX_ENERGY_KWH,
+        isBoosting: Boolean(user.isBoosting)
+    });
 };
 
 const getTopScoringUsers = (gameId) => {
@@ -1149,6 +1169,32 @@ const updateBotPositions = () => {
 };
 
 // ---------------------------------------------------------------------------
+// Boost energy
+// ---------------------------------------------------------------------------
+
+const BOOST_DRAIN_INTERVAL_MS = 100;
+let lastBoostDrainAtMs = Date.now();
+
+const drainBoostingUsers = () => {
+    const now = Date.now();
+    const elapsedMs = now - lastBoostDrainAtMs;
+    lastBoostDrainAtMs = now;
+
+    for (const userId in connectedUsers) {
+        const user = connectedUsers[userId];
+        if (!user?.isBoosting) {
+            continue;
+        }
+
+        if (drainBoostEnergy(user, elapsedMs) <= 0) {
+            user.isBoosting = false;
+        }
+
+        emitEnergyUpdate(userId);
+    }
+};
+
+// ---------------------------------------------------------------------------
 // Movement validation
 // ---------------------------------------------------------------------------
 
@@ -1275,7 +1321,9 @@ const joinUserToGame = (socket, gameId, playerName) => {
         headEmoji: userHeadEmoji,
         score: INITIAL_USER_SCORE,
         l: INITIAL_USER_LENGTH,
-        w: INITIAL_USER_WIDTH
+        w: INITIAL_USER_WIDTH,
+        energy: MAX_ENERGY_KWH,
+        isBoosting: false
     };
 
     world.maxHumanParticipantsSeen = Math.max(
@@ -1302,8 +1350,12 @@ const joinUserToGame = (socket, gameId, playerName) => {
     socket.emit(SOCKET_EVENTS.SET_MOVEMENT_CONFIG, {
         baseStep: MOVEMENT_BASE_STEP,
         ticksPerSecond: MOVEMENT_TICKS_PER_SECOND,
-        boostMultiplier: MOVEMENT_BOOST_MULTIPLIER
+        boostMultiplier: MOVEMENT_BOOST_MULTIPLIER,
+        maxEnergy: MAX_ENERGY_KWH,
+        boostDrainPerSecond: BOOST_DRAIN_KWH_PER_SECOND,
+        minEnergyToStartBoost: MIN_ENERGY_TO_START_BOOST
     });
+    emitEnergyUpdate(socket.id);
     socket.emit(SOCKET_EVENTS.SET_GAME_RULES, getGameRulesForGame(gameId));
     const mapConfigForJoin = getMapConfigForGame(gameId);
     socket.emit(SOCKET_EVENTS.SET_VIRTUAL_DIMENSIONS, {
@@ -1465,6 +1517,16 @@ io.on('connection', (socket) => {
         evaluateMatchState(gameId);
     });
 
+    socket.on(SOCKET_EVENTS.SET_BOOST, (isBoostRequested) => {
+        const user = connectedUsers[socket.id];
+        if (!user) {
+            return;
+        }
+
+        user.isBoosting = Boolean(isBoostRequested) && canStartBoost(user);
+        emitEnergyUpdate(socket.id);
+    });
+
     socket.on(SOCKET_EVENTS.PLAYER_SELF_DESTRUCTED, () => {
         const gameId = socketGameById[socket.id];
         if (!gameId) {
@@ -1562,6 +1624,7 @@ io.on('connection', (socket) => {
         }
 
         applyWorldObjectEffectsToUser(hitterUser, worldObjectDefinition);
+        emitEnergyUpdate(socket.id);
 
         if (worldObjectDefinition.removeOnHit) {
             applyFoodHitBehavior(world, worldObjectId, worldObject);
@@ -1655,6 +1718,7 @@ io.on('connection', (socket) => {
 
 setInterval(updateBotPositions, BOT_MOVE_INTERVAL_MS);
 setInterval(evaluateAllMatchStates, 250);
+setInterval(drainBoostingUsers, BOOST_DRAIN_INTERVAL_MS);
 
 server.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);

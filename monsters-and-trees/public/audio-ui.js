@@ -1,39 +1,38 @@
 (function () {
     const createAudioUi = ({ onConnect, onDisconnect, onToggleMic, onToggleDeafen }) => {
         const panel = document.createElement('div');
-        panel.style.marginTop = '12px';
-        panel.style.paddingTop = '10px';
-        panel.style.borderTop = '1px solid #DDD';
+        panel.className = 'voice-panel';
 
         const title = document.createElement('h3');
+        title.className = 'voice-title';
         title.textContent = 'Voice chat';
-        title.style.margin = '0 0 6px 0';
         panel.appendChild(title);
 
         const statusText = document.createElement('div');
-        statusText.style.fontSize = '12px';
-        statusText.style.marginBottom = '8px';
-        statusText.style.color = '#444';
+        statusText.className = 'voice-status';
         panel.appendChild(statusText);
 
         const controlsRow = document.createElement('div');
-        controlsRow.style.display = 'flex';
-        controlsRow.style.gap = '6px';
-        controlsRow.style.flexWrap = 'wrap';
+        controlsRow.className = 'voice-controls';
 
         const connectButton = document.createElement('button');
+        connectButton.className = 'btn';
         connectButton.textContent = 'Connect voice';
 
         const micButton = document.createElement('button');
+        micButton.className = 'btn';
         micButton.textContent = 'Mute mic';
 
         const deafenButton = document.createElement('button');
+        deafenButton.className = 'btn';
         deafenButton.textContent = 'Deafen';
 
         controlsRow.appendChild(connectButton);
         controlsRow.appendChild(micButton);
         controlsRow.appendChild(deafenButton);
         panel.appendChild(controlsRow);
+
+        let isPanelVisible = true;
 
         let latestStatus = {
             enabledByServer: false,
@@ -49,7 +48,7 @@
 
         const render = () => {
             const canUseVoice = latestStatus.enabledByServer && latestStatus.supportedByBrowser;
-            panel.style.display = 'block';
+            panel.style.display = isPanelVisible ? 'block' : 'none';
 
             connectButton.textContent = latestStatus.isConnected ? 'Disconnect voice' : 'Connect voice';
             micButton.textContent = latestStatus.isMicEnabled ? 'Mute mic' : 'Unmute mic';
@@ -117,6 +116,10 @@
 
         return {
             element: panel,
+            setVisible(nextIsVisible) {
+                isPanelVisible = Boolean(nextIsVisible);
+                render();
+            },
             updateStatus(nextStatus) {
                 latestStatus = {
                     ...latestStatus,
