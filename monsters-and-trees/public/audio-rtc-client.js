@@ -19,11 +19,13 @@
         let iceServers = defaultIceServers;
         let roomGameId = null;
         let isConnected = false;
+        let isJoining = false;
         let isMicEnabled = true;
         let isDeafened = false;
         let localStream = null;
         let statusListener = null;
         let lastError = null;
+        let isPlaybackRetryScheduled = false;
 
         const peerConnections = new Map();
         const remoteAudioByPeerId = new Map();
@@ -141,6 +143,30 @@
             }
         };
 
+        // Browsers block unmuted playback until the page has been interacted with.
+        const scheduleRemoteAudioPlaybackRetry = () => {
+            if (isPlaybackRetryScheduled || typeof window === 'undefined') {
+                return;
+            }
+
+            isPlaybackRetryScheduled = true;
+
+            const retryPlayback = () => {
+                window.removeEventListener('pointerdown', retryPlayback);
+                window.removeEventListener('keydown', retryPlayback);
+                isPlaybackRetryScheduled = false;
+
+                for (const remoteAudioElement of remoteAudioByPeerId.values()) {
+                    remoteAudioElement.play()
+                        .then(() => clearError())
+                        .catch(() => scheduleRemoteAudioPlaybackRetry());
+                }
+            };
+
+            window.addEventListener('pointerdown', retryPlayback, { once: true });
+            window.addEventListener('keydown', retryPlayback, { once: true });
+        };
+
         const ensureLocalStream = async () => {
             if (localStream) {
                 return localStream;
@@ -150,7 +176,14 @@
                 throw new Error(getVoiceUnavailableReason());
             }
 
-            localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+            localStream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
+                },
+                video: false
+            });
             for (const track of localStream.getAudioTracks()) {
                 track.enabled = isMicEnabled;
             }
@@ -201,7 +234,8 @@
                 if (remoteStream) {
                     remoteAudioElement.srcObject = remoteStream;
                     remoteAudioElement.play().catch(() => {
-                        setError('Tap the page to allow audio playback.');
+                        setError('Tap anywhere to enable voice audio.');
+                        scheduleRemoteAudioPlaybackRetry();
                     });
                 }
             };
@@ -374,8 +408,8 @@
         };
 
         const joinRoom = async () => {
-            if (isConnected) {
-                return true;
+            if (isConnected || isJoining) {
+                return isConnected;
             }
 
             const gameId = getCurrentGameId?.();
@@ -394,6 +428,8 @@
                 return false;
             }
 
+            isJoining = true;
+
             try {
                 await ensureLocalStream();
                 roomGameId = gameId;
@@ -405,6 +441,8 @@
             } catch (error) {
                 setError(`Could not start microphone: ${error.message}`);
                 return false;
+            } finally {
+                isJoining = false;
             }
         };
 

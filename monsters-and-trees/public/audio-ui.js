@@ -55,8 +55,8 @@
             micButton.textContent = latestStatus.isMicEnabled ? 'Mute mic' : 'Unmute mic';
             deafenButton.textContent = latestStatus.isDeafened ? 'Undeafen' : 'Deafen';
             connectButton.disabled = !canUseVoice;
-            micButton.disabled = !latestStatus.isConnected;
-            deafenButton.disabled = !latestStatus.isConnected;
+            micButton.disabled = !canUseVoice;
+            deafenButton.disabled = !canUseVoice;
 
             const statusParts = [];
             if (!latestStatus.supportedByBrowser) {
@@ -67,6 +67,14 @@
                 statusParts.push(`Connected · peers: ${latestStatus.connectedPeerCount}/${latestStatus.peerCount}`);
             } else {
                 statusParts.push('Not connected');
+            }
+
+            if (canUseVoice) {
+                statusParts.push(latestStatus.isMicEnabled ? 'Mic on' : 'Mic off');
+
+                if (latestStatus.isDeafened) {
+                    statusParts.push('Deafened');
+                }
             }
 
             if (latestStatus.lastError) {
