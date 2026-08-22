@@ -3,7 +3,7 @@ const http = require('http');
 const socketIo = require('socket.io');
 const SOCKET_EVENTS = require('./public/socket-events.js');
 const RTC_EVENTS = require('./public/rtc-events.js');
-const { isAudioRtcEnabled } = require('./server/audio-feature-flag.js');
+const { isAudioRtcEnabled, getIceServersConfig } = require('./server/audio-feature-flag.js');
 const { createRtcSignalingState, registerRtcSignalingHandlers } = require('./server/rtc-signaling.js');
 const {
     WORLD_OBJECT_TYPES,
@@ -103,6 +103,7 @@ const PLAYING_TYPE = Object.values(PLAYING_TYPES).includes(process.env.PLAYING_T
     ? process.env.PLAYING_TYPE
     : PLAYING_TYPES.LAST_MAN_STANDING;
 const AUDIO_RTC_ENABLED = isAudioRtcEnabled();
+const AUDIO_RTC_ICE_SERVERS = getIceServersConfig();
 const DEFAULT_MAP_TYPE = MAP_TYPES.CLASSIC;
 const DEFAULT_BORDER_COLLISION_RESPONSE = COLLISION_RESPONSES.GAME_OVER;
 const DEFAULT_DANGEROUS_OBJECT_COLLISION_RESPONSE = COLLISION_RESPONSES.GAME_OVER;
@@ -1211,6 +1212,12 @@ const removeUserFromCurrentGame = (socket) => {
     const roomName = getRoomNameForGame(gameId);
     socket.leave(roomName);
 
+    rtcSignalingState.removeParticipant(gameId, socket.id);
+    socket.to(roomName).emit(RTC_EVENTS.PEER_LEFT, {
+        gameId,
+        peerId: socket.id
+    });
+
     if (connectedUsers[socket.id]) {
         delete connectedUsers[socket.id];
     }
@@ -1361,7 +1368,8 @@ io.on('connection', (socket) => {
     console.log('A user connected');
     socket.emit(SOCKET_EVENTS.ACTIVE_GAMES_UPDATED, getActiveGamesPayload());
     socket.emit(RTC_EVENTS.CAPABILITIES, {
-        enabled: AUDIO_RTC_ENABLED
+        enabled: AUDIO_RTC_ENABLED,
+        iceServerConfig: AUDIO_RTC_ICE_SERVERS
     });
 
     if (AUDIO_RTC_ENABLED) {

@@ -38,10 +38,12 @@
         let latestStatus = {
             enabledByServer: false,
             supportedByBrowser: false,
+            unsupportedReason: null,
             isConnected: false,
             isMicEnabled: true,
             isDeafened: false,
             peerCount: 0,
+            connectedPeerCount: 0,
             lastError: null
         };
 
@@ -58,13 +60,13 @@
 
             const statusParts = [];
             if (!latestStatus.supportedByBrowser) {
-                statusParts.push('Not supported by this browser');
+                statusParts.push(latestStatus.unsupportedReason ?? 'Not supported by this browser');
             } else if (!latestStatus.enabledByServer) {
                 statusParts.push('Not enabled on server');
+            } else if (latestStatus.isConnected) {
+                statusParts.push(`Connected · peers: ${latestStatus.connectedPeerCount}/${latestStatus.peerCount}`);
             } else {
-                statusParts.push(latestStatus.isConnected
-                    ? `Connected · peers: ${latestStatus.peerCount}`
-                    : 'Not connected');
+                statusParts.push('Not connected');
             }
 
             if (latestStatus.lastError) {

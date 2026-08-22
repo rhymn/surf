@@ -63,8 +63,9 @@ const registerRtcSignalingHandlers = ({
     getRoomNameForGame,
     signalingState
 }) => {
+    // Game membership wins so a player who switched games can never signal into the old room.
     const getCurrentGameId = () => {
-        return signalingState.getAudioGameIdForSocketId(socket.id) ?? getGameIdForSocketId(socket.id);
+        return getGameIdForSocketId(socket.id) ?? signalingState.getAudioGameIdForSocketId(socket.id);
     };
 
     const leaveAudioRoom = () => {

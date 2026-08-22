@@ -27,11 +27,38 @@
 
         const peerConnections = new Map();
         const remoteAudioByPeerId = new Map();
+        const pendingIceCandidatesByPeerId = new Map();
 
-        const supportsWebRtc = () => {
-            return typeof window !== 'undefined' &&
-                Boolean(window.RTCPeerConnection) &&
-                Boolean(navigator.mediaDevices?.getUserMedia);
+        const getVoiceUnavailableReason = () => {
+            if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+                return 'Voice chat is unavailable here.';
+            }
+
+            if (!window.isSecureContext) {
+                return 'Voice chat needs HTTPS (or localhost).';
+            }
+
+            if (!window.RTCPeerConnection || !navigator.mediaDevices?.getUserMedia) {
+                return 'WebRTC audio is not supported in this browser.';
+            }
+
+            return null;
+        };
+
+        const supportsWebRtc = () => getVoiceUnavailableReason() === null;
+
+        // Exactly one side of each pair offers, otherwise both peers glare and negotiation fails.
+        const shouldInitiateOfferTo = (peerId) => `${socket.id}` > `${peerId}`;
+
+        const countConnectedPeers = () => {
+            let connectedPeers = 0;
+            for (const peerConnection of peerConnections.values()) {
+                if (peerConnection.connectionState === 'connected') {
+                    connectedPeers += 1;
+                }
+            }
+
+            return connectedPeers;
         };
 
         const notifyStatus = () => {
@@ -42,10 +69,12 @@
             statusListener({
                 enabledByServer,
                 supportedByBrowser: supportsWebRtc(),
+                unsupportedReason: getVoiceUnavailableReason(),
                 isConnected,
                 isMicEnabled,
                 isDeafened,
                 peerCount: peerConnections.size,
+                connectedPeerCount: countConnectedPeers(),
                 gameId: roomGameId,
                 lastError
             });
@@ -84,6 +113,7 @@
             peerConnection.onconnectionstatechange = null;
             peerConnection.close();
             peerConnections.delete(peerId);
+            pendingIceCandidatesByPeerId.delete(peerId);
             removeRemoteAudioElement(peerId);
             notifyStatus();
         };
@@ -117,7 +147,7 @@
             }
 
             if (!supportsWebRtc()) {
-                throw new Error('WebRTC audio is not supported in this browser.');
+                throw new Error(getVoiceUnavailableReason());
             }
 
             localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
@@ -167,23 +197,45 @@
                     remoteAudioByPeerId.set(peerId, remoteAudioElement);
                 }
 
-                const [remoteStream] = event.streams;
+                const remoteStream = event.streams?.[0] ?? new MediaStream([event.track]);
                 if (remoteStream) {
                     remoteAudioElement.srcObject = remoteStream;
-                    remoteAudioElement.play().catch(() => undefined);
+                    remoteAudioElement.play().catch(() => {
+                        setError('Tap the page to allow audio playback.');
+                    });
                 }
             };
 
             peerConnection.onconnectionstatechange = () => {
                 const connectionState = peerConnection.connectionState;
-                if (['failed', 'closed', 'disconnected'].includes(connectionState)) {
+                if (connectionState === 'failed' || connectionState === 'closed') {
                     removePeerConnection(peerId);
+                    return;
                 }
+
+                notifyStatus();
             };
 
             peerConnections.set(peerId, peerConnection);
             notifyStatus();
             return peerConnection;
+        };
+
+        const flushPendingIceCandidates = async (peerId, peerConnection) => {
+            const pendingCandidates = pendingIceCandidatesByPeerId.get(peerId);
+            if (!pendingCandidates) {
+                return;
+            }
+
+            pendingIceCandidatesByPeerId.delete(peerId);
+
+            for (const candidate of pendingCandidates) {
+                try {
+                    await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+                } catch (error) {
+                    setError(`Could not add ICE candidate: ${error.message}`);
+                }
+            }
         };
 
         const createOfferForPeer = async (peerId) => {
@@ -221,6 +273,7 @@
                 }
 
                 await peerConnection.setRemoteDescription(new RTCSessionDescription(description));
+                await flushPendingIceCandidates(fromPeerId, peerConnection);
                 const answer = await peerConnection.createAnswer();
                 await peerConnection.setLocalDescription(answer);
                 socket.emit(eventNames.ANSWER, {
@@ -238,13 +291,14 @@
                 return;
             }
 
-            try {
-                const peerConnection = await createPeerConnection(fromPeerId);
-                if (!peerConnection) {
-                    return;
-                }
+            const peerConnection = peerConnections.get(fromPeerId);
+            if (!peerConnection) {
+                return;
+            }
 
+            try {
                 await peerConnection.setRemoteDescription(new RTCSessionDescription(description));
+                await flushPendingIceCandidates(fromPeerId, peerConnection);
                 clearError();
             } catch (error) {
                 setError(`Could not accept voice answer: ${error.message}`);
@@ -256,12 +310,15 @@
                 return;
             }
 
-            try {
-                const peerConnection = await createPeerConnection(fromPeerId);
-                if (!peerConnection) {
-                    return;
-                }
+            const peerConnection = peerConnections.get(fromPeerId);
+            if (!peerConnection || !peerConnection.remoteDescription) {
+                const pendingCandidates = pendingIceCandidatesByPeerId.get(fromPeerId) ?? [];
+                pendingCandidates.push(candidate);
+                pendingIceCandidatesByPeerId.set(fromPeerId, pendingCandidates);
+                return;
+            }
 
+            try {
                 await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
                 clearError();
             } catch (error) {
@@ -288,7 +345,7 @@
             }
 
             for (const peerId of peerIds) {
-                if (peerId === socket.id) {
+                if (peerId === socket.id || !shouldInitiateOfferTo(peerId)) {
                     continue;
                 }
 
@@ -298,6 +355,10 @@
 
         const handlePeerJoined = ({ gameId, peerId } = {}) => {
             if (!isConnected || !roomGameId || gameId !== roomGameId || !peerId || peerId === socket.id) {
+                return;
+            }
+
+            if (!shouldInitiateOfferTo(peerId)) {
                 return;
             }
 
@@ -329,7 +390,7 @@
             }
 
             if (!supportsWebRtc()) {
-                setError('WebRTC audio is not supported in this browser.');
+                setError(getVoiceUnavailableReason());
                 return false;
             }
 
@@ -355,6 +416,7 @@
             isConnected = false;
             roomGameId = null;
             cleanupPeers();
+            pendingIceCandidatesByPeerId.clear();
             stopLocalStream();
             notifyStatus();
         };
@@ -414,10 +476,12 @@
                 return {
                     enabledByServer,
                     supportedByBrowser: supportsWebRtc(),
+                    unsupportedReason: getVoiceUnavailableReason(),
                     isConnected,
                     isMicEnabled,
                     isDeafened,
                     peerCount: peerConnections.size,
+                    connectedPeerCount: countConnectedPeers(),
                     gameId: roomGameId,
                     lastError
                 };

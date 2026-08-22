@@ -304,8 +304,6 @@ let worldObjects = {};
 let frozenSnakeCorpses = {};
 const treeImage = new Image();
 treeImage.src = treeSVG;
-const monsterImage = new Image();
-monsterImage.src = monsterSVG;
 
 let snakeStates = {};
 let localSocketId = null;
