@@ -1587,6 +1587,41 @@ function drawFrozenSnakeCorpses() {
     }
 }
 
+const EMOJI_FONT_STACK = '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
+const foodEmojiSpriteCache = new Map();
+
+const getFoodEmojiForWorldObject = (worldObject) => {
+    if (typeof worldObject.emoji === 'string' && worldObject.emoji) {
+        return worldObject.emoji;
+    }
+
+    return window.FOOD_EMOJIS_BY_TYPE?.[worldObject.type]?.[0] ?? null;
+};
+
+// Emoji glyphs are expensive to rasterize, so each size/emoji pair is drawn once.
+const getFoodEmojiSprite = (emoji, size) => {
+    const spriteSize = Math.max(1, Math.round(size));
+    const cacheKey = `${emoji}@${spriteSize}`;
+    const cachedSprite = foodEmojiSpriteCache.get(cacheKey);
+
+    if (cachedSprite) {
+        return cachedSprite;
+    }
+
+    const sprite = document.createElement('canvas');
+    sprite.width = spriteSize;
+    sprite.height = spriteSize;
+
+    const spriteContext = sprite.getContext('2d');
+    spriteContext.font = `${Math.round(spriteSize * 0.9)}px ${EMOJI_FONT_STACK}`;
+    spriteContext.textAlign = 'center';
+    spriteContext.textBaseline = 'middle';
+    spriteContext.fillText(emoji, spriteSize / 2, spriteSize / 2);
+
+    foodEmojiSpriteCache.set(cacheKey, sprite);
+    return sprite;
+};
+
 function drawWorldObjects() {
     for (const worldObjectId in worldObjects) {
         const worldObject = worldObjects[worldObjectId];
@@ -1600,43 +1635,15 @@ function drawWorldObjects() {
             continue;
         }
 
-        if (worldObject.type === OBJECT_TYPE_MONSTER) {
-            if (monsterImage.complete) {
-                ctx.drawImage(monsterImage, worldObject.x, worldObject.y, worldObjectDefinition.size, worldObjectDefinition.size);
-            }
-            continue;
-        }
-
-        if (worldObject.type === OBJECT_TYPE_CLOUD) {
-            const cloudCenterX = worldObject.x + worldObjectDefinition.size / 2;
-            const cloudCenterY = worldObject.y + worldObjectDefinition.size / 2;
-            const cloudRadius = worldObjectDefinition.size / 2;
-
-            ctx.fillStyle = '#FFFFFF';
-            ctx.beginPath();
-            ctx.arc(cloudCenterX, cloudCenterY, cloudRadius, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.strokeStyle = '#BBBBBB';
-            ctx.stroke();
-            continue;
-        }
-
         if (worldObject.type === OBJECT_TYPE_THORN) {
             ctx.fillStyle = '#C62828';
             ctx.fillRect(worldObject.x, worldObject.y, worldObjectDefinition.size, worldObjectDefinition.size);
             continue;
         }
 
-        if (worldObject.type === OBJECT_TYPE_DOT) {
-            const dotCenterX = worldObject.x + worldObjectDefinition.size / 2;
-            const dotCenterY = worldObject.y + worldObjectDefinition.size / 2;
-
-            ctx.fillStyle = '#FFCA28';
-            ctx.beginPath();
-            ctx.arc(dotCenterX, dotCenterY, worldObjectDefinition.size / 2, 0, Math.PI * 2);
-            ctx.fill();
-            continue;
+        const foodEmoji = getFoodEmojiForWorldObject(worldObject);
+        if (foodEmoji) {
+            ctx.drawImage(getFoodEmojiSprite(foodEmoji, worldObjectDefinition.size), worldObject.x, worldObject.y);
         }
     }
 }
