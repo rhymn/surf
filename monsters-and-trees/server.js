@@ -7,7 +7,8 @@ const { isAudioRtcEnabled, getIceServersConfig } = require('./server/audio-featu
 const { createRtcSignalingState, registerRtcSignalingHandlers } = require('./server/rtc-signaling.js');
 const {
     WORLD_OBJECT_TYPES,
-    getRandomFoodEmojiForType,
+    getRandomFoodForType,
+    getFoodEnergyKwh,
     DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS
 } = require('./public/world-object-definitions.js');
 const { getHeadPickupHitbox } = require('./public/snake-geometry.js');
@@ -213,12 +214,14 @@ const addWorldObject = (world, type, position) => {
     world.nextWorldObjectId += 1;
 
     const objectPosition = position ?? getRandomPosition(world.boardWidth, world.boardHeight, objectDefinition.size);
+    const food = getRandomFoodForType(type);
     world.worldObjects[worldObjectId] = {
         id: worldObjectId,
         type,
         x: objectPosition.x,
         y: objectPosition.y,
-        emoji: getRandomFoodEmojiForType(type)
+        emoji: food?.emoji ?? null,
+        quality: food?.quality ?? null
     };
 
     return world.worldObjects[worldObjectId];
@@ -995,7 +998,10 @@ const applyWorldObjectHitForBot = (world, botId, worldObjectId) => {
         return { usersChanged: true, worldObjectsChanged: false };
     }
 
-    applyWorldObjectEffectsToUser(botUser, worldObjectDefinition);
+    applyWorldObjectEffectsToUser(botUser, worldObjectDefinition, {
+        quality: worldObject.quality,
+        energyKwh: getFoodEnergyKwh(worldObject.type, worldObject.emoji)
+    });
 
     if (worldObjectDefinition.removeOnHit) {
         applyFoodHitBehavior(world, worldObjectId, worldObject);
@@ -1623,7 +1629,10 @@ io.on('connection', (socket) => {
             return;
         }
 
-        applyWorldObjectEffectsToUser(hitterUser, worldObjectDefinition);
+        applyWorldObjectEffectsToUser(hitterUser, worldObjectDefinition, {
+            quality: worldObject.quality,
+            energyKwh: getFoodEnergyKwh(worldObject.type, worldObject.emoji)
+        });
         emitEnergyUpdate(socket.id);
 
         if (worldObjectDefinition.removeOnHit) {

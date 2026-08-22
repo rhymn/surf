@@ -204,7 +204,8 @@ const activeSteerKeys = new Set();
 let isPaused = false;
 let isGameOver = false;
 let isEaten = false;
-let isBoostRequested = false;
+let isBoostHeld = false;
+let isBoostLatched = false;
 let isBoosting = false;
 let hasJoinedGame = false;
 let isInLobbyWhilePlaying = false;
@@ -411,6 +412,118 @@ const overlayContent = document.createElement('div');
 overlayContent.className = 'hud-stats';
 overlay.appendChild(overlayContent);
 
+const energyPanel = document.createElement('div');
+energyPanel.className = 'hud-energy';
+
+const energyHeader = document.createElement('div');
+energyHeader.className = 'hud-energy-header';
+
+const energyLabel = document.createElement('span');
+energyLabel.className = 'hud-stat-label';
+energyLabel.textContent = 'Battery';
+
+const energyValue = document.createElement('span');
+energyValue.className = 'hud-energy-value';
+
+energyHeader.append(energyLabel, energyValue);
+
+const energyTrack = document.createElement('div');
+energyTrack.className = 'hud-energy-track';
+
+const energyFill = document.createElement('div');
+energyFill.className = 'hud-energy-fill';
+energyTrack.appendChild(energyFill);
+
+const boostButton = document.createElement('button');
+boostButton.className = 'btn hud-boost-button';
+boostButton.textContent = 'Hold to boost';
+
+const lastMealPanel = document.createElement('div');
+lastMealPanel.className = 'hud-last-meal';
+lastMealPanel.style.display = 'none';
+
+energyPanel.append(energyHeader, energyTrack, lastMealPanel, boostButton);
+overlay.appendChild(energyPanel);
+
+const showLastMeal = (worldObject) => {
+    const facts = window.getFoodNutritionFacts?.(worldObject.type, worldObject.emoji);
+    if (!facts) {
+        return;
+    }
+
+    lastMealPanel.style.display = 'block';
+    lastMealPanel.textContent = '';
+
+    const mealHeading = document.createElement('div');
+    mealHeading.className = 'hud-last-meal-heading';
+    mealHeading.textContent = `${worldObject.emoji} ${Math.round(facts.kcal)} kcal · +${facts.energyKwh.toFixed(2)} kWh`;
+
+    const mealMacros = document.createElement('div');
+    mealMacros.className = 'hud-last-meal-macros';
+    mealMacros.textContent = `F ${facts.fat.toFixed(0)}g · C ${facts.carbs.toFixed(0)}g · Fib ${facts.fiber.toFixed(0)}g · P ${facts.protein.toFixed(0)}g`;
+
+    lastMealPanel.append(mealHeading, mealMacros);
+};
+
+const updateEnergyMeter = () => {
+    const energyRatio = maxEnergy > 0 ? Math.max(0, Math.min(1, currentEnergy / maxEnergy)) : 0;
+    energyFill.style.width = `${(energyRatio * 100).toFixed(1)}%`;
+    energyValue.textContent = `${currentEnergy.toFixed(2)} kWh`;
+    energyPanel.classList.toggle('is-boosting', isBoosting);
+    energyPanel.classList.toggle('is-depleted', currentEnergy < minEnergyToStartBoost);
+    boostButton.classList.toggle('is-active', isBoosting);
+    boostButton.textContent = isBoostLatched ? 'Boost latched' : 'Hold to boost';
+};
+
+let lastSentBoostState = false;
+
+const refreshBoostState = () => {
+    // Boost needs a minimum charge to start, but may run until the battery is empty.
+    const hasChargeToBoost = isBoosting ? currentEnergy > 0 : currentEnergy >= minEnergyToStartBoost;
+    const canControlSnake = hasJoinedGame && !isPaused && !isGameOver && !isEaten;
+
+    // A latched boost ends when the battery runs out; a held one resumes once recharged.
+    if (isBoostLatched && (!hasChargeToBoost || !canControlSnake)) {
+        isBoostLatched = false;
+    }
+
+    isBoosting = (isBoostHeld || isBoostLatched) && hasChargeToBoost && canControlSnake;
+    movementStep = isBoosting ? baseStep * boostMultiplier : baseStep;
+
+    if (isBoosting !== lastSentBoostState) {
+        lastSentBoostState = isBoosting;
+        socket.emit(GAME_SOCKET_EVENTS.SET_BOOST, isBoosting);
+    }
+
+    updateEnergyMeter();
+};
+
+const setBoostHeld = (isHeld) => {
+    isBoostHeld = Boolean(isHeld);
+    refreshBoostState();
+};
+
+const toggleBoostLatch = () => {
+    isBoostLatched = !isBoostLatched;
+    refreshBoostState();
+};
+
+const stopBoost = () => {
+    isBoostHeld = false;
+    isBoostLatched = false;
+    refreshBoostState();
+};
+
+boostButton.addEventListener('pointerdown', (event) => {
+    event.preventDefault();
+    setBoostHeld(true);
+});
+boostButton.addEventListener('pointerup', () => setBoostHeld(false));
+boostButton.addEventListener('pointerleave', () => setBoostHeld(false));
+boostButton.addEventListener('pointercancel', () => setBoostHeld(false));
+
+updateEnergyMeter();
+
 const goToLobbyButton = document.createElement('button');
 goToLobbyButton.className = 'btn hud-lobby-button';
 goToLobbyButton.textContent = 'Go to lobby';
@@ -418,8 +531,7 @@ goToLobbyButton.style.display = 'none';
 const openLobbyWhilePlaying = () => {
     isInLobbyWhilePlaying = true;
     isPaused = true;
-    isBoostEnabled = false;
-    movementStep = baseStep;
+    stopBoost();
     activeSteerKeys.clear();
     stopMovementLoop();
     canvas.style.display = 'none';
@@ -523,7 +635,7 @@ steeringSettingsTitle.textContent = 'Your controls';
 
 const steeringSettingsHint = document.createElement('div');
 steeringSettingsHint.className = 'hint';
-steeringSettingsHint.textContent = 'Steering is personal and can be changed in lobby or during play.';
+steeringSettingsHint.textContent = 'Steering is personal and can be changed in lobby or during play. Boost: hold B or Shift, or double-tap (double-click) to latch it until the battery runs out.';
 
 const steeringModeLabel = document.createElement('label');
 steeringModeLabel.className = 'field-label';
@@ -578,6 +690,16 @@ const updateMapInfoPanel = (mapType) => {
 
 updateMapInfoPanel(mapTypeSelect.value);
 mapTypeSelect.addEventListener('change', () => updateMapInfoPanel(mapTypeSelect.value));
+
+const foodGuidePanel = document.createElement('div');
+foodGuidePanel.className = 'map-info food-guide';
+foodGuidePanel.innerHTML = [
+    '<strong>Not all food is equal</strong>',
+    '<div style="margin-top:4px">� Battery charge = real calories (fat 9, carbs 4, protein 4, fibre 2 kcal/g)</div>',
+    '<div style="margin-top:4px">🟢 AIP (🍓 🥑 🥬) — double points</div>',
+    '<div>⚪️ Healthy (🍅 🥚 🥜) — normal points</div>',
+    '<div>🔴 Junk (🍩 🍕 🍬) — no points and extra bulk, but calorie dense</div>'
+].join('');
 
 const playingTypeSelect = document.createElement('select');
 playingTypeSelect.className = 'field-select';
@@ -689,6 +811,7 @@ lobbyPanel.appendChild(playingTypeSelect);
 lobbyPanel.appendChild(mapTypeLabel);
 lobbyPanel.appendChild(mapTypeSelect);
 lobbyPanel.appendChild(mapInfoPanel);
+lobbyPanel.appendChild(foodGuidePanel);
 lobbyPanel.appendChild(borderCollisionLabel);
 lobbyPanel.appendChild(borderCollisionSelect);
 lobbyPanel.appendChild(dangerousCollisionLabel);
@@ -1158,10 +1281,6 @@ function countOtherSnakes() {
     return Object.keys(snakeStates).filter((key) => key !== 'mySnake' && key !== localSocketId).length
 }
 
-function countBotSnakes() {
-    return Object.keys(snakeStates).filter((key) => key.startsWith('bot-')).length
-}
-
 function updateOverlay() {
     if (!hasJoinedGame) {
         return;
@@ -1189,12 +1308,10 @@ function updateOverlay() {
     addStatRow('Mode', getPlayingTypeLabel(currentMatchState?.playingType ?? playingTypeConfig.playingType));
     addStatRow('Goal', getPlayingTypeObjectiveText());
     addStatRow('Steering', getShortSteeringLabel());
-    addStatRow('Rivals', `${countOtherSnakes()}`);
-    addStatRow('Bots', `${countBotSnakes()}`);
 
     const playersHeading = document.createElement('div');
     playersHeading.className = 'hud-section-label';
-    playersHeading.textContent = 'Scoreboard';
+    playersHeading.textContent = `Scoreboard · ${countOtherSnakes()} rivals`;
     overlayContent.appendChild(playersHeading);
 
     for (const id in snakeStates) {
@@ -1347,7 +1464,16 @@ socket.on(GAME_SOCKET_EVENTS.UPDATE_FROZEN_SNAKES, (nextFrozenSnakeCorpses) => {
     drawScene();
 });
 
-const applyMovementConfig = ({ baseStep: configuredBaseStep, ticksPerSecond: configuredTicksPerSecond, boostMultiplier: configuredBoostMultiplier }) => {
+const applyMovementConfig = (movementConfig) => {
+    const {
+        baseStep: configuredBaseStep,
+        ticksPerSecond: configuredTicksPerSecond,
+        boostMultiplier: configuredBoostMultiplier,
+        maxEnergy: configuredMaxEnergy,
+        boostDrainPerSecond: configuredBoostDrain,
+        minEnergyToStartBoost: configuredMinEnergyToStartBoost
+    } = movementConfig;
+
     if (typeof configuredBaseStep === 'number' && configuredBaseStep > 0) {
         baseStep = configuredBaseStep;
     }
@@ -1360,9 +1486,21 @@ const applyMovementConfig = ({ baseStep: configuredBaseStep, ticksPerSecond: con
         boostMultiplier = configuredBoostMultiplier;
     }
 
+    if (typeof configuredMaxEnergy === 'number' && configuredMaxEnergy > 0) {
+        maxEnergy = configuredMaxEnergy;
+    }
+
+    if (typeof configuredBoostDrain === 'number' && configuredBoostDrain > 0) {
+        boostDrainPerSecond = configuredBoostDrain;
+    }
+
+    if (typeof configuredMinEnergyToStartBoost === 'number' && configuredMinEnergyToStartBoost >= 0) {
+        minEnergyToStartBoost = configuredMinEnergyToStartBoost;
+    }
+
     updateIntervalMs = 1000 / ticksPerSecond;
-    movementStep = isBoostEnabled ? baseStep * boostMultiplier : baseStep;
     hasMovementConfig = true;
+    refreshBoostState();
 
     if (!isPaused) {
         stopMovementLoop();
@@ -1372,6 +1510,18 @@ const applyMovementConfig = ({ baseStep: configuredBaseStep, ticksPerSecond: con
 
 socket.on(GAME_SOCKET_EVENTS.SET_MOVEMENT_CONFIG, (movementConfig) => {
     applyMovementConfig(movementConfig);
+});
+
+socket.on(GAME_SOCKET_EVENTS.ENERGY_UPDATE, (energyUpdate) => {
+    if (typeof energyUpdate?.energy === 'number') {
+        currentEnergy = energyUpdate.energy;
+    }
+
+    if (typeof energyUpdate?.maxEnergy === 'number' && energyUpdate.maxEnergy > 0) {
+        maxEnergy = energyUpdate.maxEnergy;
+    }
+
+    refreshBoostState();
 });
 
 socket.on(GAME_SOCKET_EVENTS.SET_PLAYING_TYPE, (playingTypeConfigFromServer) => {
@@ -1591,6 +1741,11 @@ function drawFrozenSnakeCorpses() {
 }
 
 const EMOJI_FONT_STACK = '"Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif';
+const FOOD_QUALITY = window.FOOD_QUALITIES;
+const FOOD_QUALITY_HALO_COLORS = {
+    [FOOD_QUALITY.AIP]: 'rgba(127, 240, 107, 0.55)',
+    [FOOD_QUALITY.UNHEALTHY]: 'rgba(255, 90, 90, 0.5)'
+};
 const foodEmojiSpriteCache = new Map();
 
 const getFoodEmojiForWorldObject = (worldObject) => {
@@ -1598,13 +1753,17 @@ const getFoodEmojiForWorldObject = (worldObject) => {
         return worldObject.emoji;
     }
 
-    return window.FOOD_EMOJIS_BY_TYPE?.[worldObject.type]?.[0] ?? null;
+    const emojisByQuality = window.FOOD_EMOJIS_BY_TYPE_AND_QUALITY?.[worldObject.type];
+    return emojisByQuality?.[FOOD_QUALITY.HEALTHY]?.[0] ?? null;
 };
 
-// Emoji glyphs are expensive to rasterize, so each size/emoji pair is drawn once.
-const getFoodEmojiSprite = (emoji, size) => {
+// Emoji glyphs are expensive to rasterize, so each size/emoji/quality trio is drawn once.
+const getFoodEmojiSprite = (emoji, size, quality) => {
     const spriteSize = Math.max(1, Math.round(size));
-    const cacheKey = `${emoji}@${spriteSize}`;
+    const haloColor = FOOD_QUALITY_HALO_COLORS[quality];
+    const padding = haloColor ? Math.round(spriteSize * 0.35) : 0;
+    const canvasSize = spriteSize + padding * 2;
+    const cacheKey = `${emoji}@${spriteSize}@${quality ?? 'none'}`;
     const cachedSprite = foodEmojiSpriteCache.get(cacheKey);
 
     if (cachedSprite) {
@@ -1612,15 +1771,29 @@ const getFoodEmojiSprite = (emoji, size) => {
     }
 
     const sprite = document.createElement('canvas');
-    sprite.width = spriteSize;
-    sprite.height = spriteSize;
+    sprite.width = canvasSize;
+    sprite.height = canvasSize;
 
     const spriteContext = sprite.getContext('2d');
+    const centerX = canvasSize / 2;
+    const centerY = canvasSize / 2;
+
+    if (haloColor) {
+        const halo = spriteContext.createRadialGradient(centerX, centerY, spriteSize * 0.2, centerX, centerY, canvasSize / 2);
+        halo.addColorStop(0, haloColor);
+        halo.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        spriteContext.fillStyle = halo;
+        spriteContext.beginPath();
+        spriteContext.arc(centerX, centerY, canvasSize / 2, 0, Math.PI * 2);
+        spriteContext.fill();
+    }
+
     spriteContext.font = `${Math.round(spriteSize * 0.9)}px ${EMOJI_FONT_STACK}`;
     spriteContext.textAlign = 'center';
     spriteContext.textBaseline = 'middle';
-    spriteContext.fillText(emoji, spriteSize / 2, spriteSize / 2);
+    spriteContext.fillText(emoji, centerX, centerY);
 
+    sprite.drawOffset = padding;
     foodEmojiSpriteCache.set(cacheKey, sprite);
     return sprite;
 };
@@ -1646,7 +1819,9 @@ function drawWorldObjects() {
 
         const foodEmoji = getFoodEmojiForWorldObject(worldObject);
         if (foodEmoji) {
-            ctx.drawImage(getFoodEmojiSprite(foodEmoji, worldObjectDefinition.size), worldObject.x, worldObject.y);
+            const sprite = getFoodEmojiSprite(foodEmoji, worldObjectDefinition.size, worldObject.quality);
+            const drawOffset = sprite.drawOffset ?? 0;
+            ctx.drawImage(sprite, worldObject.x - drawOffset, worldObject.y - drawOffset);
         }
     }
 }
@@ -1848,8 +2023,9 @@ window.addEventListener('keydown', (event) => {
                 isPaused ? stopMovementLoop() : startMovementLoop();
                 break;
             case 'b':
-                isBoostEnabled = !isBoostEnabled;
-                movementStep = isBoostEnabled ? baseStep * boostMultiplier : baseStep;
+            case 'B':
+            case 'Shift':
+                setBoostHeld(true);
                 break;
             case 'm':
             case 'M':
@@ -1869,6 +2045,10 @@ window.addEventListener('keydown', (event) => {
 });
 
 window.addEventListener('keyup', (event) => {
+    if (event.key === 'b' || event.key === 'B' || event.key === 'Shift') {
+        setBoostHeld(false);
+    }
+
     if (steeringMode !== STEERING_MODES.FREE) {
         return;
     }
@@ -1943,6 +2123,18 @@ const reverseMovementDirection = () => {
     movementDirection = getOppositeDirection(movementDirection);
 };
 
+// A tap is a short touch that barely moves; two in quick succession latch boost.
+const TAP_MAX_DURATION_MS = 250;
+const TAP_MAX_MOVE_PX = 16;
+const DOUBLE_TAP_MAX_GAP_MS = 320;
+const DOUBLE_TAP_MAX_DISTANCE_PX = 60;
+
+let touchStartedAtMs = 0;
+let touchStartPosition = null;
+let hasTouchMovedTooFar = false;
+let lastTapAtMs = 0;
+let lastTapPosition = null;
+
 canvas.addEventListener('touchstart', (event) => {
     if (!hasJoinedGame || isGameOver || isEaten) {
         return;
@@ -1956,6 +2148,9 @@ canvas.addEventListener('touchstart', (event) => {
     }
 
     touchSteerAnchor = { x: touch.clientX, y: touch.clientY };
+    touchStartedAtMs = Date.now();
+    touchStartPosition = { x: touch.clientX, y: touch.clientY };
+    hasTouchMovedTooFar = false;
 
     requestAnimationFrame(drawScene);
 }, { passive: false });
@@ -1970,6 +2165,10 @@ canvas.addEventListener('touchmove', (event) => {
     const touch = event.touches[0];
     if (!touch) {
         return;
+    }
+
+    if (touchStartPosition && Math.hypot(touch.clientX - touchStartPosition.x, touch.clientY - touchStartPosition.y) > TAP_MAX_MOVE_PX) {
+        hasTouchMovedTooFar = true;
     }
 
     let deltaX = touch.clientX - touchSteerAnchor.x;
@@ -1990,12 +2189,55 @@ canvas.addEventListener('touchmove', (event) => {
     requestAnimationFrame(drawScene);
 }, { passive: false });
 
-const endTouchSteering = () => {
+const registerTapForBoost = (endPosition) => {
+    const now = Date.now();
+    const wasTap = !hasTouchMovedTooFar
+        && touchStartPosition
+        && (now - touchStartedAtMs) <= TAP_MAX_DURATION_MS;
+
+    if (!wasTap) {
+        lastTapAtMs = 0;
+        lastTapPosition = null;
+        return;
+    }
+
+    const isDoubleTap = lastTapPosition
+        && (now - lastTapAtMs) <= DOUBLE_TAP_MAX_GAP_MS
+        && Math.hypot(endPosition.x - lastTapPosition.x, endPosition.y - lastTapPosition.y) <= DOUBLE_TAP_MAX_DISTANCE_PX;
+
+    if (isDoubleTap) {
+        toggleBoostLatch();
+        lastTapAtMs = 0;
+        lastTapPosition = null;
+        return;
+    }
+
+    lastTapAtMs = now;
+    lastTapPosition = endPosition;
+};
+
+const endTouchSteering = (event) => {
     touchSteerAnchor = null;
+
+    const touch = event?.changedTouches?.[0];
+    if (touch && hasJoinedGame && !isGameOver && !isEaten) {
+        registerTapForBoost({ x: touch.clientX, y: touch.clientY });
+    }
+
+    touchStartPosition = null;
 };
 
 canvas.addEventListener('touchend', endTouchSteering);
 canvas.addEventListener('touchcancel', endTouchSteering);
+
+canvas.addEventListener('dblclick', (event) => {
+    if (!hasJoinedGame || isGameOver || isEaten) {
+        return;
+    }
+
+    event.preventDefault();
+    toggleBoostLatch();
+});
 
 canvas.addEventListener('mousemove', (event) => {
     if (!hasJoinedGame || isGameOver || isEaten || steeringMode !== STEERING_MODES.FREE) {
@@ -2018,6 +2260,12 @@ function updatePosition() {
     nextY = snakeStates.mySnake.coordinates[0].y;
 
     if (!isPaused && !isGameOver && !isEaten) {
+        if (isBoosting) {
+            // Predict the drain locally; the server correction arrives via energyUpdate.
+            currentEnergy = Math.max(0, currentEnergy - boostDrainPerSecond * (updateIntervalMs / 1000));
+            refreshBoostState();
+        }
+
         applySteeringRotationFromKeys();
 
         const movedPosition = steeringMode === STEERING_MODES.FREE
@@ -2092,6 +2340,7 @@ function updatePosition() {
                 // The server validates the hit against our reported position, so send it first.
                 emitHeadCoordinates(nextX, nextY);
                 notifyOfHitWorldObject(worldObjectId);
+                showLastMeal(worldObject);
 
                 if (!worldObjectDefinition.removeOnHit) {
                     continue;

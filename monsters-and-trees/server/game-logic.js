@@ -1,5 +1,7 @@
 'use strict';
 
+const { FOOD_QUALITIES } = require('../public/world-object-definitions.js');
+
 const COLLISION_RESPONSES = {
     GAME_OVER: 'gameOver',
     BOUNCE: 'bounce'
@@ -96,6 +98,22 @@ const createWorldObjectHelpers = (worldObjectTypeDefinitions) => {
 };
 
 // ---------------------------------------------------------------------------
+// Food quality
+// ---------------------------------------------------------------------------
+
+// Energy now comes from the food's macronutrients, so quality only shapes the
+// reward: junk food still fuels you, it just pays nothing and bulks you up.
+const FOOD_QUALITY_MODIFIERS = {
+    [FOOD_QUALITIES.AIP]: { score: 2, growth: 1, width: 1 },
+    [FOOD_QUALITIES.HEALTHY]: { score: 1, growth: 1, width: 1 },
+    [FOOD_QUALITIES.UNHEALTHY]: { score: 0, growth: 1.5, width: 1.5 }
+};
+
+const getFoodQualityModifiers = (foodQuality) => {
+    return FOOD_QUALITY_MODIFIERS[foodQuality] ?? FOOD_QUALITY_MODIFIERS[FOOD_QUALITIES.HEALTHY];
+};
+
+// ---------------------------------------------------------------------------
 // Snake state helpers
 // ---------------------------------------------------------------------------
 
@@ -131,10 +149,13 @@ const growSnakeAfterEatingSnake = (attackerUser, victimUser) => {
     attackerUser.score += victimLength;
 };
 
-const applyWorldObjectEffectsToUser = (userState, worldObjectDefinition) => {
+const applyWorldObjectEffectsToUser = (userState, worldObjectDefinition, foodContext = {}) => {
     if (!userState || !worldObjectDefinition) {
         return;
     }
+
+    const { quality = FOOD_QUALITIES.HEALTHY, energyKwh = 0 } = foodContext;
+    const modifiers = getFoodQualityModifiers(quality);
 
     const scoreDelta = Number.isFinite(worldObjectDefinition.effects.scoreDelta)
         ? worldObjectDefinition.effects.scoreDelta
@@ -145,14 +166,11 @@ const applyWorldObjectEffectsToUser = (userState, worldObjectDefinition) => {
     const widthDelta = Number.isFinite(worldObjectDefinition.effects.widthDelta)
         ? worldObjectDefinition.effects.widthDelta
         : 0;
-    const energyDelta = Number.isFinite(worldObjectDefinition.effects.energyDelta)
-        ? worldObjectDefinition.effects.energyDelta
-        : 0;
 
-    userState.score += scoreDelta;
-    setSnakeLengthForUser(userState, getSnakeLengthForUser(userState) + growthDelta);
-    setSnakeWidthForUser(userState, getSnakeWidthForUser(userState) + widthDelta);
-    addEnergyToUser(userState, energyDelta);
+    userState.score += Math.round(scoreDelta * modifiers.score);
+    setSnakeLengthForUser(userState, getSnakeLengthForUser(userState) + growthDelta * modifiers.growth);
+    setSnakeWidthForUser(userState, getSnakeWidthForUser(userState) + widthDelta * modifiers.width);
+    addEnergyToUser(userState, Number.isFinite(energyKwh) ? energyKwh : 0);
 };
 
 // ---------------------------------------------------------------------------
@@ -203,6 +221,8 @@ module.exports = {
     COLLISION_RESPONSES,
     FOOD_HIT_BEHAVIORS,
     DEFAULT_FOOD_HIT_BEHAVIOR,
+    FOOD_QUALITY_MODIFIERS,
+    getFoodQualityModifiers,
     INITIAL_USER_LENGTH,
     INITIAL_USER_WIDTH,
     MAX_ENERGY_KWH,

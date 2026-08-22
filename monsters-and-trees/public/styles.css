@@ -171,14 +171,14 @@ canvas {
 }
 
 .btn {
-    padding: 6px 10px;
+    padding: 5px 9px;
     font-family: inherit;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
     color: var(--text);
     background: var(--panel-raised);
     border: 1px solid var(--panel-line);
-    border-radius: 8px;
+    border-radius: 7px;
     cursor: pointer;
     transition: transform 0.1s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease;
 }
@@ -254,6 +254,11 @@ canvas {
 
 .map-info strong {
     color: var(--text);
+}
+
+.food-guide {
+    background: rgba(127, 240, 107, 0.07);
+    border-color: rgba(127, 240, 107, 0.3);
 }
 
 .games-list {
@@ -336,16 +341,16 @@ canvas {
     position: absolute;
     right: 10px;
     bottom: 10px;
-    width: 216px;
-    max-height: 60vh;
-    padding: 12px;
+    width: 184px;
+    max-height: 58vh;
+    padding: 10px;
     overflow-y: auto;
     overflow-wrap: anywhere;
     font-family: 'Avenir Next', 'Trebuchet MS', system-ui, -apple-system, sans-serif;
     color: var(--text);
     background: linear-gradient(180deg, rgba(30, 39, 64, 0.92), rgba(21, 27, 46, 0.92));
     border: 1px solid var(--panel-line);
-    border-radius: 12px;
+    border-radius: 10px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
     backdrop-filter: blur(6px);
 }
@@ -354,15 +359,15 @@ canvas {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    gap: 8px;
-    padding: 3px 0;
-    font-size: 12px;
+    gap: 6px;
+    padding: 2px 0;
+    font-size: 11px;
 }
 
 .hud-stat-label {
     flex-shrink: 0;
-    font-size: 10px;
-    letter-spacing: 1.2px;
+    font-size: 9px;
+    letter-spacing: 1px;
     text-transform: uppercase;
     color: var(--text-muted);
 }
@@ -374,10 +379,10 @@ canvas {
 }
 
 .hud-section-label {
-    margin: 10px 0 6px 0;
-    padding-top: 8px;
-    font-size: 10px;
-    letter-spacing: 1.6px;
+    margin: 8px 0 4px 0;
+    padding-top: 6px;
+    font-size: 9px;
+    letter-spacing: 1.4px;
     text-transform: uppercase;
     color: var(--accent);
     border-top: 1px solid var(--panel-line);
@@ -386,17 +391,17 @@ canvas {
 .hud-player {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 2px 0;
-    font-size: 12px;
+    gap: 5px;
+    padding: 1px 0;
+    font-size: 11px;
 }
 
 .hud-player-dot {
-    width: 9px;
-    height: 9px;
+    width: 8px;
+    height: 8px;
     flex-shrink: 0;
     border-radius: 50%;
-    box-shadow: 0 0 6px currentColor;
+    box-shadow: 0 0 5px currentColor;
 }
 
 .hud-player-name {
@@ -413,24 +418,108 @@ canvas {
     color: var(--accent);
 }
 
+.hud-energy {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--panel-line);
+}
+
+.hud-energy-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.hud-energy-value {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.hud-energy-track {
+    height: 8px;
+    overflow: hidden;
+    background: rgba(8, 12, 24, 0.9);
+    border: 1px solid var(--panel-line);
+    border-radius: 5px;
+}
+
+.hud-energy-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-strong), var(--accent));
+    box-shadow: 0 0 10px rgba(127, 240, 107, 0.6);
+    transition: width 0.12s linear;
+}
+
+.hud-energy.is-boosting .hud-energy-fill {
+    background: linear-gradient(90deg, #ffb347, #ffe66b);
+    box-shadow: 0 0 12px rgba(255, 214, 107, 0.8);
+}
+
+.hud-energy.is-depleted .hud-energy-fill {
+    background: linear-gradient(90deg, #a33, var(--danger));
+    box-shadow: 0 0 10px rgba(255, 107, 107, 0.6);
+}
+
+.hud-energy.is-depleted .hud-energy-value {
+    color: var(--danger);
+}
+
+.hud-last-meal {
+    margin-top: 6px;
+    padding: 5px 7px;
+    background: rgba(8, 12, 24, 0.7);
+    border: 1px solid var(--panel-line);
+    border-radius: 7px;
+}
+
+.hud-last-meal-heading {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.hud-last-meal-macros {
+    margin-top: 2px;
+    font-size: 9px;
+    line-height: 1.35;
+    color: var(--text-muted);
+}
+
+.hud-boost-button {
+    width: 100%;
+    min-height: 34px;
+    margin-top: 6px;
+    touch-action: none;
+    user-select: none;
+}
+
+.hud-boost-button.is-active {
+    color: #2a1a00;
+    background: linear-gradient(180deg, #ffe66b, #ffb347);
+    border-color: #ffb347;
+}
+
 .hud-lobby-button {
     width: 100%;
-    margin-top: 10px;
+    margin-top: 8px;
 }
 
 .hud-timer {
     position: absolute;
     top: 10px;
     right: 10px;
-    padding: 8px 14px;
+    padding: 6px 12px;
     font-family: 'Avenir Next', 'Trebuchet MS', system-ui, -apple-system, sans-serif;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 700;
     letter-spacing: 2px;
     color: var(--accent);
     background: rgba(21, 27, 46, 0.9);
     border: 1px solid var(--panel-line);
-    border-radius: 10px;
+    border-radius: 8px;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 
@@ -455,30 +544,30 @@ canvas {
 
 /* Voice panel: shared by the lobby and the HUD, both dark. */
 .voice-panel {
-    margin-top: 12px;
-    padding-top: 10px;
+    margin-top: 10px;
+    padding-top: 8px;
     border-top: 1px solid var(--panel-line);
 }
 
 .voice-title {
-    margin: 0 0 6px 0;
-    font-size: 10px;
-    letter-spacing: 1.6px;
+    margin: 0 0 5px 0;
+    font-size: 9px;
+    letter-spacing: 1.4px;
     text-transform: uppercase;
     color: var(--accent);
 }
 
 .voice-status {
-    margin-bottom: 8px;
-    font-size: 11px;
-    line-height: 1.4;
+    margin-bottom: 6px;
+    font-size: 10px;
+    line-height: 1.35;
     color: var(--text-muted);
 }
 
 .voice-controls {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 5px;
 }
 
 .lobby-overlay .voice-panel {

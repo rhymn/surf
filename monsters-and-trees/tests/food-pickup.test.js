@@ -2,6 +2,8 @@
 
 const SOCKET_EVENTS = require('../public/socket-events.js');
 const { getHeadPickupHitbox } = require('../public/snake-geometry.js');
+const { FOOD_QUALITIES } = require('../public/world-object-definitions.js');
+const { FOOD_QUALITY_MODIFIERS } = require('../server/game-logic.js');
 const {
     startTestServer,
     stopServerProcess,
@@ -59,7 +61,7 @@ describe('food pickup', () => {
 
         const snakeWidth = me.w;
         const foodItem = Object.values(worldObjects)
-            .filter((worldObject) => worldObject.type === 'dot')
+            .filter((worldObject) => worldObject.type === 'dot' && worldObject.quality === FOOD_QUALITIES.AIP)
             .sort((first, second) => {
                 return Math.hypot(first.x - startPosition.x, first.y - startPosition.y)
                     - Math.hypot(second.x - startPosition.x, second.y - startPosition.y);
@@ -112,6 +114,6 @@ describe('food pickup', () => {
         await worldObjectsUpdated;
         await wait(100);
 
-        expect(me.score).toBe(1);
+        expect(me.score).toBe(FOOD_QUALITY_MODIFIERS[FOOD_QUALITIES.AIP].score);
     }, 30_000);
 });
