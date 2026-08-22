@@ -2,10 +2,13 @@
 
 const {
     COLLISION_RESPONSES,
+    FOOD_HIT_BEHAVIORS,
+    DEFAULT_FOOD_HIT_BEHAVIOR,
     INITIAL_USER_LENGTH,
     INITIAL_USER_WIDTH,
     resolveCollisionResponse,
     toSafeCollisionResponse,
+    toSafeFoodHitBehavior,
     rectanglesOverlap,
     createWorldObjectHelpers,
     getSnakeLengthForUser,

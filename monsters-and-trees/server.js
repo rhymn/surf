@@ -11,10 +11,13 @@ const {
 } = require('./public/world-object-definitions.js');
 const {
     COLLISION_RESPONSES,
+    FOOD_HIT_BEHAVIORS,
+    DEFAULT_FOOD_HIT_BEHAVIOR,
     INITIAL_USER_LENGTH,
     INITIAL_USER_WIDTH,
     resolveCollisionResponse,
     toSafeCollisionResponse,
+    toSafeFoodHitBehavior,
     rectanglesOverlap,
     createWorldObjectHelpers,
     getSnakeLengthForUser,
@@ -98,11 +101,6 @@ const AUDIO_RTC_ENABLED = isAudioRtcEnabled();
 const DEFAULT_MAP_TYPE = MAP_TYPES.CLASSIC;
 const DEFAULT_BORDER_COLLISION_RESPONSE = COLLISION_RESPONSES.GAME_OVER;
 const DEFAULT_DANGEROUS_OBJECT_COLLISION_RESPONSE = COLLISION_RESPONSES.GAME_OVER;
-const FOOD_HIT_BEHAVIORS = {
-    REMOVE: 'remove',
-    MOVE: 'move'
-};
-const DEFAULT_FOOD_HIT_BEHAVIOR = FOOD_HIT_BEHAVIORS.MOVE;
 
 const MAP_DEFINITIONS = {
     [MAP_TYPES.CLASSIC]: {
@@ -344,14 +342,6 @@ const toSafePlayingType = (playingType) => {
     }
 
     return PLAYING_TYPES.LAST_MAN_STANDING;
-};
-
-const toSafeFoodHitBehavior = (foodHitBehavior) => {
-    if (Object.values(FOOD_HIT_BEHAVIORS).includes(foodHitBehavior)) {
-        return foodHitBehavior;
-    }
-
-    return DEFAULT_FOOD_HIT_BEHAVIOR;
 };
 
 const getActiveGamesPayload = () => {

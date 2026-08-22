@@ -5,6 +5,14 @@ const COLLISION_RESPONSES = {
     BOUNCE: 'bounce'
 };
 
+// Whether an edible world object disappears when eaten, or is relocated elsewhere.
+const FOOD_HIT_BEHAVIORS = {
+    REMOVE: 'remove',
+    MOVE: 'move'
+};
+
+const DEFAULT_FOOD_HIT_BEHAVIOR = FOOD_HIT_BEHAVIORS.MOVE;
+
 const INITIAL_USER_LENGTH = 6;
 const INITIAL_USER_WIDTH = 6; // matches RULE_SNAKE_SEGMENT_SIZE
 
@@ -22,6 +30,14 @@ const resolveCollisionResponse = (configuredValue, fallback) => {
 
 const toSafeCollisionResponse = (collisionResponse, fallback) => {
     return resolveCollisionResponse(collisionResponse, fallback);
+};
+
+const toSafeFoodHitBehavior = (foodHitBehavior, fallback = DEFAULT_FOOD_HIT_BEHAVIOR) => {
+    if (Object.values(FOOD_HIT_BEHAVIORS).includes(foodHitBehavior)) {
+        return foodHitBehavior;
+    }
+
+    return fallback;
 };
 
 // ---------------------------------------------------------------------------
@@ -133,10 +149,13 @@ const applyWorldObjectEffectsToUser = (userState, worldObjectDefinition) => {
 
 module.exports = {
     COLLISION_RESPONSES,
+    FOOD_HIT_BEHAVIORS,
+    DEFAULT_FOOD_HIT_BEHAVIOR,
     INITIAL_USER_LENGTH,
     INITIAL_USER_WIDTH,
     resolveCollisionResponse,
     toSafeCollisionResponse,
+    toSafeFoodHitBehavior,
     rectanglesOverlap,
     createWorldObjectHelpers,
     getSnakeLengthForUser,
