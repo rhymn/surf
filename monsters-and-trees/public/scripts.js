@@ -12,8 +12,8 @@ const MAPS = {
     classic: {
         label: 'Classic Plains',
         description: 'Open plains with a balanced mix of objects.',
-        size: '1600 × 1600',
-        highlights: ['Many trees', 'Monsters & clouds', 'Scattered thorns'],
+        size: '6400 × 6400',
+        highlights: ['Many trees', 'Lots of monsters, clouds, and dots', 'Scattered thorns'],
         respawnRule: 'Edibles always respawn elsewhere — food supply stays constant.',
         drawBackground(ctx, width, height) {
             ctx.fillStyle = '#dbeafe';
@@ -49,8 +49,8 @@ const MAPS = {
     forest: {
         label: 'Dense Forest',
         description: 'Dense woodland with lots of trees and scarce food.',
-        size: '1800 × 1400',
-        highlights: ['120 trees', 'Few monsters & clouds', 'Rare thorns'],
+        size: '7200 × 5600',
+        highlights: ['120 trees', 'Plenty of monsters, clouds, and dots', 'Rare thorns'],
         respawnRule: '50 % chance to respawn — food is naturally scarce under the canopy.',
         drawBackground(ctx, width, height) {
             const gradient = ctx.createLinearGradient(0, 0, 0, height);
@@ -91,8 +91,8 @@ const MAPS = {
     thorns: {
         label: 'Thorn Field',
         description: 'Dangerous thorn field where every meal could be your last.',
-        size: '1500 × 1500',
-        highlights: ['Many thorns', 'Plentiful monsters', 'Few trees'],
+        size: '6000 × 6000',
+        highlights: ['Many thorns', 'Heavy food spawns', 'Few trees'],
         respawnRule: 'Edibles never respawn — the world depletes over time.',
         drawBackground(ctx, width, height) {
             const gradient = ctx.createLinearGradient(0, 0, width, height);
@@ -228,10 +228,19 @@ const COLLISION_RESPONSE_OPTIONS = [
     { value: COLLISION_RESPONSES.GAME_OVER, label: 'Game over' },
     { value: COLLISION_RESPONSES.BOUNCE, label: 'Bounce back' }
 ];
+const FOOD_HIT_BEHAVIORS = {
+    REMOVE: 'remove',
+    MOVE: 'move'
+};
+const FOOD_HIT_BEHAVIOR_OPTIONS = [
+    { value: FOOD_HIT_BEHAVIORS.MOVE, label: 'Move food to a new spot' },
+    { value: FOOD_HIT_BEHAVIORS.REMOVE, label: 'Remove food from the map' }
+];
 let gameRules = {
     borderCollisionEndsGame: true,
     borderCollisionResponse: COLLISION_RESPONSES.GAME_OVER,
     dangerousObjectCollisionResponse: COLLISION_RESPONSES.GAME_OVER,
+    foodHitBehavior: FOOD_HIT_BEHAVIORS.MOVE,
     playerCollisionEndsGame: true,
     treeCollisionEndsGame: false,
     snakeSegmentSize: 10,
@@ -385,7 +394,7 @@ goToLobbyButton.textContent = 'Go to lobby';
 goToLobbyButton.style.marginTop = '8px';
 goToLobbyButton.style.padding = '6px 8px';
 goToLobbyButton.style.display = 'none';
-goToLobbyButton.onclick = () => {
+const openLobbyWhilePlaying = () => {
     isInLobbyWhilePlaying = true;
     isPaused = true;
     isBoostEnabled = false;
@@ -398,6 +407,9 @@ goToLobbyButton.onclick = () => {
     lobbyOverlay.style.display = 'flex';
     updateRejoinButtonVisibility();
     socket.emit(GAME_SOCKET_EVENTS.LIST_ACTIVE_GAMES);
+};
+goToLobbyButton.onclick = () => {
+    openLobbyWhilePlaying();
 };
 overlay.appendChild(goToLobbyButton);
 
@@ -506,6 +518,11 @@ dangerousCollisionLabel.textContent = 'Dangerous object collision';
 dangerousCollisionLabel.style.display = 'block';
 dangerousCollisionLabel.style.marginBottom = '4px';
 
+const foodHitBehaviorLabel = document.createElement('label');
+foodHitBehaviorLabel.textContent = 'Food on hit';
+foodHitBehaviorLabel.style.display = 'block';
+foodHitBehaviorLabel.style.marginBottom = '4px';
+
 const steeringSettingsTitle = document.createElement('h3');
 steeringSettingsTitle.textContent = 'Your controls';
 steeringSettingsTitle.style.margin = '8px 0 6px 0';
@@ -600,6 +617,11 @@ dangerousObjectCollisionSelect.style.padding = '8px';
 dangerousObjectCollisionSelect.style.marginBottom = '12px';
 dangerousObjectCollisionSelect.style.width = '100%';
 
+const foodHitBehaviorSelect = document.createElement('select');
+foodHitBehaviorSelect.style.padding = '8px';
+foodHitBehaviorSelect.style.marginBottom = '12px';
+foodHitBehaviorSelect.style.width = '100%';
+
 const playingTypeOptions = [
     { value: PLAYING_TYPES.LAST_MAN_STANDING, label: 'Last man standing' },
     { value: PLAYING_TYPES.TIMER, label: 'Most points in 60s' },
@@ -637,10 +659,18 @@ for (const collisionResponseOption of COLLISION_RESPONSE_OPTIONS) {
     dangerousObjectCollisionSelect.appendChild(dangerousOptionElement);
 }
 
+for (const foodHitBehaviorOption of FOOD_HIT_BEHAVIOR_OPTIONS) {
+    const optionElement = document.createElement('option');
+    optionElement.value = foodHitBehaviorOption.value;
+    optionElement.textContent = foodHitBehaviorOption.label;
+    foodHitBehaviorSelect.appendChild(optionElement);
+}
+
 playingTypeSelect.value = PLAYING_TYPES.LAST_MAN_STANDING;
 steeringModeSelect.value = STEERING_MODES.CLASSIC;
 borderCollisionSelect.value = COLLISION_RESPONSES.GAME_OVER;
 dangerousObjectCollisionSelect.value = COLLISION_RESPONSES.GAME_OVER;
+foodHitBehaviorSelect.value = FOOD_HIT_BEHAVIORS.MOVE;
 
 const PREFS_KEY = 'monstersAndTreesPrefs';
 
@@ -691,6 +721,8 @@ lobbyPanel.appendChild(borderCollisionLabel);
 lobbyPanel.appendChild(borderCollisionSelect);
 lobbyPanel.appendChild(dangerousCollisionLabel);
 lobbyPanel.appendChild(dangerousObjectCollisionSelect);
+lobbyPanel.appendChild(foodHitBehaviorLabel);
+lobbyPanel.appendChild(foodHitBehaviorSelect);
 lobbyPanel.appendChild(steeringSettingsTitle);
 lobbyPanel.appendChild(steeringSettingsHint);
 lobbyPanel.appendChild(steeringModeLabel);
@@ -927,6 +959,9 @@ const renderActiveGames = (games) => {
         const dangerousCollisionLabel = game.dangerousObjectCollisionResponse === COLLISION_RESPONSES.BOUNCE
             ? 'Bounce'
             : 'Game over';
+        const foodBehaviorLabel = game.foodHitBehavior === FOOD_HIT_BEHAVIORS.REMOVE
+            ? 'Remove'
+            : 'Move';
 
         const row = document.createElement('div');
         row.style.display = 'flex';
@@ -936,7 +971,7 @@ const renderActiveGames = (games) => {
         row.style.padding = '8px';
 
         const gameMeta = document.createElement('div');
-        gameMeta.innerHTML = `<strong>${game.name}</strong><br><small>${getPlayingTypeLabel(game.playingType)} · ${game.mapName ?? 'Map'} · Host: ${game.ownerName} · Players: ${game.playerCount}</small><br><small>Locked for this game: Border ${borderCollisionLabel} · Dangerous ${dangerousCollisionLabel}</small>`;
+        gameMeta.innerHTML = `<strong>${game.name}</strong><br><small>${getPlayingTypeLabel(game.playingType)} · ${game.mapName ?? 'Map'} · Host: ${game.ownerName} · Players: ${game.playerCount}</small><br><small>Locked for this game: Border ${borderCollisionLabel} · Dangerous ${dangerousCollisionLabel} · Food ${foodBehaviorLabel}</small>`;
 
         const actions = document.createElement('div');
         actions.style.display = 'flex';
@@ -979,13 +1014,15 @@ createButton.onclick = () => {
     const mapType = mapTypeSelect.value;
     const borderCollisionResponse = borderCollisionSelect.value;
     const dangerousObjectCollisionResponse = dangerousObjectCollisionSelect.value;
+    const foodHitBehavior = foodHitBehaviorSelect.value;
     socket.emit(GAME_SOCKET_EVENTS.CREATE_GAME, {
         gameName,
         playerName,
         playingType,
         mapType,
         borderCollisionResponse,
-        dangerousObjectCollisionResponse
+        dangerousObjectCollisionResponse,
+        foodHitBehavior
     });
 };
 
@@ -1014,12 +1051,14 @@ randomButton.onclick = () => {
     const randomMapType = getRandomItem(mapTypeOptions).value;
     const randomBorderCollisionResponse = getRandomItem(COLLISION_RESPONSE_OPTIONS).value;
     const randomDangerousObjectCollisionResponse = getRandomItem(COLLISION_RESPONSE_OPTIONS).value;
+    const randomFoodHitBehavior = getRandomItem(FOOD_HIT_BEHAVIOR_OPTIONS).value;
 
     playingTypeSelect.value = randomPlayingType;
     mapTypeSelect.value = randomMapType;
     updateMapInfoPanel(randomMapType);
     borderCollisionSelect.value = randomBorderCollisionResponse;
     dangerousObjectCollisionSelect.value = randomDangerousObjectCollisionResponse;
+    foodHitBehaviorSelect.value = randomFoodHitBehavior;
 
     socket.emit(GAME_SOCKET_EVENTS.CREATE_GAME, {
         gameName: getRandomGameName(),
@@ -1028,6 +1067,7 @@ randomButton.onclick = () => {
         mapType: randomMapType,
         borderCollisionResponse: randomBorderCollisionResponse,
         dangerousObjectCollisionResponse: randomDangerousObjectCollisionResponse,
+        foodHitBehavior: randomFoodHitBehavior,
         autoJoin: true
     });
 };
@@ -1631,6 +1671,14 @@ steeringModeSelect.addEventListener('change', () => {
 
 window.addEventListener('keydown', (event) => {
     if (!hasJoinedGame) {
+        return;
+    }
+
+    if ((isGameOver || isEaten) && event.key === 'Enter') {
+        event.preventDefault();
+        if (lobbyOverlay.style.display !== 'flex') {
+            openLobbyWhilePlaying();
+        }
         return;
     }
 

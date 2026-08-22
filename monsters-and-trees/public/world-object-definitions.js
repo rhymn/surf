@@ -30,7 +30,7 @@ const DEFAULT_WORLD_OBJECT_DEFINITIONS = {
             instantLose: false,
             growthDelta: 5,
             scoreDelta: 1,
-            widthDelta: 1
+            widthDelta: 0.15
         }
     },
     [WORLD_OBJECT_TYPES.CLOUD]: {
@@ -43,7 +43,7 @@ const DEFAULT_WORLD_OBJECT_DEFINITIONS = {
             instantLose: false,
             growthDelta: 30,
             scoreDelta: 0,
-            widthDelta: 2
+            widthDelta: 0.3
         }
     },
     [WORLD_OBJECT_TYPES.THORN]: {

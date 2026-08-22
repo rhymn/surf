@@ -68,8 +68,9 @@ const DEFAULT_TIMER_DURATION_SECONDS = 60;
 const DEFAULT_SCORE_TARGET = 1000;
 const MAX_SPAWN_ATTEMPTS = 500;
 const INITIAL_TREE_COUNT = 30;
-const INITIAL_MONSTER_COUNT = 20;
-const INITIAL_CLOUD_COUNT = 8;
+const INITIAL_MONSTER_COUNT = 120;
+const INITIAL_CLOUD_COUNT = 48;
+const INITIAL_DOT_COUNT = 220;
 const INITIAL_THORN_COUNT = 10;
 const INITIAL_USER_SCORE = 0;
 const PUBLIC_DIRECTORY = 'public';
@@ -97,45 +98,43 @@ const AUDIO_RTC_ENABLED = isAudioRtcEnabled();
 const DEFAULT_MAP_TYPE = MAP_TYPES.CLASSIC;
 const DEFAULT_BORDER_COLLISION_RESPONSE = COLLISION_RESPONSES.GAME_OVER;
 const DEFAULT_DANGEROUS_OBJECT_COLLISION_RESPONSE = COLLISION_RESPONSES.GAME_OVER;
+const FOOD_HIT_BEHAVIORS = {
+    REMOVE: 'remove',
+    MOVE: 'move'
+};
+const DEFAULT_FOOD_HIT_BEHAVIOR = FOOD_HIT_BEHAVIORS.MOVE;
 
 const MAP_DEFINITIONS = {
     [MAP_TYPES.CLASSIC]: {
         name: 'Classic Plains',
-        width: 1600,
-        height: 1600,
+        width: 6400,
+        height: 6400,
         treeCount: INITIAL_TREE_COUNT,
         monsterCount: INITIAL_MONSTER_COUNT,
         cloudCount: INITIAL_CLOUD_COUNT,
+        dotCount: INITIAL_DOT_COUNT,
         thornCount: INITIAL_THORN_COUNT
     },
     [MAP_TYPES.FOREST]: {
         name: 'Dense Forest',
-        width: 1800,
-        height: 1400,
+        width: 7200,
+        height: 5600,
         treeCount: 120,
-        monsterCount: 16,
-        cloudCount: 6,
+        monsterCount: 96,
+        cloudCount: 36,
+        dotCount: 160,
         thornCount: 6
     },
     [MAP_TYPES.THORNS]: {
         name: 'Thorn Field',
-        width: 1500,
-        height: 1500,
+        width: 6000,
+        height: 6000,
         treeCount: 18,
-        monsterCount: 26,
-        cloudCount: 7,
+        monsterCount: 140,
+        cloudCount: 40,
+        dotCount: 180,
         thornCount: 28
     }
-};
-
-// Per-map rules for whether an edible object respawns elsewhere after being eaten.
-// classic: always respawn (stable world — the food supply stays constant).
-// forest:  50 % chance to respawn (food is naturally scarce among the trees).
-// thorns:  never respawn (the field depletes over time, raising the stakes).
-const MAP_RESPAWN_RULES = {
-    [MAP_TYPES.CLASSIC]: { respawnChance: 1.0 },
-    [MAP_TYPES.FOREST]:  { respawnChance: 0.5 },
-    [MAP_TYPES.THORNS]:  { respawnChance: 0.0 }
 };
 
 function getRandomColor() {
@@ -279,6 +278,10 @@ const applyMapToWorld = (mapType) => {
         addWorldObject(WORLD_OBJECT_TYPES.CLOUD);
     }
 
+    for (let i = 0; i < (mapDefinition.dotCount ?? 0); i++) {
+        addWorldObject(WORLD_OBJECT_TYPES.DOT);
+    }
+
     for (let i = 0; i < mapDefinition.thornCount; i++) {
         addWorldObject(WORLD_OBJECT_TYPES.THORN);
     }
@@ -305,14 +308,15 @@ let matchState = {
 
 app.use(express.static(PUBLIC_DIRECTORY));
 
-// Respawn an edible world object at a new random location according to
-// the current map's MAP_RESPAWN_RULES.  Returns the new object, or null.
-const maybeRespawnWorldObject = (objectType) => {
-    const rules = MAP_RESPAWN_RULES[currentMapType];
-    if (!rules || Math.random() >= rules.respawnChance) {
-        return null;
+const relocateWorldObject = (worldObject) => {
+    const objectDefinition = WORLD_OBJECT_TYPE_DEFINITIONS[worldObject?.type];
+    if (!worldObject || !objectDefinition) {
+        return;
     }
-    return addWorldObject(objectType);
+
+    const nextPosition = getRandomPosition(boardWidth, boardHeight, objectDefinition.size);
+    worldObject.x = nextPosition.x;
+    worldObject.y = nextPosition.y;
 };
 
 const appendDotCoordinates = (coordinatesList) => {
@@ -342,6 +346,14 @@ const toSafePlayingType = (playingType) => {
     return PLAYING_TYPES.LAST_MAN_STANDING;
 };
 
+const toSafeFoodHitBehavior = (foodHitBehavior) => {
+    if (Object.values(FOOD_HIT_BEHAVIORS).includes(foodHitBehavior)) {
+        return foodHitBehavior;
+    }
+
+    return DEFAULT_FOOD_HIT_BEHAVIOR;
+};
+
 const getActiveGamesPayload = () => {
     const activeGames = [];
     for (const gameId in activeGamesById) {
@@ -356,6 +368,7 @@ const getActiveGamesPayload = () => {
             mapName: game.mapName,
             borderCollisionResponse: game.borderCollisionResponse,
             dangerousObjectCollisionResponse: game.dangerousObjectCollisionResponse,
+            foodHitBehavior: game.foodHitBehavior,
             playerCount: game.playerIds.size
         });
     }
@@ -368,7 +381,16 @@ const broadcastActiveGames = () => {
     io.emit(SOCKET_EVENTS.ACTIVE_GAMES_UPDATED, getActiveGamesPayload());
 };
 
-const createGame = (gameName, ownerName, ownerSocketId, playingType, mapType, borderCollisionResponse, dangerousObjectCollisionResponse) => {
+const createGame = (
+    gameName,
+    ownerName,
+    ownerSocketId,
+    playingType,
+    mapType,
+    borderCollisionResponse,
+    dangerousObjectCollisionResponse,
+    foodHitBehavior
+) => {
     const gameId = createGameId();
     const safeMapType = toSafeMapType(mapType);
     const mapDefinition = getMapDefinition(safeMapType);
@@ -380,6 +402,7 @@ const createGame = (gameName, ownerName, ownerSocketId, playingType, mapType, bo
         dangerousObjectCollisionResponse,
         DEFAULT_DANGEROUS_OBJECT_COLLISION_RESPONSE
     );
+    const safeFoodHitBehavior = toSafeFoodHitBehavior(foodHitBehavior);
 
     activeGamesById[gameId] = {
         id: gameId,
@@ -391,6 +414,7 @@ const createGame = (gameName, ownerName, ownerSocketId, playingType, mapType, bo
         mapName: mapDefinition.name,
         borderCollisionResponse: safeBorderCollisionResponse,
         dangerousObjectCollisionResponse: safeDangerousObjectCollisionResponse,
+        foodHitBehavior: safeFoodHitBehavior,
         playerIds: new Set()
     };
 
@@ -457,11 +481,13 @@ const getGameRulesForGame = (gameId) => {
     const game = activeGamesById[gameId];
     const borderCollisionResponse = game?.borderCollisionResponse ?? DEFAULT_BORDER_COLLISION_RESPONSE;
     const dangerousObjectCollisionResponse = game?.dangerousObjectCollisionResponse ?? DEFAULT_DANGEROUS_OBJECT_COLLISION_RESPONSE;
+    const foodHitBehavior = game?.foodHitBehavior ?? DEFAULT_FOOD_HIT_BEHAVIOR;
 
     return {
         borderCollisionEndsGame: borderCollisionResponse === COLLISION_RESPONSES.GAME_OVER,
         borderCollisionResponse,
         dangerousObjectCollisionResponse,
+        foodHitBehavior,
         playerCollisionEndsGame: RULE_PLAYER_COLLISION_ENDS_GAME,
         snakeSegmentSize: RULE_SNAKE_SEGMENT_SIZE,
         snakeHeadSizeMultiplier: RULE_SNAKE_HEAD_SIZE_MULTIPLIER,
@@ -850,8 +876,15 @@ const applyWorldObjectHitForBot = (botId, worldObjectId) => {
     applyWorldObjectEffectsToUser(botUser, worldObjectDefinition);
 
     if (worldObjectDefinition.removeOnHit) {
-        delete worldObjects[worldObjectId];
-        maybeRespawnWorldObject(worldObject.type);
+        const game = activeGamesById[botUser.gameId];
+        const foodHitBehavior = game?.foodHitBehavior ?? DEFAULT_FOOD_HIT_BEHAVIOR;
+
+        if (foodHitBehavior === FOOD_HIT_BEHAVIORS.REMOVE) {
+            delete worldObjects[worldObjectId];
+        } else {
+            relocateWorldObject(worldObject);
+        }
+
         return { usersChanged: true, worldObjectsChanged: true };
     }
 
@@ -1262,6 +1295,7 @@ io.on('connection', (socket) => {
         mapType,
         borderCollisionResponse,
         dangerousObjectCollisionResponse,
+        foodHitBehavior,
         autoJoin
     }) => {
         const game = createGame(
@@ -1271,7 +1305,8 @@ io.on('connection', (socket) => {
             playingType,
             mapType,
             borderCollisionResponse,
-            dangerousObjectCollisionResponse
+            dangerousObjectCollisionResponse,
+            foodHitBehavior
         );
         if (autoJoin) {
             joinUserToGame(socket, game.id, playerName);
@@ -1423,8 +1458,15 @@ io.on('connection', (socket) => {
         applyWorldObjectEffectsToUser(hitterUser, worldObjectDefinition);
 
         if (worldObjectDefinition.removeOnHit) {
-            delete worldObjects[worldObjectId];
-            maybeRespawnWorldObject(worldObject.type);
+            const game = activeGamesById[gameId];
+            const foodHitBehavior = game?.foodHitBehavior ?? DEFAULT_FOOD_HIT_BEHAVIOR;
+
+            if (foodHitBehavior === FOOD_HIT_BEHAVIORS.REMOVE) {
+                delete worldObjects[worldObjectId];
+            } else {
+                relocateWorldObject(worldObject);
+            }
+
             broadcastWorldObjects(gameId);
         }
 
