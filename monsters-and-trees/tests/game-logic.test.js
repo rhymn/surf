@@ -76,6 +76,32 @@ describe('toSafeCollisionResponse', () => {
 });
 
 // ---------------------------------------------------------------------------
+// toSafeFoodHitBehavior
+// ---------------------------------------------------------------------------
+
+describe('toSafeFoodHitBehavior', () => {
+    test('returns the value for each known food hit behavior', () => {
+        expect(toSafeFoodHitBehavior(FOOD_HIT_BEHAVIORS.REMOVE)).toBe(FOOD_HIT_BEHAVIORS.REMOVE);
+        expect(toSafeFoodHitBehavior(FOOD_HIT_BEHAVIORS.MOVE)).toBe(FOOD_HIT_BEHAVIORS.MOVE);
+    });
+
+    test('falls back to the default for unknown values', () => {
+        expect(toSafeFoodHitBehavior('teleport')).toBe(DEFAULT_FOOD_HIT_BEHAVIOR);
+        expect(toSafeFoodHitBehavior(null)).toBe(DEFAULT_FOOD_HIT_BEHAVIOR);
+        expect(toSafeFoodHitBehavior(undefined)).toBe(DEFAULT_FOOD_HIT_BEHAVIOR);
+    });
+
+    test('honours an explicit fallback', () => {
+        expect(toSafeFoodHitBehavior('nope', FOOD_HIT_BEHAVIORS.REMOVE))
+            .toBe(FOOD_HIT_BEHAVIORS.REMOVE);
+    });
+
+    test('defaults to moving food rather than removing it', () => {
+        expect(DEFAULT_FOOD_HIT_BEHAVIOR).toBe(FOOD_HIT_BEHAVIORS.MOVE);
+    });
+});
+
+// ---------------------------------------------------------------------------
 // rectanglesOverlap
 // ---------------------------------------------------------------------------
 
