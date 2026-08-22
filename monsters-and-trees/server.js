@@ -10,6 +10,7 @@ const {
     getRandomFoodEmojiForType,
     DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS
 } = require('./public/world-object-definitions.js');
+const { getHeadPickupHitbox } = require('./public/snake-geometry.js');
 const {
     COLLISION_RESPONSES,
     DEFAULT_FOOD_HIT_BEHAVIOR,
@@ -1550,7 +1551,11 @@ io.on('connection', (socket) => {
         }
 
         const hitterWidth = getSnakeWidthForUser(hitterUser);
-        const hitterHitbox = getSnakeHitbox(hitterUser.coordinates, hitterWidth);
+        const hitterHitbox = getHeadPickupHitbox(
+            hitterUser.coordinates,
+            hitterWidth,
+            RULE_SNAKE_HEAD_SIZE_MULTIPLIER
+        );
         const worldObjectRect = getWorldObjectRect(worldObject);
         if (!rectanglesOverlap(hitterHitbox, worldObjectRect)) {
             return;

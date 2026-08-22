@@ -2029,6 +2029,11 @@ function updatePosition() {
                 width: currentSnakeWidth,
                 height: currentSnakeWidth
             };
+            const headPickupHitbox = window.getHeadPickupHitbox(
+                { x: nextX, y: nextY },
+                currentSnakeWidth,
+                gameRules.snakeHeadSizeMultiplier
+            );
 
             for (const worldObjectId in worldObjects) {
                 const worldObject = worldObjects[worldObjectId];
@@ -2038,12 +2043,14 @@ function updatePosition() {
                     continue;
                 }
 
+                const isDangerousObject = worldObjectDefinition.effects.instantLose;
                 const worldObjectHitbox = getWorldObjectHitbox(worldObject, worldObjectDefinition);
-                if (!rectanglesOverlap(snakeHitbox, worldObjectHitbox)) {
+                const collisionHitbox = isDangerousObject ? snakeHitbox : headPickupHitbox;
+                if (!rectanglesOverlap(collisionHitbox, worldObjectHitbox)) {
                     continue;
                 }
 
-                if (worldObjectDefinition.effects.instantLose) {
+                if (isDangerousObject) {
                     const dangerousObjectCollisionEndsGame =
                         gameRules.dangerousObjectCollisionResponse === COLLISION_RESPONSES.BOUNCE
                             ? false
@@ -2077,6 +2084,8 @@ function updatePosition() {
                     break;
                 }
 
+                // The server validates the hit against our reported position, so send it first.
+                emitHeadCoordinates(nextX, nextY);
                 notifyOfHitWorldObject(worldObjectId);
 
                 if (!worldObjectDefinition.removeOnHit) {
