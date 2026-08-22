@@ -7,10 +7,14 @@ const WORLD_OBJECT_TYPES = {
 };
 
 // Every edible object is drawn as one of these emojis, picked when it spawns.
+// Each tier keeps a consistent real-world size so players can still read the map.
 const FOOD_EMOJIS_BY_TYPE = {
-    [WORLD_OBJECT_TYPES.MONSTER]: ['🍉', '🍍', '🥭', '🥥', '🍈'],
-    [WORLD_OBJECT_TYPES.CLOUD]: ['🍌', '🍎', '🍏', '🍐', '🍊', '🍑'],
-    [WORLD_OBJECT_TYPES.DOT]: ['🍇', '🍒', '🍓', '🫐', '🥝']
+    [WORLD_OBJECT_TYPES.MONSTER]: ['🍉', '🍍', '🥥', '🍈', '🎃', '🥬', '🍞', '🧀'],
+    [WORLD_OBJECT_TYPES.CLOUD]: [
+        '🍌', '🍎', '🍏', '🍐', '🍊', '🍑', '🍋', '🥭',
+        '🥑', '🌽', '🥕', '🫑', '🥦', '🥐'
+    ],
+    [WORLD_OBJECT_TYPES.DOT]: ['🍇', '🍒', '🍓', '🫐', '🥝', '🍅', '🌰', '🥜', '🫒', '🥚']
 };
 
 const getRandomFoodEmojiForType = (type) => {
