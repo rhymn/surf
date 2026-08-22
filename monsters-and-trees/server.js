@@ -7,6 +7,7 @@ const { isAudioRtcEnabled } = require('./server/audio-feature-flag.js');
 const { createRtcSignalingState, registerRtcSignalingHandlers } = require('./server/rtc-signaling.js');
 const {
     WORLD_OBJECT_TYPES,
+    getRandomFoodEmojiForType,
     DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS
 } = require('./public/world-object-definitions.js');
 const {
@@ -208,7 +209,8 @@ const addWorldObject = (world, type, position) => {
         id: worldObjectId,
         type,
         x: objectPosition.x,
-        y: objectPosition.y
+        y: objectPosition.y,
+        emoji: getRandomFoodEmojiForType(type)
     };
 
     return world.worldObjects[worldObjectId];
@@ -315,6 +317,7 @@ const createMatchStateForGame = (game) => {
         startedAtMs: Date.now(),
         isEnded: false,
         winnerId: null,
+        winnerName: null,
         reason: null
     };
 };
@@ -475,6 +478,7 @@ const getMatchStatePayload = (gameId) => {
         startedAtMs: world.matchState.startedAtMs,
         isEnded: world.matchState.isEnded,
         winnerId: world.matchState.winnerId,
+        winnerName: world.matchState.winnerName,
         reason: world.matchState.reason
     };
 };
@@ -490,7 +494,7 @@ const broadcastMatchState = (gameId) => {
 
 const resetMatchStateForGame = (game, world) => {
     world.matchState = createMatchStateForGame(game);
-    world.maxParticipantsSeen = 0;
+    world.maxHumanParticipantsSeen = 0;
     broadcastMatchState(game.id);
 };
 
@@ -543,6 +547,10 @@ const getTopScoringUsers = (gameId) => {
     };
 };
 
+const isBotUserId = (userId) => Boolean(botStateById[userId]);
+
+const getHumanUserIdsInGame = (gameId) => Object.keys(getUsersInGame(gameId)).filter((userId) => !isBotUserId(userId));
+
 const endMatch = (gameId, winnerId, reason) => {
     const world = getWorldForGame(gameId);
     if (!world || world.matchState.isEnded) {
@@ -551,6 +559,7 @@ const endMatch = (gameId, winnerId, reason) => {
 
     world.matchState.isEnded = true;
     world.matchState.winnerId = winnerId;
+    world.matchState.winnerName = winnerId ? (connectedUsers[winnerId]?.name ?? null) : null;
     world.matchState.reason = reason;
     broadcastMatchState(gameId);
 };
@@ -562,8 +571,6 @@ const evaluateMatchState = (gameId) => {
     }
 
     const usersInGame = getUsersInGame(gameId);
-    const userIdsInGame = Object.keys(usersInGame);
-    const userCountInGame = userIdsInGame.length;
 
     if (world.matchState.playingType === PLAYING_TYPES.TIMER) {
         const elapsedMs = Date.now() - world.matchState.startedAtMs;
@@ -587,16 +594,19 @@ const evaluateMatchState = (gameId) => {
     }
 
     if (world.matchState.playingType === PLAYING_TYPES.LAST_MAN_STANDING) {
-        if (world.maxParticipantsSeen < 2) {
+        // Bots share the connectedUsers map, but only human players decide this mode.
+        if (world.maxHumanParticipantsSeen < 2) {
             return;
         }
 
-        if (userCountInGame === 1) {
-            endMatch(gameId, userIdsInGame[0], 'lastManStanding');
+        const humanUserIdsInGame = getHumanUserIdsInGame(gameId);
+
+        if (humanUserIdsInGame.length === 1) {
+            endMatch(gameId, humanUserIdsInGame[0], 'lastManStanding');
             return;
         }
 
-        if (userCountInGame === 0) {
+        if (humanUserIdsInGame.length === 0) {
             endMatch(gameId, null, 'lastManStandingDraw');
         }
     }
@@ -931,7 +941,7 @@ const createWorldForGame = (game) => {
         frozenSnakeCorpses: {},
         nextCorpseId: 1,
         botIds: [],
-        maxParticipantsSeen: 0,
+        maxHumanParticipantsSeen: 0,
         matchState: createMatchStateForGame(game)
     };
 
@@ -1260,9 +1270,9 @@ const joinUserToGame = (socket, gameId, playerName) => {
         w: INITIAL_USER_WIDTH
     };
 
-    world.maxParticipantsSeen = Math.max(
-        world.maxParticipantsSeen,
-        Object.keys(getUsersInGame(gameId)).length
+    world.maxHumanParticipantsSeen = Math.max(
+        world.maxHumanParticipantsSeen,
+        getHumanUserIdsInGame(gameId).length
     );
     snakeTrailById[socket.id] = [{ x: startPosition.x, y: startPosition.y }];
 

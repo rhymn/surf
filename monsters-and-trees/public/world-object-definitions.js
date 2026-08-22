@@ -6,6 +6,22 @@ const WORLD_OBJECT_TYPES = {
     DOT: 'dot'
 };
 
+// Every edible object is drawn as one of these emojis, picked when it spawns.
+const FOOD_EMOJIS_BY_TYPE = {
+    [WORLD_OBJECT_TYPES.MONSTER]: ['🍉', '🍍', '🥭', '🥥', '🍈'],
+    [WORLD_OBJECT_TYPES.CLOUD]: ['🍌', '🍎', '🍏', '🍐', '🍊', '🍑'],
+    [WORLD_OBJECT_TYPES.DOT]: ['🍇', '🍒', '🍓', '🫐', '🥝']
+};
+
+const getRandomFoodEmojiForType = (type) => {
+    const emojisForType = FOOD_EMOJIS_BY_TYPE[type];
+    if (!emojisForType || emojisForType.length === 0) {
+        return null;
+    }
+
+    return emojisForType[Math.floor(Math.random() * emojisForType.length)];
+};
+
 const DEFAULT_WORLD_OBJECT_DEFINITIONS = {
     [WORLD_OBJECT_TYPES.TREE]: {
         size: 64,
@@ -60,7 +76,7 @@ const DEFAULT_WORLD_OBJECT_DEFINITIONS = {
         }
     },
     [WORLD_OBJECT_TYPES.DOT]: {
-        size: 6,
+        size: 16,
         spawnPadding: 0,
         collisionInset: 0,
         blocksSpawn: false,
@@ -79,6 +95,8 @@ const DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS = DEFAULT_WORLD_OBJECT_DEFINITIONS;
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         WORLD_OBJECT_TYPES,
+        FOOD_EMOJIS_BY_TYPE,
+        getRandomFoodEmojiForType,
         DEFAULT_WORLD_OBJECT_DEFINITIONS,
         DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS
     };
@@ -86,6 +104,8 @@ if (typeof module !== 'undefined' && module.exports) {
 
 if (typeof window !== 'undefined') {
     window.WORLD_OBJECT_TYPES = WORLD_OBJECT_TYPES;
+    window.FOOD_EMOJIS_BY_TYPE = FOOD_EMOJIS_BY_TYPE;
+    window.getRandomFoodEmojiForType = getRandomFoodEmojiForType;
     window.DEFAULT_WORLD_OBJECT_DEFINITIONS = DEFAULT_WORLD_OBJECT_DEFINITIONS;
     window.DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS = DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS;
 }

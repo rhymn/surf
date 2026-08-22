@@ -2,6 +2,8 @@ const socket = io();
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 canvas.style.display = 'none';
+// Stops iPadOS/iOS from scrolling, zooming or rubber-banding while steering.
+canvas.style.touchAction = 'none';
 
 const SPHERE_RADIUS = 12.5;
 let boardWidth = 0;
@@ -903,6 +905,31 @@ const applySteeringRotationFromKeys = () => {
     }
 };
 
+// Touch steering works like a floating joystick: the point where the finger
+// lands becomes the origin, and dragging away from it picks the direction.
+const TOUCH_STEER_DEADZONE_PX = 14;
+const TOUCH_STEER_MAX_RADIUS_PX = 70;
+
+let touchSteerAnchor = null;
+
+const applyTouchSteerVector = (deltaX, deltaY) => {
+    if (Math.hypot(deltaX, deltaY) < TOUCH_STEER_DEADZONE_PX) {
+        return;
+    }
+
+    if (steeringMode === STEERING_MODES.FREE) {
+        steeringAngle = normalizeAngle(Math.atan2(deltaY, deltaX));
+        return;
+    }
+
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        movementDirection = deltaX > 0 ? 'right' : 'left';
+        return;
+    }
+
+    movementDirection = deltaY > 0 ? 'down' : 'up';
+};
+
 const getSteeringLabel = () => STEERING_MODE_LABELS[steeringMode] ?? STEERING_MODE_LABELS[STEERING_MODES.CLASSIC];
 
 const getAngleForDirection = (direction) => {
@@ -1371,13 +1398,17 @@ socket.on(GAME_SOCKET_EVENTS.MATCH_STATE_UPDATE, (matchState) => {
         lobbyOverlay.style.display = 'flex';
         if (!hasShownMatchEndAlert) {
             if (matchState.winnerId) {
-                const winnerLabel = matchState.winnerId === localSocketId ? 'You' : matchState.winnerId;
+                const winnerLabel = matchState.winnerId === localSocketId
+                    ? 'You'
+                    : (matchState.winnerName || matchState.winnerId);
                 alert(`Game Over! Winner: ${winnerLabel}`);
             } else {
                 alert('Game Over! No single winner this round.');
             }
             hasShownMatchEndAlert = true;
         }
+    } else {
+        hasShownMatchEndAlert = false;
     }
 
     updateRejoinButtonVisibility();
@@ -1903,38 +1934,58 @@ const reverseMovementDirection = () => {
 };
 
 canvas.addEventListener('touchstart', (event) => {
-    if (!hasJoinedGame) {
+    if (!hasJoinedGame || isGameOver || isEaten) {
         return;
     }
 
-    if (!isGameOver && !isEaten) {
-        event.preventDefault();
+    event.preventDefault();
 
-        const touch = event.touches[0];
-        const touchX = touch.clientX;
-        const touchY = touch.clientY;
-
-        if (steeringMode === STEERING_MODES.FREE) {
-            setSteeringAngleTowardScreenPoint(touchX, touchY);
-            requestAnimationFrame(drawScene);
-            return;
-        }
-
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-
-        const diffX = touchX - centerX;
-        const diffY = touchY - centerY;
-
-        if (Math.abs(diffX) > Math.abs(diffY)) {
-            movementDirection = diffX > 0 ? 'right' : 'left';
-        } else {
-            movementDirection = diffY > 0 ? 'down' : 'up';
-        }
+    const touch = event.touches[0];
+    if (!touch) {
+        return;
     }
 
+    touchSteerAnchor = { x: touch.clientX, y: touch.clientY };
+
     requestAnimationFrame(drawScene);
-});
+}, { passive: false });
+
+canvas.addEventListener('touchmove', (event) => {
+    if (!hasJoinedGame || isGameOver || isEaten || !touchSteerAnchor) {
+        return;
+    }
+
+    event.preventDefault();
+
+    const touch = event.touches[0];
+    if (!touch) {
+        return;
+    }
+
+    let deltaX = touch.clientX - touchSteerAnchor.x;
+    let deltaY = touch.clientY - touchSteerAnchor.y;
+    const distance = Math.hypot(deltaX, deltaY);
+
+    // Let the anchor trail the finger so turning back stays responsive.
+    if (distance > TOUCH_STEER_MAX_RADIUS_PX) {
+        const pullIn = (distance - TOUCH_STEER_MAX_RADIUS_PX) / distance;
+        touchSteerAnchor.x += deltaX * pullIn;
+        touchSteerAnchor.y += deltaY * pullIn;
+        deltaX = touch.clientX - touchSteerAnchor.x;
+        deltaY = touch.clientY - touchSteerAnchor.y;
+    }
+
+    applyTouchSteerVector(deltaX, deltaY);
+
+    requestAnimationFrame(drawScene);
+}, { passive: false });
+
+const endTouchSteering = () => {
+    touchSteerAnchor = null;
+};
+
+canvas.addEventListener('touchend', endTouchSteering);
+canvas.addEventListener('touchcancel', endTouchSteering);
 
 canvas.addEventListener('mousemove', (event) => {
     if (!hasJoinedGame || isGameOver || isEaten || steeringMode !== STEERING_MODES.FREE) {
