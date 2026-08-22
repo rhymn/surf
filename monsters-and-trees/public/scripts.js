@@ -5,6 +5,11 @@ canvas.style.display = 'none';
 // Stops iPadOS/iOS from scrolling, zooming or rubber-banding while steering.
 canvas.style.touchAction = 'none';
 
+// The canvas backing store is scaled by devicePixelRatio, so all drawing and
+// camera math works in these CSS pixel dimensions instead.
+let viewportWidth = window.innerWidth;
+let viewportHeight = window.innerHeight;
+
 const SPHERE_RADIUS = 12.5;
 let boardWidth = 0;
 let boardHeight = 0;
@@ -207,6 +212,7 @@ let isEaten = false;
 let isBoostHeld = false;
 let isBoostLatched = false;
 let isBoosting = false;
+let isBoostLockedOut = false;
 let hasJoinedGame = false;
 let isInLobbyWhilePlaying = false;
 let localPlayerName = 'Anonymous';
@@ -233,6 +239,7 @@ const OBJECT_TYPE_MONSTER = GAME_WORLD_OBJECT_TYPES.MONSTER;
 const OBJECT_TYPE_CLOUD = GAME_WORLD_OBJECT_TYPES.CLOUD;
 const OBJECT_TYPE_THORN = GAME_WORLD_OBJECT_TYPES.THORN;
 const OBJECT_TYPE_DOT = GAME_WORLD_OBJECT_TYPES.DOT;
+const OBJECT_TYPE_PORTAL = GAME_WORLD_OBJECT_TYPES.PORTAL;
 let movementStep = baseStep;
 let localSnakeColor = 'red';
 let localSnakeHeadEmoji = '🐍';
@@ -472,7 +479,12 @@ const updateEnergyMeter = () => {
     energyPanel.classList.toggle('is-boosting', isBoosting);
     energyPanel.classList.toggle('is-depleted', currentEnergy < minEnergyToStartBoost);
     boostButton.classList.toggle('is-active', isBoosting);
-    boostButton.textContent = isBoostLatched ? 'Boost latched' : 'Hold to boost';
+
+    if (isBoostLockedOut) {
+        boostButton.textContent = 'Battery empty';
+    } else {
+        boostButton.textContent = isBoostLatched ? 'Boost latched' : 'Hold to boost';
+    }
 };
 
 let lastSentBoostState = false;
@@ -482,12 +494,16 @@ const refreshBoostState = () => {
     const hasChargeToBoost = isBoosting ? currentEnergy > 0 : currentEnergy >= minEnergyToStartBoost;
     const canControlSnake = hasJoinedGame && !isPaused && !isGameOver && !isEaten;
 
-    // A latched boost ends when the battery runs out; a held one resumes once recharged.
-    if (isBoostLatched && (!hasChargeToBoost || !canControlSnake)) {
+    // Running dry cuts boost off for good: refuelling alone must not switch it back on.
+    if (!hasChargeToBoost && (isBoosting || isBoostHeld || isBoostLatched)) {
+        isBoostLockedOut = true;
+    }
+
+    if (isBoostLatched && (isBoostLockedOut || !canControlSnake)) {
         isBoostLatched = false;
     }
 
-    isBoosting = (isBoostHeld || isBoostLatched) && hasChargeToBoost && canControlSnake;
+    isBoosting = (isBoostHeld || isBoostLatched) && hasChargeToBoost && canControlSnake && !isBoostLockedOut;
     movementStep = isBoosting ? baseStep * boostMultiplier : baseStep;
 
     if (isBoosting !== lastSentBoostState) {
@@ -500,10 +516,17 @@ const refreshBoostState = () => {
 
 const setBoostHeld = (isHeld) => {
     isBoostHeld = Boolean(isHeld);
+
+    // Only releasing the control arms boost again, so key auto-repeat cannot revive it.
+    if (!isBoostHeld) {
+        isBoostLockedOut = false;
+    }
+
     refreshBoostState();
 };
 
 const toggleBoostLatch = () => {
+    isBoostLockedOut = false;
     isBoostLatched = !isBoostLatched;
     refreshBoostState();
 };
@@ -511,6 +534,7 @@ const toggleBoostLatch = () => {
 const stopBoost = () => {
     isBoostHeld = false;
     isBoostLatched = false;
+    isBoostLockedOut = false;
     refreshBoostState();
 };
 
@@ -954,8 +978,8 @@ const setSteeringAngleTowardScreenPoint = (screenX, screenY) => {
     }
 
     const headCenter = getSnakeHeadCenter();
-    const cameraOffsetX = canvas.width / 2 - snakeStates.mySnake.coordinates[0].x;
-    const cameraOffsetY = canvas.height / 2 - snakeStates.mySnake.coordinates[0].y;
+    const cameraOffsetX = viewportWidth / 2 - snakeStates.mySnake.coordinates[0].x;
+    const cameraOffsetY = viewportHeight / 2 - snakeStates.mySnake.coordinates[0].y;
     const headScreenX = headCenter.x + cameraOffsetX;
     const headScreenY = headCenter.y + cameraOffsetY;
 
@@ -1602,6 +1626,19 @@ socket.on(GAME_SOCKET_EVENTS.SET_START_POSITION, (position) => {
     drawScene();
 });
 
+socket.on(GAME_SOCKET_EVENTS.TELEPORTED, (position) => {
+    if (typeof position?.x !== 'number' || typeof position?.y !== 'number') {
+        return;
+    }
+
+    // The body collapses onto the exit so it does not stretch back to the portal.
+    snakeStates.mySnake.coordinates = snakeStates.mySnake.coordinates.map(() => ({
+        x: position.x,
+        y: position.y
+    }));
+    drawScene();
+});
+
 socket.on(GAME_SOCKET_EVENTS.YOU_WERE_EATEN, () => {
     if (isGameOver || isEaten) {
         return;
@@ -1788,6 +1825,7 @@ const getFoodEmojiSprite = (emoji, size, quality) => {
         spriteContext.fill();
     }
 
+    spriteContext.fillStyle = 'black'; // Reset fillStyle before drawing text to avoid gradient bleeding
     spriteContext.font = `${Math.round(spriteSize * 0.9)}px ${EMOJI_FONT_STACK}`;
     spriteContext.textAlign = 'center';
     spriteContext.textBaseline = 'middle';
@@ -1797,6 +1835,51 @@ const getFoodEmojiSprite = (emoji, size, quality) => {
     foodEmojiSpriteCache.set(cacheKey, sprite);
     return sprite;
 };
+
+function drawPortalSwirl(worldObject, size) {
+    const radius = size / 2;
+    const centerX = worldObject.x + radius;
+    const centerY = worldObject.y + radius;
+
+    ctx.save();
+    ctx.translate(centerX, centerY);
+    ctx.rotate((performance.now() / 700) % (Math.PI * 2));
+
+    const glow = ctx.createRadialGradient(0, 0, radius * 0.1, 0, 0, radius);
+    glow.addColorStop(0, 'rgba(224, 213, 255, 0.95)');
+    glow.addColorStop(0.55, 'rgba(124, 58, 237, 0.6)');
+    glow.addColorStop(1, 'rgba(46, 16, 101, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = 'rgba(240, 232, 255, 0.9)';
+    ctx.lineWidth = Math.max(1.5, radius * 0.12);
+    ctx.lineCap = 'round';
+
+    const armCount = 2;
+    const stepsPerArm = 36;
+    for (let arm = 0; arm < armCount; arm++) {
+        ctx.beginPath();
+        for (let step = 0; step <= stepsPerArm; step++) {
+            const progress = step / stepsPerArm;
+            const angle = (arm / armCount) * Math.PI * 2 + progress * Math.PI * 2.2;
+            const spiralRadius = radius * (0.12 + progress * 0.82);
+            const x = Math.cos(angle) * spiralRadius;
+            const y = Math.sin(angle) * spiralRadius;
+
+            if (step === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        }
+        ctx.stroke();
+    }
+
+    ctx.restore();
+}
 
 function drawWorldObjects() {
     for (const worldObjectId in worldObjects) {
@@ -1808,6 +1891,11 @@ function drawWorldObjects() {
         }
 
         if (worldObject.type === OBJECT_TYPE_TREE) {
+            continue;
+        }
+
+        if (worldObject.type === OBJECT_TYPE_PORTAL) {
+            drawPortalSwirl(worldObject, worldObjectDefinition.size);
             continue;
         }
 
@@ -1850,7 +1938,7 @@ function drawMinimap() {
     const minimapWidth = boardWidth * scale;
     const minimapHeight = boardHeight * scale;
     const originX = MINIMAP_MARGIN;
-    const originY = canvas.height - minimapHeight - MINIMAP_MARGIN;
+    const originY = viewportHeight - minimapHeight - MINIMAP_MARGIN;
 
     ctx.save();
     ctx.globalAlpha = 0.8;
@@ -1866,6 +1954,12 @@ function drawMinimap() {
         const worldObjectDefinition = worldObjectDefinitions[worldObject.type];
 
         if (!worldObjectDefinition) {
+            continue;
+        }
+
+        if (worldObject.type === OBJECT_TYPE_PORTAL) {
+            ctx.fillStyle = '#a855f7';
+            ctx.fillRect(originX + worldObject.x * scale - 1, originY + worldObject.y * scale - 1, 3.5, 3.5);
             continue;
         }
 
@@ -1916,10 +2010,10 @@ function drawScene() {
         return;
     }
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, viewportWidth, viewportHeight);
     ctx.save();
 
-    ctx.translate(canvas.width / 2 - snakeStates.mySnake.coordinates[0].x, canvas.height / 2 - snakeStates.mySnake.coordinates[0].y);
+    ctx.translate(viewportWidth / 2 - snakeStates.mySnake.coordinates[0].x, viewportHeight / 2 - snakeStates.mySnake.coordinates[0].y);
 
     drawBackground();
 
@@ -2502,8 +2596,16 @@ function updatePosition() {
 }
 
 function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const dpr = window.devicePixelRatio || 1;
+    viewportWidth = window.innerWidth;
+    viewportHeight = window.innerHeight;
+    canvas.width = viewportWidth * dpr;
+    canvas.height = viewportHeight * dpr;
+    canvas.style.width = `${viewportWidth}px`;
+    canvas.style.height = `${viewportHeight}px`;
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
     drawScene();
 }
 

@@ -49,8 +49,10 @@ describe('voice chat signaling', () => {
     });
 
     test('advertises capabilities with ICE servers on connect', async () => {
-        const socket = await connectClient(serverUrl);
-        const capabilitiesPromise = waitForEvent(socket, RTC_EVENTS.CAPABILITIES);
+        let capabilitiesPromise = null;
+        const socket = await connectClient(serverUrl, (pendingSocket) => {
+            capabilitiesPromise = waitForEvent(pendingSocket, RTC_EVENTS.CAPABILITIES);
+        });
         sockets.push(socket);
 
         const capabilities = await capabilitiesPromise;

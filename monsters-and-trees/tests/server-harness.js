@@ -72,12 +72,16 @@ const stopServerProcess = (serverProcess) => {
     });
 };
 
-const connectClient = (serverUrl) => {
+// onSocketCreated runs before the connection settles, so listeners registered
+// there cannot miss events the server emits immediately on connect.
+const connectClient = (serverUrl, onSocketCreated) => {
     const socket = io(serverUrl, {
         transports: ['websocket'],
         forceNew: true,
         reconnection: false
     });
+
+    onSocketCreated?.(socket);
 
     return new Promise((resolve, reject) => {
         const timeoutId = setTimeout(() => {

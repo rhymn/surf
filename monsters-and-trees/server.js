@@ -88,6 +88,7 @@ const INITIAL_MONSTER_COUNT = 120;
 const INITIAL_CLOUD_COUNT = 48;
 const INITIAL_DOT_COUNT = 220;
 const INITIAL_THORN_COUNT = 10;
+const INITIAL_PORTAL_COUNT = 8;
 const INITIAL_USER_SCORE = 0;
 const PUBLIC_DIRECTORY = 'public';
 const WORLD_OBJECT_TYPE_DEFINITIONS = JSON.parse(JSON.stringify(DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS));
@@ -125,7 +126,8 @@ const MAP_DEFINITIONS = {
         monsterCount: INITIAL_MONSTER_COUNT,
         cloudCount: INITIAL_CLOUD_COUNT,
         dotCount: INITIAL_DOT_COUNT,
-        thornCount: INITIAL_THORN_COUNT
+        thornCount: INITIAL_THORN_COUNT,
+        portalCount: INITIAL_PORTAL_COUNT
     },
     [MAP_TYPES.FOREST]: {
         name: 'Dense Forest',
@@ -135,7 +137,8 @@ const MAP_DEFINITIONS = {
         monsterCount: 96,
         cloudCount: 36,
         dotCount: 160,
-        thornCount: 6
+        thornCount: 6,
+        portalCount: 10
     },
     [MAP_TYPES.THORNS]: {
         name: 'Thorn Field',
@@ -145,7 +148,8 @@ const MAP_DEFINITIONS = {
         monsterCount: 140,
         cloudCount: 40,
         dotCount: 180,
-        thornCount: 28
+        thornCount: 28,
+        portalCount: 12
     }
 };
 
@@ -317,6 +321,10 @@ const populateWorldObjects = (world) => {
 
     for (let i = 0; i < mapDefinition.thornCount; i++) {
         addWorldObject(world, WORLD_OBJECT_TYPES.THORN);
+    }
+
+    for (let i = 0; i < (mapDefinition.portalCount ?? 0); i++) {
+        addWorldObject(world, WORLD_OBJECT_TYPES.PORTAL);
     }
 };
 
@@ -660,6 +668,16 @@ const updateSnakeTrail = (snakeId, headCoordinates, length) => {
     nextTrail.splice(safeLength);
 };
 
+// Portals drop the snake at a fresh safe spot; the trail collapses so the body
+// follows the head out instead of stretching across the map.
+const teleportUserThroughPortal = (world, userId, user) => {
+    const exitPosition = getSafeStartPosition(world);
+    user.coordinates = { x: exitPosition.x, y: exitPosition.y };
+    snakeTrailById[userId] = [{ x: exitPosition.x, y: exitPosition.y }];
+
+    return exitPosition;
+};
+
 const getSnakeTrailForId = (snakeId) => {
     const snakeTrail = snakeTrailById[snakeId];
     if (snakeTrail && snakeTrail.length > 0) {
@@ -995,6 +1013,11 @@ const applyWorldObjectHitForBot = (world, botId, worldObjectId) => {
 
     if (worldObjectDefinition.effects.instantLose) {
         resetBotUser(botId);
+        return { usersChanged: true, worldObjectsChanged: false };
+    }
+
+    if (worldObject.type === WORLD_OBJECT_TYPES.PORTAL) {
+        teleportUserThroughPortal(world, botId, botUser);
         return { usersChanged: true, worldObjectsChanged: false };
     }
 
@@ -1626,6 +1649,13 @@ io.on('connection', (socket) => {
         );
         const worldObjectRect = getWorldObjectRect(worldObject);
         if (!rectanglesOverlap(hitterHitbox, worldObjectRect)) {
+            return;
+        }
+
+        if (worldObject.type === WORLD_OBJECT_TYPES.PORTAL) {
+            const exitPosition = teleportUserThroughPortal(world, socket.id, hitterUser);
+            socket.emit(SOCKET_EVENTS.TELEPORTED, exitPosition);
+            broadcastUsers(gameId);
             return;
         }
 

@@ -3,7 +3,8 @@ const WORLD_OBJECT_TYPES = {
     MONSTER: 'monster',
     CLOUD: 'cloud',
     THORN: 'thorn',
-    DOT: 'dot'
+    DOT: 'dot',
+    PORTAL: 'portal'
 };
 
 // Food quality drives the reward. AIP (autoimmune protocol) excludes grains,
@@ -256,6 +257,20 @@ const DEFAULT_WORLD_OBJECT_DEFINITIONS = {
             instantLose: false,
             growthDelta: 1,
             scoreDelta: 1,
+            widthDelta: 0
+        }
+    },
+    // Entering a portal teleports the snake elsewhere; the portal itself stays put.
+    [WORLD_OBJECT_TYPES.PORTAL]: {
+        size: 56,
+        spawnPadding: 24,
+        collisionInset: 14,
+        blocksSpawn: true,
+        removeOnHit: false,
+        effects: {
+            instantLose: false,
+            growthDelta: 0,
+            scoreDelta: 0,
             widthDelta: 0
         }
     }

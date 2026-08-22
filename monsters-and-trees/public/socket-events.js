@@ -24,6 +24,7 @@ const GAME_SOCKET_EVENT_NAMES = {
     UPDATE_COORDINATES_OF_HEAD: 'updateCoordinatesOfHead',
     SEND_COORDINATES_OF_HEAD: 'sendCoordinatesOfHead',
     WORLD_OBJECT_HIT: 'worldObjectHit',
+    TELEPORTED: 'teleported',
     SNAKE_EATEN: 'snakeEaten',
     YOU_WERE_EATEN: 'youWereEaten',
     PLAYER_SELF_DESTRUCTED: 'playerSelfDestructed',
