@@ -8,31 +8,36 @@ const SERVER_START_TIMEOUT_MS = 12_000;
 const EVENT_TIMEOUT_MS = 8_000;
 
 const startTestServer = async (extraEnv = {}) => {
-    const port = 4400 + Math.floor(Math.random() * 400);
+    // PORT=0 lets the OS pick a free port, so parallel suites cannot collide.
     const serverProcess = spawn('node', ['server.js'], {
         cwd: path.resolve(__dirname, '..'),
-        env: { ...process.env, PORT: `${port}`, ...extraEnv },
+        env: { ...process.env, PORT: '0', ...extraEnv },
         stdio: ['ignore', 'pipe', 'pipe']
     });
 
-    await new Promise((resolve, reject) => {
+    const port = await new Promise((resolve, reject) => {
+        let startupOutput = '';
+
         const timeoutId = setTimeout(() => {
             cleanup();
-            reject(new Error('Timed out waiting for server to start'));
+            reject(new Error(`Timed out waiting for server to start. Output: ${startupOutput}`));
         }, SERVER_START_TIMEOUT_MS);
 
         const onData = (chunk) => {
-            if (`${chunk}`.includes('Server is running on')) {
+            startupOutput += `${chunk}`;
+            const listeningPort = startupOutput.match(/Server is running on http:\/\/localhost:(\d+)/)?.[1];
+
+            if (listeningPort) {
                 clearTimeout(timeoutId);
                 cleanup();
-                resolve();
+                resolve(Number(listeningPort));
             }
         };
 
         const onExit = (code) => {
             clearTimeout(timeoutId);
             cleanup();
-            reject(new Error(`Server exited before startup (code=${code})`));
+            reject(new Error(`Server exited before startup (code=${code}). Output: ${startupOutput}`));
         };
 
         const cleanup = () => {
