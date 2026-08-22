@@ -8,27 +8,38 @@ let boardWidth = 0;
 let boardHeight = 0;
 let currentMapType = 'classic';
 
+// Ground texture is drawn once into a small tile and repeated across the world.
+// A full-world canvas would be ~40M pixels on the large maps, which exceeds the
+// canvas area limit on iPadOS/iOS Safari and silently renders blank.
+const TEXTURE_TILE_SIZE = 512;
+const TEXTURE_REFERENCE_AREA = 1600 * 1600;
+
+// Keeps texture detail per square pixel constant regardless of map size.
+const scaleCountToArea = (baseCount, width, height) => {
+    return Math.max(1, Math.round(baseCount * ((width * height) / TEXTURE_REFERENCE_AREA)));
+};
+
 const MAPS = {
     classic: {
         label: 'Classic Plains',
         description: 'Open plains with a balanced mix of objects.',
         size: '6400 × 6400',
         highlights: ['Many trees', 'Lots of monsters, clouds, and dots', 'Scattered thorns'],
-        respawnRule: 'Edibles always respawn elsewhere — food supply stays constant.',
+        respawnRule: 'Food behaviour is chosen per game — moved to a new spot or removed.',
         drawBackground(ctx, width, height) {
             ctx.fillStyle = '#dbeafe';
             ctx.fillRect(0, 0, width, height);
         },
         drawTexture(octx, width, height, r) {
             // Ground variation patches
-            for (let i = 0; i < 220; i++) {
+            for (let i = 0, n = scaleCountToArea(220, width, height); i < n; i++) {
                 octx.fillStyle = `rgba(160,130,70,${0.04 + r() * 0.07})`;
                 octx.beginPath();
                 octx.ellipse(r() * width, r() * height, 8 + r() * 22, 4 + r() * 10, r() * Math.PI, 0, Math.PI * 2);
                 octx.fill();
             }
             // Grass tufts (V-shapes)
-            for (let i = 0; i < 600; i++) {
+            for (let i = 0, n = scaleCountToArea(600, width, height); i < n; i++) {
                 const x = r() * width;
                 const y = r() * height;
                 const size = 4 + r() * 9;
@@ -38,7 +49,7 @@ const MAPS = {
                 octx.beginPath(); octx.moveTo(x, y); octx.lineTo(x + size * 0.45, y - size); octx.stroke();
             }
             // Wildflowers
-            for (let i = 0; i < 250; i++) {
+            for (let i = 0, n = scaleCountToArea(250, width, height); i < n; i++) {
                 octx.fillStyle = `hsla(${40 + r() * 60},90%,65%,${0.25 + r() * 0.35})`;
                 octx.beginPath();
                 octx.arc(r() * width, r() * height, 1.5 + r() * 2.5, 0, Math.PI * 2);
@@ -51,7 +62,7 @@ const MAPS = {
         description: 'Dense woodland with lots of trees and scarce food.',
         size: '7200 × 5600',
         highlights: ['120 trees', 'Plenty of monsters, clouds, and dots', 'Rare thorns'],
-        respawnRule: '50 % chance to respawn — food is naturally scarce under the canopy.',
+        respawnRule: 'Food behaviour is chosen per game — moved to a new spot or removed.',
         drawBackground(ctx, width, height) {
             const gradient = ctx.createLinearGradient(0, 0, 0, height);
             gradient.addColorStop(0, '#e8f5e2');
@@ -61,14 +72,14 @@ const MAPS = {
         },
         drawTexture(octx, width, height, r) {
             // Dappled light blobs
-            for (let i = 0; i < 160; i++) {
+            for (let i = 0, n = scaleCountToArea(160, width, height); i < n; i++) {
                 octx.fillStyle = `rgba(255,255,170,${0.05 + r() * 0.09})`;
                 octx.beginPath();
                 octx.arc(r() * width, r() * height, 20 + r() * 65, 0, Math.PI * 2);
                 octx.fill();
             }
             // Fallen leaf ellipses
-            for (let i = 0; i < 420; i++) {
+            for (let i = 0, n = scaleCountToArea(420, width, height); i < n; i++) {
                 const g = 80 + Math.floor(r() * 65);
                 octx.fillStyle = `rgba(20,${g},20,${0.09 + r() * 0.17})`;
                 octx.save();
@@ -80,7 +91,7 @@ const MAPS = {
                 octx.restore();
             }
             // Forest-floor speckles
-            for (let i = 0; i < 450; i++) {
+            for (let i = 0, n = scaleCountToArea(450, width, height); i < n; i++) {
                 octx.fillStyle = `rgba(0,55,0,${0.07 + r() * 0.12})`;
                 octx.beginPath();
                 octx.arc(r() * width, r() * height, 0.8 + r() * 2.5, 0, Math.PI * 2);
@@ -93,7 +104,7 @@ const MAPS = {
         description: 'Dangerous thorn field where every meal could be your last.',
         size: '6000 × 6000',
         highlights: ['Many thorns', 'Heavy food spawns', 'Few trees'],
-        respawnRule: 'Edibles never respawn — the world depletes over time.',
+        respawnRule: 'Food behaviour is chosen per game — moved to a new spot or removed.',
         drawBackground(ctx, width, height) {
             const gradient = ctx.createLinearGradient(0, 0, width, height);
             gradient.addColorStop(0, '#f3e8ff');
@@ -104,7 +115,7 @@ const MAPS = {
         },
         drawTexture(octx, width, height, r) {
             // Cracked-earth line network
-            for (let i = 0; i < 240; i++) {
+            for (let i = 0, n = scaleCountToArea(240, width, height); i < n; i++) {
                 const x = r() * width;
                 const y = r() * height;
                 const len = 8 + r() * 22;
@@ -120,7 +131,7 @@ const MAPS = {
                 }
             }
             // Thorn spike triangles
-            for (let i = 0; i < 260; i++) {
+            for (let i = 0, n = scaleCountToArea(260, width, height); i < n; i++) {
                 const rv = Math.floor(75 + r() * 65);
                 octx.fillStyle = `rgba(${rv},15,75,${0.10 + r() * 0.18})`;
                 const sz = 3 + r() * 10;
@@ -132,7 +143,7 @@ const MAPS = {
                 octx.restore();
             }
             // Dry speckles
-            for (let i = 0; i < 350; i++) {
+            for (let i = 0, n = scaleCountToArea(350, width, height); i < n; i++) {
                 octx.fillStyle = `rgba(140,55,75,${0.07 + r() * 0.12})`;
                 octx.beginPath();
                 octx.arc(r() * width, r() * height, 0.8 + r() * 2.5, 0, Math.PI * 2);
@@ -151,18 +162,24 @@ function makeSeededRandom(seed) {
     };
 }
 
-let mapTextureCanvas = null;
+let mapTextureTile = null;
+let mapTexturePattern = null;
 
-function generateMapTexture(mapType, width, height) {
+function generateMapTextureTile(mapType) {
     const offscreen = document.createElement('canvas');
-    offscreen.width = width;
-    offscreen.height = height;
+    offscreen.width = TEXTURE_TILE_SIZE;
+    offscreen.height = TEXTURE_TILE_SIZE;
     const octx = offscreen.getContext('2d');
     const r = makeSeededRandom(0xdeadbeef);
 
-    MAPS[mapType]?.drawTexture?.(octx, width, height, r);
+    MAPS[mapType]?.drawTexture?.(octx, TEXTURE_TILE_SIZE, TEXTURE_TILE_SIZE, r);
 
     return offscreen;
+}
+
+function updateMapTexture(mapType) {
+    mapTextureTile = generateMapTextureTile(mapType);
+    mapTexturePattern = mapTextureTile ? ctx.createPattern(mapTextureTile, 'repeat') : null;
 }
 
 let movementDirection = null;
@@ -1385,7 +1402,7 @@ socket.on(GAME_SOCKET_EVENTS.SET_VIRTUAL_DIMENSIONS, (virtualDimensions) => {
     if (virtualDimensions.mapType) {
         currentMapType = virtualDimensions.mapType;
     }
-    mapTextureCanvas = generateMapTexture(currentMapType, boardWidth, boardHeight);
+    updateMapTexture(currentMapType);
     drawScene();
 });
 
@@ -1605,6 +1622,64 @@ const getWorldObjectHitbox = (worldObject, worldObjectDefinition) => {
     };
 };
 
+const MINIMAP_MAX_SIZE = 150;
+const MINIMAP_MARGIN = 12;
+
+function drawMinimap() {
+    if (!boardWidth || !boardHeight) {
+        return;
+    }
+
+    const scale = MINIMAP_MAX_SIZE / Math.max(boardWidth, boardHeight);
+    const minimapWidth = boardWidth * scale;
+    const minimapHeight = boardHeight * scale;
+    const originX = MINIMAP_MARGIN;
+    const originY = canvas.height - minimapHeight - MINIMAP_MARGIN;
+
+    ctx.save();
+    ctx.globalAlpha = 0.8;
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(originX, originY, minimapWidth, minimapHeight);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(originX, originY, minimapWidth, minimapHeight);
+
+    for (const worldObjectId in worldObjects) {
+        const worldObject = worldObjects[worldObjectId];
+        const worldObjectDefinition = worldObjectDefinitions[worldObject.type];
+
+        if (!worldObjectDefinition) {
+            continue;
+        }
+
+        ctx.fillStyle = worldObjectDefinition.effects.instantLose ? '#ef4444' : '#facc15';
+        ctx.fillRect(originX + worldObject.x * scale, originY + worldObject.y * scale, 1.5, 1.5);
+    }
+
+    for (const snakeId in snakeStates) {
+        if (snakeId === 'mySnake') {
+            continue;
+        }
+
+        const otherHead = snakeStates[snakeId].coordinates[0];
+        if (!otherHead) {
+            continue;
+        }
+
+        ctx.fillStyle = snakeStates[snakeId].color ?? '#ffffff';
+        ctx.fillRect(originX + otherHead.x * scale - 1.5, originY + otherHead.y * scale - 1.5, 3, 3);
+    }
+
+    const myHead = snakeStates.mySnake.coordinates[0];
+    if (myHead) {
+        ctx.fillStyle = '#22d3ee';
+        ctx.fillRect(originX + myHead.x * scale - 2, originY + myHead.y * scale - 2, 4, 4);
+    }
+
+    ctx.restore();
+}
+
 function drawBackground() {
     const map = MAPS[currentMapType];
     if (map) {
@@ -1614,8 +1689,9 @@ function drawBackground() {
         ctx.fillRect(0, 0, boardWidth, boardHeight);
     }
 
-    if (mapTextureCanvas) {
-        ctx.drawImage(mapTextureCanvas, 0, 0);
+    if (mapTexturePattern) {
+        ctx.fillStyle = mapTexturePattern;
+        ctx.fillRect(0, 0, boardWidth, boardHeight);
     }
 }
 
@@ -1648,6 +1724,8 @@ function drawScene() {
     }
 
     ctx.restore();
+
+    drawMinimap();
 }
 
 let movementIntervalId;

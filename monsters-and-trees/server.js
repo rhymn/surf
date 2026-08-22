@@ -11,11 +11,10 @@ const {
 } = require('./public/world-object-definitions.js');
 const {
     COLLISION_RESPONSES,
-    FOOD_HIT_BEHAVIORS,
     DEFAULT_FOOD_HIT_BEHAVIOR,
+    FOOD_HIT_BEHAVIORS,
     INITIAL_USER_LENGTH,
     INITIAL_USER_WIDTH,
-    resolveCollisionResponse,
     toSafeCollisionResponse,
     toSafeFoodHitBehavior,
     rectanglesOverlap,
@@ -44,8 +43,6 @@ const ANIMAL_HEAD_EMOJIS = [
     '🐕‍🦺', '🐈', '🐈‍⬛', '🪶', '🐓', '🦃', '🦤', '🦚', '🦜', '🪽', '🦢', '🦩',
     '🕊️', '🐇', '🦝', '🦨', '🦡', '🦫', '🦦', '🦥', '🐁', '🐀', '🐿️', '🦔'
 ];
-const VIRTUAL_WIDTH = 1600;
-const VIRTUAL_HEIGHT = 1600;
 const MOVEMENT_BASE_STEP = 2;
 const MOVEMENT_TICKS_PER_SECOND = 30;
 const MOVEMENT_BOOST_MULTIPLIER = 2;
@@ -53,6 +50,13 @@ const RULE_PLAYER_COLLISION_ENDS_GAME = true;
 const RULE_SNAKE_SEGMENT_SIZE = 6;
 const RULE_SNAKE_HEAD_SIZE_MULTIPLIER = 2;
 const RULE_PLAYER_COLLISION_SIZE = 6;
+
+// Clients report their own head position, so the server caps how far a snake may
+// travel between two reports. Generous enough to absorb lag spikes and batching.
+const MOVEMENT_LAG_TOLERANCE_TICKS = 10;
+const MAX_MOVEMENT_DISTANCE_PER_UPDATE =
+    MOVEMENT_BASE_STEP * MOVEMENT_BOOST_MULTIPLIER * MOVEMENT_LAG_TOLERANCE_TICKS;
+
 const PLAYING_TYPES = {
     TIMER: 'timer',
     FIRST_TO_SCORE: 'firstTo1000',
@@ -78,7 +82,7 @@ const INITIAL_THORN_COUNT = 10;
 const INITIAL_USER_SCORE = 0;
 const PUBLIC_DIRECTORY = 'public';
 const WORLD_OBJECT_TYPE_DEFINITIONS = JSON.parse(JSON.stringify(DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS));
-const { getCollisionInsetForObject, getWorldObjectRect } = createWorldObjectHelpers(WORLD_OBJECT_TYPE_DEFINITIONS);
+const { getWorldObjectRect } = createWorldObjectHelpers(WORLD_OBJECT_TYPE_DEFINITIONS);
 
 const app = express();
 const server = http.createServer(app);
@@ -148,10 +152,6 @@ function getRandomAnimalHeadEmoji() {
     return ANIMAL_HEAD_EMOJIS[randomIndex];
 }
 
-let boardWidth = VIRTUAL_WIDTH;
-let boardHeight = VIRTUAL_HEIGHT;
-let currentMapType = DEFAULT_MAP_TYPE;
-
 const getRandomPosition = (width, height, size = RULE_SNAKE_SEGMENT_SIZE) => {
     const maxX = Math.max(0, width - size);
     const maxY = Math.max(0, height - size);
@@ -161,32 +161,71 @@ const getRandomPosition = (width, height, size = RULE_SNAKE_SEGMENT_SIZE) => {
     };
 }
 
-let worldObjects = {};
-let nextWorldObjectId = 1;
-let frozenSnakeCorpses = {};
-let nextCorpseId = 1;
+let connectedUsers = {};
+let botStateById = {};
+let snakeTrailById = {};
+let activeGamesById = {};
+let socketGameById = {};
+const gameWorldsById = {};
+const rtcSignalingState = createRtcSignalingState();
 
-const addWorldObject = (type, position) => {
+app.use(express.static(PUBLIC_DIRECTORY));
+
+const toSafeMapType = (mapType) => {
+    if (Object.values(MAP_TYPES).includes(mapType)) {
+        return mapType;
+    }
+
+    return DEFAULT_MAP_TYPE;
+};
+
+const getMapDefinition = (mapType) => {
+    const safeMapType = toSafeMapType(mapType);
+    return MAP_DEFINITIONS[safeMapType];
+};
+
+const clampPosition = (value, min, max) => {
+    return Math.min(Math.max(value, min), max);
+};
+
+// ---------------------------------------------------------------------------
+// Per-game world state
+// ---------------------------------------------------------------------------
+
+const getWorldForGame = (gameId) => gameWorldsById[gameId];
+
+const addWorldObject = (world, type, position) => {
     const objectDefinition = WORLD_OBJECT_TYPE_DEFINITIONS[type];
-    if (!objectDefinition) {
+    if (!world || !objectDefinition) {
         return null;
     }
 
-    const worldObjectId = `${type}-${nextWorldObjectId}`;
-    nextWorldObjectId += 1;
+    const worldObjectId = `${type}-${world.nextWorldObjectId}`;
+    world.nextWorldObjectId += 1;
 
-    const objectPosition = position ?? getRandomPosition(boardWidth, boardHeight, objectDefinition.size);
-    worldObjects[worldObjectId] = {
+    const objectPosition = position ?? getRandomPosition(world.boardWidth, world.boardHeight, objectDefinition.size);
+    world.worldObjects[worldObjectId] = {
         id: worldObjectId,
         type,
         x: objectPosition.x,
         y: objectPosition.y
     };
 
-    return worldObjects[worldObjectId];
+    return world.worldObjects[worldObjectId];
 };
 
-const collidesWithBlockingObject = (position, padding = 0) => {
+const relocateWorldObject = (world, worldObject) => {
+    const objectDefinition = WORLD_OBJECT_TYPE_DEFINITIONS[worldObject?.type];
+    if (!world || !worldObject || !objectDefinition) {
+        return;
+    }
+
+    const nextPosition = getRandomPosition(world.boardWidth, world.boardHeight, objectDefinition.size);
+    worldObject.x = nextPosition.x;
+    worldObject.y = nextPosition.y;
+};
+
+const collidesWithBlockingObject = (world, position, padding = 0) => {
     const snakeRect = {
         x: position.x - padding,
         y: position.y - padding,
@@ -194,8 +233,8 @@ const collidesWithBlockingObject = (position, padding = 0) => {
         height: RULE_SNAKE_SEGMENT_SIZE + padding * 2
     };
 
-    for (const worldObjectId in worldObjects) {
-        const worldObject = worldObjects[worldObjectId];
+    for (const worldObjectId in world.worldObjects) {
+        const worldObject = world.worldObjects[worldObjectId];
         const objectDefinition = WORLD_OBJECT_TYPE_DEFINITIONS[worldObject.type];
 
         if (!objectDefinition.blocksSpawn) {
@@ -211,9 +250,9 @@ const collidesWithBlockingObject = (position, padding = 0) => {
     return false;
 };
 
-const getSafeStartPosition = (width, height) => {
-    const maxX = Math.max(0, width - RULE_SNAKE_SEGMENT_SIZE);
-    const maxY = Math.max(0, height - RULE_SNAKE_SEGMENT_SIZE);
+const getSafeStartPosition = (world) => {
+    const maxX = Math.max(0, world.boardWidth - RULE_SNAKE_SEGMENT_SIZE);
+    const maxY = Math.max(0, world.boardHeight - RULE_SNAKE_SEGMENT_SIZE);
 
     for (let i = 0; i < MAX_SPAWN_ATTEMPTS; i++) {
         const candidate = {
@@ -221,7 +260,7 @@ const getSafeStartPosition = (width, height) => {
             y: Math.floor(Math.random() * (maxY + 1))
         };
 
-        if (!collidesWithBlockingObject(candidate)) {
+        if (!collidesWithBlockingObject(world, candidate)) {
             return candidate;
         }
     }
@@ -230,7 +269,7 @@ const getSafeStartPosition = (width, height) => {
     for (let y = 0; y <= maxY; y += scanStep) {
         for (let x = 0; x <= maxX; x += scanStep) {
             const candidate = { x, y };
-            if (!collidesWithBlockingObject(candidate)) {
+            if (!collidesWithBlockingObject(world, candidate)) {
                 return candidate;
             }
         }
@@ -239,89 +278,58 @@ const getSafeStartPosition = (width, height) => {
     return { x: 0, y: 0 };
 };
 
-const toSafeMapType = (mapType) => {
-    if (Object.values(MAP_TYPES).includes(mapType)) {
-        return mapType;
-    }
+const populateWorldObjects = (world) => {
+    const mapDefinition = getMapDefinition(world.mapType);
 
-    return DEFAULT_MAP_TYPE;
-};
-
-const getMapDefinition = (mapType) => {
-    const safeMapType = toSafeMapType(mapType);
-    return MAP_DEFINITIONS[safeMapType];
-};
-
-const applyMapToWorld = (mapType) => {
-    const safeMapType = toSafeMapType(mapType);
-    const mapDefinition = getMapDefinition(safeMapType);
-
-    currentMapType = safeMapType;
-    boardWidth = mapDefinition.width;
-    boardHeight = mapDefinition.height;
-    worldObjects = {};
-    nextWorldObjectId = 1;
-    frozenSnakeCorpses = {};
-    nextCorpseId = 1;
+    world.worldObjects = {};
+    world.nextWorldObjectId = 1;
+    world.frozenSnakeCorpses = {};
+    world.nextCorpseId = 1;
 
     for (let i = 0; i < mapDefinition.treeCount; i++) {
-        addWorldObject(WORLD_OBJECT_TYPES.TREE);
+        addWorldObject(world, WORLD_OBJECT_TYPES.TREE);
     }
 
     for (let i = 0; i < mapDefinition.monsterCount; i++) {
-        addWorldObject(WORLD_OBJECT_TYPES.MONSTER);
+        addWorldObject(world, WORLD_OBJECT_TYPES.MONSTER);
     }
 
     for (let i = 0; i < mapDefinition.cloudCount; i++) {
-        addWorldObject(WORLD_OBJECT_TYPES.CLOUD);
+        addWorldObject(world, WORLD_OBJECT_TYPES.CLOUD);
     }
 
     for (let i = 0; i < (mapDefinition.dotCount ?? 0); i++) {
-        addWorldObject(WORLD_OBJECT_TYPES.DOT);
+        addWorldObject(world, WORLD_OBJECT_TYPES.DOT);
     }
 
     for (let i = 0; i < mapDefinition.thornCount; i++) {
-        addWorldObject(WORLD_OBJECT_TYPES.THORN);
+        addWorldObject(world, WORLD_OBJECT_TYPES.THORN);
     }
 };
 
-applyMapToWorld(DEFAULT_MAP_TYPE);
-
-let connectedUsers = {};
-let botStateById = {};
-let snakeTrailById = {};
-let activeGamesById = {};
-let socketGameById = {};
-const rtcSignalingState = createRtcSignalingState();
-let maxParticipantsSeen = 0;
-let matchState = {
-    playingType: PLAYING_TYPE,
-    timerDurationSeconds: TIMER_DURATION_SECONDS,
-    scoreTarget: SCORE_TARGET,
-    startedAtMs: Date.now(),
-    isEnded: false,
-    winnerId: null,
-    reason: null
+const createMatchStateForGame = (game) => {
+    return {
+        playingType: game?.playingType ?? PLAYING_TYPE,
+        timerDurationSeconds: TIMER_DURATION_SECONDS,
+        scoreTarget: SCORE_TARGET,
+        startedAtMs: Date.now(),
+        isEnded: false,
+        winnerId: null,
+        reason: null
+    };
 };
 
-app.use(express.static(PUBLIC_DIRECTORY));
+const getUsersInGame = (gameId) => {
+    const usersForGame = {};
 
-const relocateWorldObject = (worldObject) => {
-    const objectDefinition = WORLD_OBJECT_TYPE_DEFINITIONS[worldObject?.type];
-    if (!worldObject || !objectDefinition) {
-        return;
+    for (const userId in connectedUsers) {
+        if (connectedUsers[userId]?.gameId === gameId) {
+            usersForGame[userId] = connectedUsers[userId];
+        }
     }
 
-    const nextPosition = getRandomPosition(boardWidth, boardHeight, objectDefinition.size);
-    worldObject.x = nextPosition.x;
-    worldObject.y = nextPosition.y;
+    return usersForGame;
 };
-
-const appendDotCoordinates = (coordinatesList) => {
-    for (let i = 0; i < coordinatesList.length; i++) {
-        addWorldObject(WORLD_OBJECT_TYPES.DOT, coordinatesList[i]);
-    }
-}
 
 const getRoomNameForGame = (gameId) => `game:${gameId}`;
 
@@ -411,56 +419,24 @@ const createGame = (
     return activeGamesById[gameId];
 };
 
-const removeUserFromCurrentGame = (socket) => {
-    const gameId = socketGameById[socket.id];
-    if (!gameId) {
-        return;
-    }
-
-    const roomName = getRoomNameForGame(gameId);
-    socket.leave(roomName);
-
-    if (connectedUsers[socket.id]) {
-        delete connectedUsers[socket.id];
-    }
-
-    if (snakeTrailById[socket.id]) {
-        delete snakeTrailById[socket.id];
-    }
-
-    const game = activeGamesById[gameId];
-    if (game) {
-        game.playerIds.delete(socket.id);
-    }
-
-    delete socketGameById[socket.id];
-    broadcastUsers(gameId);
-    broadcastActiveGames();
-};
-
-const getPlayingTypeConfig = () => {
-    return {
-        playingType: matchState.playingType,
-        timerDurationSeconds: matchState.timerDurationSeconds,
-        scoreTarget: matchState.scoreTarget
-    };
-};
-
 const getPlayingTypeConfigForGame = (gameId) => {
     const game = activeGamesById[gameId];
+    const world = getWorldForGame(gameId);
+
     return {
-        playingType: game?.playingType ?? matchState.playingType,
-        timerDurationSeconds: matchState.timerDurationSeconds,
-        scoreTarget: matchState.scoreTarget
+        playingType: game?.playingType ?? PLAYING_TYPE,
+        timerDurationSeconds: world?.matchState.timerDurationSeconds ?? TIMER_DURATION_SECONDS,
+        scoreTarget: world?.matchState.scoreTarget ?? SCORE_TARGET
     };
 };
 
 const getMapConfigForGame = (gameId) => {
     const game = activeGamesById[gameId];
-    const mapDefinition = getMapDefinition(game?.mapType ?? currentMapType);
+    const mapType = toSafeMapType(game?.mapType);
+    const mapDefinition = getMapDefinition(mapType);
 
     return {
-        mapType: game?.mapType ?? currentMapType,
+        mapType,
         mapName: mapDefinition.name,
         width: mapDefinition.width,
         height: mapDefinition.height
@@ -486,43 +462,71 @@ const getGameRulesForGame = (gameId) => {
     };
 };
 
-const resetMatchStateForGame = (game) => {
-    matchState = {
-        playingType: game?.playingType ?? PLAYING_TYPE,
-        timerDurationSeconds: TIMER_DURATION_SECONDS,
-        scoreTarget: SCORE_TARGET,
-        startedAtMs: Date.now(),
-        isEnded: false,
-        winnerId: null,
-        reason: null
-    };
-    maxParticipantsSeen = 0;
-    broadcastMatchState();
-};
+const getMatchStatePayload = (gameId) => {
+    const world = getWorldForGame(gameId);
+    if (!world) {
+        return null;
+    }
 
-const getMatchStatePayload = () => {
     return {
-        playingType: matchState.playingType,
-        timerDurationSeconds: matchState.timerDurationSeconds,
-        scoreTarget: matchState.scoreTarget,
-        startedAtMs: matchState.startedAtMs,
-        isEnded: matchState.isEnded,
-        winnerId: matchState.winnerId,
-        reason: matchState.reason
+        playingType: world.matchState.playingType,
+        timerDurationSeconds: world.matchState.timerDurationSeconds,
+        scoreTarget: world.matchState.scoreTarget,
+        startedAtMs: world.matchState.startedAtMs,
+        isEnded: world.matchState.isEnded,
+        winnerId: world.matchState.winnerId,
+        reason: world.matchState.reason
     };
 };
 
-const broadcastMatchState = () => {
-    io.emit(SOCKET_EVENTS.MATCH_STATE_UPDATE, getMatchStatePayload());
+const broadcastMatchState = (gameId) => {
+    const payload = getMatchStatePayload(gameId);
+    if (!payload) {
+        return;
+    }
+
+    io.to(getRoomNameForGame(gameId)).emit(SOCKET_EVENTS.MATCH_STATE_UPDATE, payload);
 };
 
-const getTopScoringUsers = () => {
+const resetMatchStateForGame = (game, world) => {
+    world.matchState = createMatchStateForGame(game);
+    world.maxParticipantsSeen = 0;
+    broadcastMatchState(game.id);
+};
+
+const broadcastUsers = (gameId) => {
+    if (!gameId) {
+        return;
+    }
+
+    io.to(getRoomNameForGame(gameId)).emit(SOCKET_EVENTS.UPDATE_USERS, getUsersInGame(gameId));
+}
+
+const broadcastWorldObjects = (gameId) => {
+    const world = getWorldForGame(gameId);
+    if (!world) {
+        return;
+    }
+
+    io.to(getRoomNameForGame(gameId)).emit(SOCKET_EVENTS.UPDATE_WORLD_OBJECTS, world.worldObjects);
+};
+
+const broadcastFrozenSnakeCorpses = (gameId) => {
+    const world = getWorldForGame(gameId);
+    if (!world) {
+        return;
+    }
+
+    io.to(getRoomNameForGame(gameId)).emit(SOCKET_EVENTS.UPDATE_FROZEN_SNAKES, world.frozenSnakeCorpses);
+};
+
+const getTopScoringUsers = (gameId) => {
     let topScore = Number.NEGATIVE_INFINITY;
     const winnerIds = [];
+    const usersInGame = getUsersInGame(gameId);
 
-    for (const userId in connectedUsers) {
-        const user = connectedUsers[userId];
-        const score = user?.score ?? 0;
+    for (const userId in usersInGame) {
+        const score = usersInGame[userId]?.score ?? 0;
 
         if (score > topScore) {
             topScore = score;
@@ -539,65 +543,74 @@ const getTopScoringUsers = () => {
     };
 };
 
-const endMatch = (winnerId, reason) => {
-    if (matchState.isEnded) {
+const endMatch = (gameId, winnerId, reason) => {
+    const world = getWorldForGame(gameId);
+    if (!world || world.matchState.isEnded) {
         return;
     }
 
-    matchState.isEnded = true;
-    matchState.winnerId = winnerId;
-    matchState.reason = reason;
-    broadcastMatchState();
+    world.matchState.isEnded = true;
+    world.matchState.winnerId = winnerId;
+    world.matchState.reason = reason;
+    broadcastMatchState(gameId);
 };
 
-const evaluateMatchState = () => {
-    if (Object.keys(activeGamesById).length > 1) {
+const evaluateMatchState = (gameId) => {
+    const world = getWorldForGame(gameId);
+    if (!world || world.matchState.isEnded) {
         return;
     }
 
-    if (matchState.isEnded) {
-        return;
-    }
+    const usersInGame = getUsersInGame(gameId);
+    const userIdsInGame = Object.keys(usersInGame);
+    const userCountInGame = userIdsInGame.length;
 
-    const connectedUserIds = Object.keys(connectedUsers);
-    const connectedUserCount = connectedUserIds.length;
-
-    if (matchState.playingType === PLAYING_TYPES.TIMER) {
-        const elapsedMs = Date.now() - matchState.startedAtMs;
-        if (elapsedMs >= matchState.timerDurationSeconds * 1000) {
-            const topScorers = getTopScoringUsers();
+    if (world.matchState.playingType === PLAYING_TYPES.TIMER) {
+        const elapsedMs = Date.now() - world.matchState.startedAtMs;
+        if (elapsedMs >= world.matchState.timerDurationSeconds * 1000) {
+            const topScorers = getTopScoringUsers(gameId);
             const winnerId = topScorers.winnerIds.length === 1 ? topScorers.winnerIds[0] : null;
-            endMatch(winnerId, 'timerElapsed');
+            endMatch(gameId, winnerId, 'timerElapsed');
         }
         return;
     }
 
-    if (matchState.playingType === PLAYING_TYPES.FIRST_TO_SCORE) {
-        for (const userId in connectedUsers) {
-            const score = connectedUsers[userId]?.score ?? 0;
-            if (score >= matchState.scoreTarget) {
-                endMatch(userId, 'scoreTargetReached');
+    if (world.matchState.playingType === PLAYING_TYPES.FIRST_TO_SCORE) {
+        for (const userId in usersInGame) {
+            const score = usersInGame[userId]?.score ?? 0;
+            if (score >= world.matchState.scoreTarget) {
+                endMatch(gameId, userId, 'scoreTargetReached');
                 return;
             }
         }
         return;
     }
 
-    if (matchState.playingType === PLAYING_TYPES.LAST_MAN_STANDING) {
-        if (maxParticipantsSeen < 2) {
+    if (world.matchState.playingType === PLAYING_TYPES.LAST_MAN_STANDING) {
+        if (world.maxParticipantsSeen < 2) {
             return;
         }
 
-        if (connectedUserCount === 1) {
-            endMatch(connectedUserIds[0], 'lastManStanding');
+        if (userCountInGame === 1) {
+            endMatch(gameId, userIdsInGame[0], 'lastManStanding');
             return;
         }
 
-        if (connectedUserCount === 0) {
-            endMatch(null, 'lastManStandingDraw');
+        if (userCountInGame === 0) {
+            endMatch(gameId, null, 'lastManStandingDraw');
         }
     }
 };
+
+const evaluateAllMatchStates = () => {
+    for (const gameId in gameWorldsById) {
+        evaluateMatchState(gameId);
+    }
+};
+
+// ---------------------------------------------------------------------------
+// Snake helpers
+// ---------------------------------------------------------------------------
 
 const updateSnakeTrail = (snakeId, headCoordinates, length) => {
     if (!snakeTrailById[snakeId]) {
@@ -626,6 +639,15 @@ const getSnakeTrailForId = (snakeId) => {
     return [{ x: snake.coordinates.x, y: snake.coordinates.y }];
 };
 
+const getSnakeHitbox = (position, snakeWidth = RULE_SNAKE_SEGMENT_SIZE) => {
+    return {
+        x: position.x,
+        y: position.y,
+        width: snakeWidth,
+        height: snakeWidth
+    };
+};
+
 const getSnakeSegmentHitbox = (segmentCoordinates, snakeWidth) => {
     return {
         x: segmentCoordinates.x,
@@ -641,27 +663,16 @@ const getSnakeCollision = (attackerId, attackerPosition) => {
         return null;
     }
 
-    const attackerGameId = attackerUser.gameId;
-
     const attackerWidth = getSnakeWidthForUser(attackerUser);
     const attackerHitbox = getSnakeHitbox(attackerPosition, attackerWidth);
+    const usersInGame = getUsersInGame(attackerUser.gameId);
 
-    for (const victimId in connectedUsers) {
+    for (const victimId in usersInGame) {
         if (victimId === attackerId) {
             continue;
         }
 
-        const victimUser = connectedUsers[victimId];
-        if (!victimUser) {
-            continue;
-        }
-
-        const attackerIsBot = Boolean(botStateById[attackerId]);
-        const victimIsBot = Boolean(botStateById[victimId]);
-        if (!attackerIsBot && !victimIsBot && victimUser.gameId !== attackerGameId) {
-            continue;
-        }
-
+        const victimUser = usersInGame[victimId];
         const victimWidth = getSnakeWidthForUser(victimUser);
         const victimTrail = getSnakeTrailForId(victimId);
 
@@ -679,29 +690,31 @@ const getSnakeCollision = (attackerId, attackerPosition) => {
     return null;
 };
 
-const removeSnakeAndFreezeBody = (victimId, fallbackGameId, createCorpse = true) => {
+const removeSnakeAndFreezeBody = (victimId, createCorpse = true) => {
     const victimUser = connectedUsers[victimId];
     if (!victimUser) {
         return false;
     }
 
+    const world = getWorldForGame(victimUser.gameId);
     const victimTrail = getSnakeTrailForId(victimId);
     const bodySegments = victimTrail.slice(1); // exclude head
-    const corpseGameId = victimUser.gameId ?? fallbackGameId;
 
-    if (createCorpse && bodySegments.length > 0) {
-        const corpseId = `corpse-${nextCorpseId}`;
-        nextCorpseId += 1;
-        frozenSnakeCorpses[corpseId] = {
+    if (world && createCorpse && bodySegments.length > 0) {
+        const corpseId = `corpse-${world.nextCorpseId}`;
+        world.nextCorpseId += 1;
+        world.frozenSnakeCorpses[corpseId] = {
             segments: bodySegments,
             width: getSnakeWidthForUser(victimUser),
-            color: victimUser.color,
-            gameId: corpseGameId
+            color: victimUser.color
         };
     }
 
     if (botStateById[victimId]) {
         delete botStateById[victimId];
+        if (world) {
+            world.botIds = world.botIds.filter((botId) => botId !== victimId);
+        }
     } else {
         io.to(victimId).emit(SOCKET_EVENTS.YOU_WERE_EATEN);
     }
@@ -711,6 +724,60 @@ const removeSnakeAndFreezeBody = (victimId, fallbackGameId, createCorpse = true)
     return true;
 };
 
+const getCollidedWorldObjectId = (world, position, snakeWidth = RULE_SNAKE_SEGMENT_SIZE) => {
+    const snakeHitbox = getSnakeHitbox(position, snakeWidth);
+
+    for (const worldObjectId in world.worldObjects) {
+        const worldObject = world.worldObjects[worldObjectId];
+        const worldObjectRect = getWorldObjectRect(worldObject);
+        if (rectanglesOverlap(snakeHitbox, worldObjectRect)) {
+            return worldObjectId;
+        }
+    }
+
+    return null;
+};
+
+const wouldCollideWithDangerousWorldObject = (world, position, snakeWidth = RULE_SNAKE_SEGMENT_SIZE) => {
+    const collidedWorldObjectId = getCollidedWorldObjectId(world, position, snakeWidth);
+    if (!collidedWorldObjectId) {
+        return false;
+    }
+
+    const collidedWorldObject = world.worldObjects[collidedWorldObjectId];
+    if (!collidedWorldObject) {
+        return false;
+    }
+
+    const objectDefinition = WORLD_OBJECT_TYPE_DEFINITIONS[collidedWorldObject.type];
+    if (!objectDefinition) {
+        return false;
+    }
+
+    return objectDefinition.effects.instantLose;
+};
+
+const isEdibleWorldObject = (worldObject) => {
+    const objectDefinition = WORLD_OBJECT_TYPE_DEFINITIONS[worldObject?.type];
+    return Boolean(objectDefinition) && objectDefinition.effects.instantLose === false;
+};
+
+const applyFoodHitBehavior = (world, worldObjectId, worldObject) => {
+    const game = activeGamesById[world.gameId];
+    const foodHitBehavior = game?.foodHitBehavior ?? DEFAULT_FOOD_HIT_BEHAVIOR;
+
+    if (foodHitBehavior === FOOD_HIT_BEHAVIORS.REMOVE) {
+        delete world.worldObjects[worldObjectId];
+        return;
+    }
+
+    relocateWorldObject(world, worldObject);
+};
+
+// ---------------------------------------------------------------------------
+// Bots
+// ---------------------------------------------------------------------------
+
 const BOT_DIRECTIONS = [
     { x: 1, y: 0 },
     { x: -1, y: 0 },
@@ -718,13 +785,19 @@ const BOT_DIRECTIONS = [
     { x: 0, y: -1 }
 ];
 
-const findNearestWorldObjectByType = (position, worldObjectType) => {
+const getRandomBotDirection = () => {
+    const directionIndex = Math.floor(Math.random() * BOT_DIRECTIONS.length);
+    return BOT_DIRECTIONS[directionIndex];
+};
+
+// Bots head for anything edible, not just monsters.
+const findNearestEdibleWorldObject = (world, position) => {
     let nearestWorldObject = null;
     let nearestDistanceSquared = Number.POSITIVE_INFINITY;
 
-    for (const worldObjectId in worldObjects) {
-        const worldObject = worldObjects[worldObjectId];
-        if (!worldObject || worldObject.type !== worldObjectType) {
+    for (const worldObjectId in world.worldObjects) {
+        const worldObject = world.worldObjects[worldObjectId];
+        if (!isEdibleWorldObject(worldObject)) {
             continue;
         }
 
@@ -779,57 +852,6 @@ const pushUniqueDirection = (directionList, direction) => {
     directionList.push(direction);
 };
 
-const wouldCollideWithDangerousWorldObject = (position, snakeWidth = RULE_SNAKE_SEGMENT_SIZE) => {
-    const collidedWorldObjectId = getCollidedWorldObjectId(position, snakeWidth);
-    if (!collidedWorldObjectId) {
-        return false;
-    }
-
-    const collidedWorldObject = worldObjects[collidedWorldObjectId];
-    if (!collidedWorldObject) {
-        return false;
-    }
-
-    const objectDefinition = WORLD_OBJECT_TYPE_DEFINITIONS[collidedWorldObject.type];
-    if (!objectDefinition) {
-        return false;
-    }
-
-    return objectDefinition.effects.instantLose;
-};
-
-const getRandomBotDirection = () => {
-    const directionIndex = Math.floor(Math.random() * BOT_DIRECTIONS.length);
-    return BOT_DIRECTIONS[directionIndex];
-};
-
-const clampPosition = (value, min, max) => {
-    return Math.min(Math.max(value, min), max);
-};
-
-const getSnakeHitbox = (position, snakeWidth = RULE_SNAKE_SEGMENT_SIZE) => {
-    return {
-        x: position.x,
-        y: position.y,
-        width: snakeWidth,
-        height: snakeWidth
-    };
-};
-
-const getCollidedWorldObjectId = (position, snakeWidth = RULE_SNAKE_SEGMENT_SIZE) => {
-    const snakeHitbox = getSnakeHitbox(position, snakeWidth);
-
-    for (const worldObjectId in worldObjects) {
-        const worldObject = worldObjects[worldObjectId];
-        const worldObjectRect = getWorldObjectRect(worldObject);
-        if (rectanglesOverlap(snakeHitbox, worldObjectRect)) {
-            return worldObjectId;
-        }
-    }
-
-    return null;
-};
-
 const resetBotUser = (botId) => {
     const botUser = connectedUsers[botId];
     const botState = botStateById[botId];
@@ -837,7 +859,12 @@ const resetBotUser = (botId) => {
         return;
     }
 
-    botUser.coordinates = getSafeStartPosition(boardWidth, boardHeight);
+    const world = getWorldForGame(botUser.gameId);
+    if (!world) {
+        return;
+    }
+
+    botUser.coordinates = getSafeStartPosition(world);
     botUser.score = INITIAL_USER_SCORE;
     botUser.headEmoji = getRandomAnimalHeadEmoji();
     setSnakeLengthForUser(botUser, INITIAL_USER_LENGTH);
@@ -846,9 +873,82 @@ const resetBotUser = (botId) => {
     snakeTrailById[botId] = [{ x: botUser.coordinates.x, y: botUser.coordinates.y }];
 };
 
-const applyWorldObjectHitForBot = (botId, worldObjectId) => {
+const initializeBotsForWorld = (world) => {
+    for (let index = 0; index < BOT_COUNT; index++) {
+        const botId = `bot-${world.gameId}-${index + 1}`;
+        const startPosition = getSafeStartPosition(world);
+
+        connectedUsers[botId] = {
+            id: botId,
+            name: `Bot ${index + 1}`,
+            gameId: world.gameId,
+            coordinates: startPosition,
+            color: getRandomColor(),
+            headEmoji: getRandomAnimalHeadEmoji(),
+            score: INITIAL_USER_SCORE,
+            l: INITIAL_USER_LENGTH,
+            w: INITIAL_USER_WIDTH
+        };
+
+        snakeTrailById[botId] = [{ x: startPosition.x, y: startPosition.y }];
+        botStateById[botId] = { direction: getRandomBotDirection() };
+        world.botIds.push(botId);
+    }
+};
+
+const removeBotsForWorld = (world) => {
+    for (const botId of world.botIds) {
+        delete connectedUsers[botId];
+        delete botStateById[botId];
+        delete snakeTrailById[botId];
+    }
+
+    world.botIds = [];
+};
+
+// Bots are removed from the world when eaten, so a fresh match respawns the full set.
+const ensureBotsForWorld = (world) => {
+    if (world.botIds.length === BOT_COUNT) {
+        for (const botId of world.botIds) {
+            resetBotUser(botId);
+        }
+        return;
+    }
+
+    removeBotsForWorld(world);
+    initializeBotsForWorld(world);
+};
+
+const createWorldForGame = (game) => {
+    const mapDefinition = getMapDefinition(game.mapType);
+    const world = {
+        gameId: game.id,
+        mapType: toSafeMapType(game.mapType),
+        boardWidth: mapDefinition.width,
+        boardHeight: mapDefinition.height,
+        worldObjects: {},
+        nextWorldObjectId: 1,
+        frozenSnakeCorpses: {},
+        nextCorpseId: 1,
+        botIds: [],
+        maxParticipantsSeen: 0,
+        matchState: createMatchStateForGame(game)
+    };
+
+    gameWorldsById[game.id] = world;
+    populateWorldObjects(world);
+    initializeBotsForWorld(world);
+
+    return world;
+};
+
+const getOrCreateWorldForGame = (game) => {
+    return gameWorldsById[game.id] ?? createWorldForGame(game);
+};
+
+const applyWorldObjectHitForBot = (world, botId, worldObjectId) => {
     const botUser = connectedUsers[botId];
-    const worldObject = worldObjects[worldObjectId];
+    const worldObject = world.worldObjects[worldObjectId];
     if (!botUser || !worldObject) {
         return { usersChanged: false, worldObjectsChanged: false };
     }
@@ -866,57 +966,22 @@ const applyWorldObjectHitForBot = (botId, worldObjectId) => {
     applyWorldObjectEffectsToUser(botUser, worldObjectDefinition);
 
     if (worldObjectDefinition.removeOnHit) {
-        const game = activeGamesById[botUser.gameId];
-        const foodHitBehavior = game?.foodHitBehavior ?? DEFAULT_FOOD_HIT_BEHAVIOR;
-
-        if (foodHitBehavior === FOOD_HIT_BEHAVIORS.REMOVE) {
-            delete worldObjects[worldObjectId];
-        } else {
-            relocateWorldObject(worldObject);
-        }
-
+        applyFoodHitBehavior(world, worldObjectId, worldObject);
         return { usersChanged: true, worldObjectsChanged: true };
     }
 
     return { usersChanged: true, worldObjectsChanged: false };
 };
 
-const getBotSnakeCollision = (botId, botPosition) => {
-    return getSnakeCollision(botId, botPosition);
-};
-
-const initializeBots = () => {
-    for (let index = 0; index < BOT_COUNT; index++) {
-        const botId = `bot-${index + 1}`;
-        const startPosition = getSafeStartPosition(boardWidth, boardHeight);
-
-        connectedUsers[botId] = {
-            id: botId,
-            coordinates: startPosition,
-            color: getRandomColor(),
-            headEmoji: getRandomAnimalHeadEmoji(),
-            score: INITIAL_USER_SCORE,
-            l: INITIAL_USER_LENGTH,
-            w: INITIAL_USER_WIDTH
-        };
-
-        snakeTrailById[botId] = [{ x: startPosition.x, y: startPosition.y }];
-
-        botStateById[botId] = {
-            direction: getRandomBotDirection()
-        };
-    }
-};
-
-const updateBotPositions = () => {
-    if (matchState.isEnded) {
+const updateBotPositionsForWorld = (world) => {
+    if (world.matchState.isEnded) {
         return;
     }
 
     let usersChanged = false;
     let worldObjectsChanged = false;
 
-    for (const botId in botStateById) {
+    for (const botId of [...world.botIds]) {
         const botUser = connectedUsers[botId];
         const botState = botStateById[botId];
 
@@ -926,19 +991,19 @@ const updateBotPositions = () => {
 
         const currentPosition = botUser.coordinates;
         const botWidth = getSnakeWidthForUser(botUser);
-        const maxX = Math.max(0, boardWidth - botWidth);
-        const maxY = Math.max(0, boardHeight - botWidth);
-        const nearestMonster = findNearestWorldObjectByType(botUser.coordinates, WORLD_OBJECT_TYPES.MONSTER);
+        const maxX = Math.max(0, world.boardWidth - botWidth);
+        const maxY = Math.max(0, world.boardHeight - botWidth);
+        const nearestEdible = findNearestEdibleWorldObject(world, botUser.coordinates);
         const candidateDirections = [];
 
-        if (nearestMonster) {
-            const preferredDirections = getPreferredDirectionsTowardTarget(botUser.coordinates, nearestMonster);
+        if (nearestEdible) {
+            const preferredDirections = getPreferredDirectionsTowardTarget(botUser.coordinates, nearestEdible);
             for (const preferredDirection of preferredDirections) {
                 pushUniqueDirection(candidateDirections, preferredDirection);
             }
         }
 
-        if (!nearestMonster && Math.random() < BOT_DIRECTION_CHANGE_CHANCE) {
+        if (!nearestEdible && Math.random() < BOT_DIRECTION_CHANGE_CHANCE) {
             pushUniqueDirection(candidateDirections, getRandomBotDirection());
         }
 
@@ -967,7 +1032,7 @@ const updateBotPositions = () => {
                 continue;
             }
 
-            if (wouldCollideWithDangerousWorldObject(candidatePosition, botWidth)) {
+            if (wouldCollideWithDangerousWorldObject(world, candidatePosition, botWidth)) {
                 continue;
             }
 
@@ -999,22 +1064,18 @@ const updateBotPositions = () => {
         updateSnakeTrail(botId, botUser.coordinates, getSnakeLengthForUser(botUser));
         usersChanged = true;
 
-        const snakeCollision = getBotSnakeCollision(botId, botUser.coordinates);
+        const snakeCollision = getSnakeCollision(botId, botUser.coordinates);
         if (snakeCollision) {
             const victimUser = connectedUsers[snakeCollision.victimId];
             const attackerLength = getSnakeLengthForUser(botUser);
             const victimLength = getSnakeLengthForUser(victimUser);
 
             if (attackerLength > victimLength) {
-                const victimGameId = victimUser.gameId ?? botUser.gameId;
                 // Pass createCorpse=false: bot already absorbs the full reward via
                 // growSnakeAfterEatingSnake, so no corpse is created to avoid double-counting.
-                const removed = removeSnakeAndFreezeBody(snakeCollision.victimId, botUser.gameId, false);
+                const removed = removeSnakeAndFreezeBody(snakeCollision.victimId, false);
                 if (removed) {
                     growSnakeAfterEatingSnake(botUser, victimUser);
-                    if (victimGameId) {
-                        broadcastFrozenSnakeCorpses(victimGameId);
-                    }
                 }
                 usersChanged = usersChanged || removed;
                 worldObjectsChanged = worldObjectsChanged || removed;
@@ -1028,20 +1089,17 @@ const updateBotPositions = () => {
             continue;
         }
 
-        const collidedWorldObjectId = getCollidedWorldObjectId(botUser.coordinates, botWidth);
+        const collidedWorldObjectId = getCollidedWorldObjectId(world, botUser.coordinates, botWidth);
         if (collidedWorldObjectId) {
-            const result = applyWorldObjectHitForBot(botId, collidedWorldObjectId);
+            const result = applyWorldObjectHitForBot(world, botId, collidedWorldObjectId);
             usersChanged = usersChanged || result.usersChanged;
             worldObjectsChanged = worldObjectsChanged || result.worldObjectsChanged;
         }
 
         // Bot consumes frozen snake corpse segments
         const botHitbox = getSnakeHitbox(botUser.coordinates, botWidth);
-        for (const corpseId in frozenSnakeCorpses) {
-            const corpse = frozenSnakeCorpses[corpseId];
-            if (corpse.gameId !== botUser.gameId) {
-                continue;
-            }
+        for (const corpseId in world.frozenSnakeCorpses) {
+            const corpse = world.frozenSnakeCorpses[corpseId];
 
             for (let segIdx = corpse.segments.length - 1; segIdx >= 0; segIdx--) {
                 const seg = corpse.segments[segIdx];
@@ -1056,20 +1114,57 @@ const updateBotPositions = () => {
             }
 
             if (corpse.segments.length === 0) {
-                delete frozenSnakeCorpses[corpseId];
+                delete world.frozenSnakeCorpses[corpseId];
             }
         }
     }
 
     if (worldObjectsChanged) {
-        broadcastWorldObjects();
-        broadcastFrozenSnakeCorpses();
+        broadcastWorldObjects(world.gameId);
+        broadcastFrozenSnakeCorpses(world.gameId);
     }
 
     if (usersChanged) {
-        broadcastUsers();
-        evaluateMatchState();
+        broadcastUsers(world.gameId);
+        evaluateMatchState(world.gameId);
     }
+};
+
+const updateBotPositions = () => {
+    for (const gameId in gameWorldsById) {
+        updateBotPositionsForWorld(gameWorldsById[gameId]);
+    }
+};
+
+// ---------------------------------------------------------------------------
+// Movement validation
+// ---------------------------------------------------------------------------
+
+// Clients still steer themselves, so the server clamps reported positions into
+// the board and rejects teleport-sized jumps.
+const getValidatedHeadPosition = (world, user, requestedPosition, snakeWidth) => {
+    const maxX = Math.max(0, world.boardWidth - snakeWidth);
+    const maxY = Math.max(0, world.boardHeight - snakeWidth);
+
+    let nextX = clampPosition(requestedPosition.x, 0, maxX);
+    let nextY = clampPosition(requestedPosition.y, 0, maxY);
+
+    const previousPosition = user.coordinates;
+    if (!previousPosition) {
+        return { x: nextX, y: nextY };
+    }
+
+    const deltaX = nextX - previousPosition.x;
+    const deltaY = nextY - previousPosition.y;
+    const distance = Math.hypot(deltaX, deltaY);
+
+    if (distance > MAX_MOVEMENT_DISTANCE_PER_UPDATE) {
+        const scale = MAX_MOVEMENT_DISTANCE_PER_UPDATE / distance;
+        nextX = previousPosition.x + deltaX * scale;
+        nextY = previousPosition.y + deltaY * scale;
+    }
+
+    return { x: nextX, y: nextY };
 };
 
 const getWorldObjectDefinitionsForClient = () => {
@@ -1093,28 +1188,35 @@ const getWorldObjectDefinitionsForClient = () => {
     return worldObjectDefinitions;
 };
 
-const broadcastWorldObjects = (gameId) => {
-    if (gameId) {
-        io.to(getRoomNameForGame(gameId)).emit(SOCKET_EVENTS.UPDATE_WORLD_OBJECTS, worldObjects);
+// ---------------------------------------------------------------------------
+// Game membership
+// ---------------------------------------------------------------------------
+
+const removeUserFromCurrentGame = (socket) => {
+    const gameId = socketGameById[socket.id];
+    if (!gameId) {
         return;
     }
 
-    io.emit(SOCKET_EVENTS.UPDATE_WORLD_OBJECTS, worldObjects);
-};
+    const roomName = getRoomNameForGame(gameId);
+    socket.leave(roomName);
 
-const broadcastFrozenSnakeCorpses = (gameId) => {
-    if (gameId) {
-        const corpsesForGame = {};
-        for (const corpseId in frozenSnakeCorpses) {
-            if (frozenSnakeCorpses[corpseId].gameId === gameId) {
-                corpsesForGame[corpseId] = frozenSnakeCorpses[corpseId];
-            }
-        }
-        io.to(getRoomNameForGame(gameId)).emit(SOCKET_EVENTS.UPDATE_FROZEN_SNAKES, corpsesForGame);
-        return;
+    if (connectedUsers[socket.id]) {
+        delete connectedUsers[socket.id];
     }
 
-    io.emit(SOCKET_EVENTS.UPDATE_FROZEN_SNAKES, frozenSnakeCorpses);
+    if (snakeTrailById[socket.id]) {
+        delete snakeTrailById[socket.id];
+    }
+
+    const game = activeGamesById[gameId];
+    if (game) {
+        game.playerIds.delete(socket.id);
+    }
+
+    delete socketGameById[socket.id];
+    broadcastUsers(gameId);
+    broadcastActiveGames();
 };
 
 const joinUserToGame = (socket, gameId, playerName) => {
@@ -1126,22 +1228,19 @@ const joinUserToGame = (socket, gameId, playerName) => {
 
     removeUserFromCurrentGame(socket);
 
+    const world = getOrCreateWorldForGame(game);
     const isFirstPlayerInGame = game.playerIds.size === 0;
-    const isRejoiningAfterMatchEnd = matchState.isEnded;
-    if (isFirstPlayerInGame || isRejoiningAfterMatchEnd) {
-        applyMapToWorld(game.mapType);
-    }
+    const isRejoiningAfterMatchEnd = world.matchState.isEnded;
 
     if (isFirstPlayerInGame || isRejoiningAfterMatchEnd) {
-        resetMatchStateForGame(game);
-        for (const botId in botStateById) {
-            resetBotUser(botId);
-        }
+        populateWorldObjects(world);
+        resetMatchStateForGame(game, world);
+        ensureBotsForWorld(world);
     }
 
     const userColor = getRandomColor();
     const userHeadEmoji = getRandomAnimalHeadEmoji();
-    const startPosition = getSafeStartPosition(boardWidth, boardHeight);
+    const startPosition = getSafeStartPosition(world);
     const roomName = getRoomNameForGame(gameId);
     const safePlayerName = toSafeDisplayName(playerName);
 
@@ -1161,7 +1260,10 @@ const joinUserToGame = (socket, gameId, playerName) => {
         w: INITIAL_USER_WIDTH
     };
 
-    maxParticipantsSeen = Math.max(maxParticipantsSeen, Object.keys(connectedUsers).length);
+    world.maxParticipantsSeen = Math.max(
+        world.maxParticipantsSeen,
+        Object.keys(getUsersInGame(gameId)).length
+    );
     snakeTrailById[socket.id] = [{ x: startPosition.x, y: startPosition.y }];
 
     socket.emit(SOCKET_EVENTS.JOINED_GAME, {
@@ -1175,18 +1277,10 @@ const joinUserToGame = (socket, gameId, playerName) => {
     socket.emit(SOCKET_EVENTS.ASSIGN_COLOR, userColor);
     socket.emit(SOCKET_EVENTS.ASSIGN_HEAD_EMOJI, userHeadEmoji);
     socket.emit(SOCKET_EVENTS.SET_PLAYING_TYPE, getPlayingTypeConfigForGame(gameId));
-    socket.emit(SOCKET_EVENTS.MATCH_STATE_UPDATE, getMatchStatePayload());
+    socket.emit(SOCKET_EVENTS.MATCH_STATE_UPDATE, getMatchStatePayload(gameId));
     socket.emit(SOCKET_EVENTS.SET_WORLD_OBJECT_DEFINITIONS, getWorldObjectDefinitionsForClient());
-    socket.emit(SOCKET_EVENTS.UPDATE_WORLD_OBJECTS, worldObjects);
-    socket.emit(SOCKET_EVENTS.UPDATE_FROZEN_SNAKES, (() => {
-        const corpsesForGame = {};
-        for (const corpseId in frozenSnakeCorpses) {
-            if (frozenSnakeCorpses[corpseId].gameId === gameId) {
-                corpsesForGame[corpseId] = frozenSnakeCorpses[corpseId];
-            }
-        }
-        return corpsesForGame;
-    })());
+    socket.emit(SOCKET_EVENTS.UPDATE_WORLD_OBJECTS, world.worldObjects);
+    socket.emit(SOCKET_EVENTS.UPDATE_FROZEN_SNAKES, world.frozenSnakeCorpses);
     socket.emit(SOCKET_EVENTS.SET_MOVEMENT_CONFIG, {
         baseStep: MOVEMENT_BASE_STEP,
         ticksPerSecond: MOVEMENT_TICKS_PER_SECOND,
@@ -1244,17 +1338,14 @@ const endGameByOwner = (socket, gameId) => {
     game.playerIds.clear();
     delete activeGamesById[gameId];
 
-    // Clear frozen snake corpses for the ended game
-    for (const corpseId in frozenSnakeCorpses) {
-        if (frozenSnakeCorpses[corpseId].gameId === gameId) {
-            delete frozenSnakeCorpses[corpseId];
-        }
+    const world = getWorldForGame(gameId);
+    if (world) {
+        removeBotsForWorld(world);
+        delete gameWorldsById[gameId];
     }
 
-    broadcastUsers(gameId);
     broadcastActiveGames();
 };
-
 
 io.on('connection', (socket) => {
     console.log('A user connected');
@@ -1298,6 +1389,7 @@ io.on('connection', (socket) => {
             dangerousObjectCollisionResponse,
             foodHitBehavior
         );
+
         if (autoJoin) {
             joinUserToGame(socket, game.id, playerName);
             return;
@@ -1323,8 +1415,7 @@ io.on('connection', (socket) => {
             return;
         }
 
-        const victimIsBot = Boolean(botStateById[victimId]);
-        if (!victimIsBot && victimUser.gameId !== gameId) {
+        if (victimUser.gameId !== gameId) {
             return;
         }
 
@@ -1343,7 +1434,7 @@ io.on('connection', (socket) => {
             return;
         }
 
-        if (!removeSnakeAndFreezeBody(victimId, gameId)) {
+        if (!removeSnakeAndFreezeBody(victimId)) {
             return;
         }
 
@@ -1352,7 +1443,7 @@ io.on('connection', (socket) => {
         broadcastFrozenSnakeCorpses(gameId);
         broadcastWorldObjects(gameId);
         broadcastUsers(gameId);
-        evaluateMatchState();
+        evaluateMatchState(gameId);
     });
 
     socket.on(SOCKET_EVENTS.PLAYER_SELF_DESTRUCTED, () => {
@@ -1361,18 +1452,19 @@ io.on('connection', (socket) => {
             return;
         }
 
-        if (!removeSnakeAndFreezeBody(socket.id, gameId)) {
+        if (!removeSnakeAndFreezeBody(socket.id)) {
             return;
         }
 
         broadcastFrozenSnakeCorpses(gameId);
         broadcastUsers(gameId);
-        evaluateMatchState();
+        evaluateMatchState(gameId);
     });
 
     socket.on(SOCKET_EVENTS.CONSUME_CORPSE_SEGMENT, ({ corpseId, segmentIndex }) => {
         const gameId = socketGameById[socket.id];
-        if (!gameId) {
+        const world = getWorldForGame(gameId);
+        if (!gameId || !world) {
             return;
         }
 
@@ -1381,8 +1473,8 @@ io.on('connection', (socket) => {
             return;
         }
 
-        const corpse = frozenSnakeCorpses[corpseId];
-        if (!corpse || corpse.gameId !== gameId) {
+        const corpse = world.frozenSnakeCorpses[corpseId];
+        if (!corpse) {
             return;
         }
 
@@ -1409,17 +1501,18 @@ io.on('connection', (socket) => {
 
         corpse.segments.splice(segmentIndex, 1);
         if (corpse.segments.length === 0) {
-            delete frozenSnakeCorpses[corpseId];
+            delete world.frozenSnakeCorpses[corpseId];
         }
 
         broadcastFrozenSnakeCorpses(gameId);
         broadcastUsers(gameId);
-        evaluateMatchState();
+        evaluateMatchState(gameId);
     });
 
     socket.on(SOCKET_EVENTS.WORLD_OBJECT_HIT, (worldObjectId) => {
         const gameId = socketGameById[socket.id];
-        if (!gameId) {
+        const world = getWorldForGame(gameId);
+        if (!gameId || !world) {
             return;
         }
 
@@ -1428,7 +1521,7 @@ io.on('connection', (socket) => {
             return;
         }
 
-        const worldObject = worldObjects[worldObjectId];
+        const worldObject = world.worldObjects[worldObjectId];
         if (!worldObject) {
             return;
         }
@@ -1448,62 +1541,81 @@ io.on('connection', (socket) => {
         applyWorldObjectEffectsToUser(hitterUser, worldObjectDefinition);
 
         if (worldObjectDefinition.removeOnHit) {
-            const game = activeGamesById[gameId];
-            const foodHitBehavior = game?.foodHitBehavior ?? DEFAULT_FOOD_HIT_BEHAVIOR;
-
-            if (foodHitBehavior === FOOD_HIT_BEHAVIORS.REMOVE) {
-                delete worldObjects[worldObjectId];
-            } else {
-                relocateWorldObject(worldObject);
-            }
-
+            applyFoodHitBehavior(world, worldObjectId, worldObject);
             broadcastWorldObjects(gameId);
         }
 
         broadcastUsers(gameId);
-        evaluateMatchState();
+        evaluateMatchState(gameId);
     });
 
     socket.on(SOCKET_EVENTS.SEND_COORDINATES_OF_HEAD, (headCoordinatesUpdate) => {
-        if (matchState.isEnded) {
-            return;
-        }
-
         const gameId = socketGameById[socket.id];
-        if (!gameId) {
+        const world = getWorldForGame(gameId);
+        if (!gameId || !world || world.matchState.isEnded) {
             return;
         }
 
-        if (connectedUsers[socket.id]) {
-            connectedUsers[socket.id].coordinates = { x: headCoordinatesUpdate.x, y: headCoordinatesUpdate.y };
-            const authoritativeLength = getSnakeLengthForUser(connectedUsers[socket.id]);
-            const authoritativeWidth = getSnakeWidthForUser(connectedUsers[socket.id]);
-            updateSnakeTrail(socket.id, connectedUsers[socket.id].coordinates, authoritativeLength);
+        const user = connectedUsers[socket.id];
+        if (!user) {
+            return;
+        }
 
-            const snakeCollision = getSnakeCollision(socket.id, connectedUsers[socket.id].coordinates);
-            if (snakeCollision) {
-                const attackerUser = connectedUsers[socket.id];
-                const victimUser = connectedUsers[snakeCollision.victimId];
+        const requestedX = Number(headCoordinatesUpdate?.x);
+        const requestedY = Number(headCoordinatesUpdate?.y);
+        if (!Number.isFinite(requestedX) || !Number.isFinite(requestedY)) {
+            return;
+        }
 
-                if (attackerUser && victimUser && getSnakeLengthForUser(attackerUser) > getSnakeLengthForUser(victimUser)) {
-                    const removed = removeSnakeAndFreezeBody(snakeCollision.victimId, gameId);
-                    if (removed) {
-                        growSnakeAfterEatingSnake(attackerUser, victimUser);
-                        broadcastFrozenSnakeCorpses(gameId);
-                        broadcastWorldObjects(gameId);
-                        broadcastUsers(gameId);
-                        evaluateMatchState();
-                    }
+        const authoritativeWidth = getSnakeWidthForUser(user);
+        const validatedPosition = getValidatedHeadPosition(
+            world,
+            user,
+            { x: requestedX, y: requestedY },
+            authoritativeWidth
+        );
+
+        const game = activeGamesById[gameId];
+        const dangerousObjectEndsGame =
+            (game?.dangerousObjectCollisionResponse ?? DEFAULT_DANGEROUS_OBJECT_COLLISION_RESPONSE)
+            === COLLISION_RESPONSES.GAME_OVER;
+
+        if (dangerousObjectEndsGame
+            && wouldCollideWithDangerousWorldObject(world, validatedPosition, authoritativeWidth)) {
+            if (removeSnakeAndFreezeBody(socket.id)) {
+                broadcastFrozenSnakeCorpses(gameId);
+                broadcastUsers(gameId);
+                evaluateMatchState(gameId);
+            }
+            return;
+        }
+
+        user.coordinates = validatedPosition;
+        const authoritativeLength = getSnakeLengthForUser(user);
+        updateSnakeTrail(socket.id, user.coordinates, authoritativeLength);
+
+        const snakeCollision = getSnakeCollision(socket.id, user.coordinates);
+        if (snakeCollision) {
+            const victimUser = connectedUsers[snakeCollision.victimId];
+
+            if (victimUser && getSnakeLengthForUser(user) > getSnakeLengthForUser(victimUser)) {
+                const removed = removeSnakeAndFreezeBody(snakeCollision.victimId);
+                if (removed) {
+                    growSnakeAfterEatingSnake(user, victimUser);
+                    broadcastFrozenSnakeCorpses(gameId);
+                    broadcastWorldObjects(gameId);
+                    broadcastUsers(gameId);
+                    evaluateMatchState(gameId);
                 }
             }
-
-            io.to(getRoomNameForGame(gameId)).emit(SOCKET_EVENTS.UPDATE_COORDINATES_OF_HEAD, {
-                id: socket.id,
-                coordinatesOfHead: { x: headCoordinatesUpdate.x, y: headCoordinatesUpdate.y },
-                l: getSnakeLengthForUser(connectedUsers[socket.id]),
-                w: authoritativeWidth
-            });
         }
+
+        io.to(getRoomNameForGame(gameId)).emit(SOCKET_EVENTS.UPDATE_COORDINATES_OF_HEAD, {
+            id: socket.id,
+            coordinatesOfHead: { x: user.coordinates.x, y: user.coordinates.y },
+            l: authoritativeLength,
+            w: authoritativeWidth
+        });
     });
 
     socket.on('disconnect', () => {
@@ -1513,35 +1625,13 @@ io.on('connection', (socket) => {
         removeUserFromCurrentGame(socket);
         if (gameId) {
             broadcastUsers(gameId);
+            evaluateMatchState(gameId);
         }
-        evaluateMatchState();
-
     });
 });
 
-const broadcastUsers = (gameId) => {
-    if (!gameId) {
-        io.emit(SOCKET_EVENTS.UPDATE_USERS, connectedUsers);
-        return;
-    }
-
-    const usersForGame = {};
-    for (const userId in connectedUsers) {
-        const user = connectedUsers[userId];
-        const isBotUser = Boolean(botStateById[userId]);
-        if (!isBotUser && user.gameId !== gameId) {
-            continue;
-        }
-        usersForGame[userId] = user;
-    }
-
-    io.to(getRoomNameForGame(gameId)).emit(SOCKET_EVENTS.UPDATE_USERS, usersForGame);
-}
-
-initializeBots();
-maxParticipantsSeen = Math.max(maxParticipantsSeen, Object.keys(connectedUsers).length);
 setInterval(updateBotPositions, BOT_MOVE_INTERVAL_MS);
-setInterval(evaluateMatchState, 250);
+setInterval(evaluateAllMatchStates, 250);
 
 server.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
