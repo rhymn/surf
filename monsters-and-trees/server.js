@@ -8,7 +8,7 @@ const { createRtcSignalingState, registerRtcSignalingHandlers } = require('./ser
 const {
     WORLD_OBJECT_TYPES,
     getRandomFoodForType,
-    getFoodEnergyKwh,
+    getFoodEnergyKcal,
     DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS
 } = require('./public/world-object-definitions.js');
 const { getHeadPickupHitbox } = require('./public/snake-geometry.js');
@@ -18,8 +18,8 @@ const {
     FOOD_HIT_BEHAVIORS,
     INITIAL_USER_LENGTH,
     INITIAL_USER_WIDTH,
-    MAX_ENERGY_KWH,
-    BOOST_DRAIN_KWH_PER_SECOND,
+    MAX_ENERGY_KCAL,
+    BOOST_DRAIN_KCAL_PER_SECOND,
     MIN_ENERGY_TO_START_BOOST,
     toSafeCollisionResponse,
     toSafeFoodHitBehavior,
@@ -552,7 +552,7 @@ const emitEnergyUpdate = (socketId) => {
 
     io.to(socketId).emit(SOCKET_EVENTS.ENERGY_UPDATE, {
         energy: getEnergyForUser(user),
-        maxEnergy: MAX_ENERGY_KWH,
+        maxEnergy: MAX_ENERGY_KCAL,
         isBoosting: Boolean(user.isBoosting)
     });
 };
@@ -1023,7 +1023,7 @@ const applyWorldObjectHitForBot = (world, botId, worldObjectId) => {
 
     applyWorldObjectEffectsToUser(botUser, worldObjectDefinition, {
         quality: worldObject.quality,
-        energyKwh: getFoodEnergyKwh(worldObject.type, worldObject.emoji)
+        energyKcal: getFoodEnergyKcal(worldObject.type, worldObject.emoji)
     });
 
     if (worldObjectDefinition.removeOnHit) {
@@ -1351,7 +1351,7 @@ const joinUserToGame = (socket, gameId, playerName) => {
         score: INITIAL_USER_SCORE,
         l: INITIAL_USER_LENGTH,
         w: INITIAL_USER_WIDTH,
-        energy: MAX_ENERGY_KWH,
+        energy: MAX_ENERGY_KCAL,
         isBoosting: false
     };
 
@@ -1380,8 +1380,8 @@ const joinUserToGame = (socket, gameId, playerName) => {
         baseStep: MOVEMENT_BASE_STEP,
         ticksPerSecond: MOVEMENT_TICKS_PER_SECOND,
         boostMultiplier: MOVEMENT_BOOST_MULTIPLIER,
-        maxEnergy: MAX_ENERGY_KWH,
-        boostDrainPerSecond: BOOST_DRAIN_KWH_PER_SECOND,
+        maxEnergy: MAX_ENERGY_KCAL,
+        boostDrainPerSecond: BOOST_DRAIN_KCAL_PER_SECOND,
         minEnergyToStartBoost: MIN_ENERGY_TO_START_BOOST
     });
     emitEnergyUpdate(socket.id);
@@ -1661,7 +1661,7 @@ io.on('connection', (socket) => {
 
         applyWorldObjectEffectsToUser(hitterUser, worldObjectDefinition, {
             quality: worldObject.quality,
-            energyKwh: getFoodEnergyKwh(worldObject.type, worldObject.emoji)
+            energyKcal: getFoodEnergyKcal(worldObject.type, worldObject.emoji)
         });
         emitEnergyUpdate(socket.id);
 

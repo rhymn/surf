@@ -34,8 +34,38 @@ const MAPS = {
         highlights: ['Many trees', 'Lots of monsters, clouds, and dots', 'Scattered thorns'],
         respawnRule: 'Food behaviour is chosen per game — moved to a new spot or removed.',
         drawBackground(ctx, width, height) {
-            ctx.fillStyle = '#dbeafe';
+            const gradient = ctx.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, '#8ec9f0');
+            gradient.addColorStop(0.45, '#bfe4c6');
+            gradient.addColorStop(1, '#d9f2a8');
+            ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, width, height);
+        },
+        ambientCounts: { clouds: 14, sunGlints: 3 },
+        drawAmbient(ctx, width, height, time, elements) {
+            // A slow-turning sun glow keeps the plains from feeling static.
+            for (const glint of elements.sunGlints) {
+                const gx = glint.fx * width + Math.cos(time * 0.00006 + glint.phase) * width * 0.08;
+                const gy = glint.fy * height + Math.sin(time * 0.00006 + glint.phase) * height * 0.08;
+                const radius = glint.radius;
+                const glow = ctx.createRadialGradient(gx, gy, 0, gx, gy, radius);
+                glow.addColorStop(0, 'rgba(255,250,200,0.22)');
+                glow.addColorStop(1, 'rgba(255,250,200,0)');
+                ctx.fillStyle = glow;
+                ctx.beginPath();
+                ctx.arc(gx, gy, radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Cloud shadows drift across the field and wrap around the board.
+            for (const cloud of elements.clouds) {
+                const driftX = (cloud.fx * width + time * cloud.speed) % (width + cloud.rx * 2) - cloud.rx;
+                const bobY = cloud.fy * height + Math.sin(time * 0.0003 + cloud.phase) * height * 0.02;
+                ctx.fillStyle = `rgba(60,90,60,${cloud.alpha})`;
+                ctx.beginPath();
+                ctx.ellipse(driftX, bobY, cloud.rx, cloud.ry, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
         },
         drawTexture(octx, width, height, r) {
             // Ground variation patches
@@ -72,10 +102,42 @@ const MAPS = {
         respawnRule: 'Food behaviour is chosen per game — moved to a new spot or removed.',
         drawBackground(ctx, width, height) {
             const gradient = ctx.createLinearGradient(0, 0, 0, height);
-            gradient.addColorStop(0, '#e8f5e2');
-            gradient.addColorStop(1, '#f5fff2');
+            gradient.addColorStop(0, '#2f5d34');
+            gradient.addColorStop(0.5, '#4f8a3f');
+            gradient.addColorStop(1, '#7fae4a');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, width, height);
+        },
+        ambientCounts: { sunbeams: 8, fireflies: 26 },
+        drawAmbient(ctx, width, height, time, elements) {
+            // Sunbeams slant through the canopy and sway gently.
+            for (const beam of elements.sunbeams) {
+                const sway = Math.sin(time * 0.0002 + beam.phase) * width * 0.03;
+                const bx = beam.fx * width + sway;
+                ctx.save();
+                ctx.translate(bx, 0);
+                ctx.rotate(beam.tilt);
+                const gradient = ctx.createLinearGradient(0, 0, 0, height);
+                gradient.addColorStop(0, 'rgba(255,250,190,0.16)');
+                gradient.addColorStop(1, 'rgba(255,250,190,0)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(-beam.width / 2, -height * 0.2, beam.width, height * 1.4);
+                ctx.restore();
+            }
+
+            // Fireflies drift lazily and pulse brighter and dimmer.
+            for (const firefly of elements.fireflies) {
+                const fx = firefly.fx * width + Math.sin(time * 0.0006 + firefly.phase) * 26;
+                const fy = firefly.fy * height + Math.cos(time * 0.0005 + firefly.phase) * 26;
+                const pulse = 0.35 + 0.35 * Math.sin(time * 0.003 + firefly.phase * 3);
+                const glow = ctx.createRadialGradient(fx, fy, 0, fx, fy, 6);
+                glow.addColorStop(0, `rgba(210,255,140,${pulse})`);
+                glow.addColorStop(1, 'rgba(210,255,140,0)');
+                ctx.fillStyle = glow;
+                ctx.beginPath();
+                ctx.arc(fx, fy, 6, 0, Math.PI * 2);
+                ctx.fill();
+            }
         },
         drawTexture(octx, width, height, r) {
             // Dappled light blobs
@@ -114,11 +176,39 @@ const MAPS = {
         respawnRule: 'Food behaviour is chosen per game — moved to a new spot or removed.',
         drawBackground(ctx, width, height) {
             const gradient = ctx.createLinearGradient(0, 0, width, height);
-            gradient.addColorStop(0, '#f3e8ff');
-            gradient.addColorStop(0.5, '#fce7f3');
-            gradient.addColorStop(1, '#fff3e0');
+            gradient.addColorStop(0, '#5b2a86');
+            gradient.addColorStop(0.5, '#c23a7a');
+            gradient.addColorStop(1, '#e08a3c');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, width, height);
+        },
+        ambientCounts: { embers: 30, pulses: 3 },
+        drawAmbient(ctx, width, height, time, elements) {
+            // A slow pulsing haze keeps the field feeling alive and threatening.
+            for (const pulse of elements.pulses) {
+                const pulseAlpha = 0.08 + 0.06 * Math.sin(time * 0.0008 + pulse.phase);
+                const px = pulse.fx * width;
+                const py = pulse.fy * height;
+                const glow = ctx.createRadialGradient(px, py, 0, px, py, pulse.radius);
+                glow.addColorStop(0, `rgba(255,90,180,${Math.max(0, pulseAlpha)})`);
+                glow.addColorStop(1, 'rgba(255,90,180,0)');
+                ctx.fillStyle = glow;
+                ctx.beginPath();
+                ctx.arc(px, py, pulse.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Embers drift upward and wrap back to the bottom of the board.
+            for (const ember of elements.embers) {
+                const ey = (ember.fy * height - time * ember.speed) % (height + 20);
+                const wrappedY = ey < 0 ? ey + height + 20 : ey;
+                const ex = ember.fx * width + Math.sin(time * 0.0007 + ember.phase) * 18;
+                const flicker = 0.4 + 0.35 * Math.sin(time * 0.004 + ember.phase * 5);
+                ctx.fillStyle = `rgba(255,170,90,${flicker})`;
+                ctx.beginPath();
+                ctx.arc(ex, wrappedY, 1.6, 0, Math.PI * 2);
+                ctx.fill();
+            }
         },
         drawTexture(octx, width, height, r) {
             // Cracked-earth line network
@@ -187,6 +277,79 @@ function generateMapTextureTile(mapType) {
 function updateMapTexture(mapType) {
     mapTextureTile = generateMapTextureTile(mapType);
     mapTexturePattern = mapTextureTile ? ctx.createPattern(mapTextureTile, 'repeat') : null;
+    ambientElements = generateAmbientElements(mapType);
+}
+
+// Ambient elements keep stable base positions (fractions of the board) so they
+// drift smoothly frame to frame instead of jumping around.
+let ambientElements = null;
+
+function generateAmbientElements(mapType) {
+    const counts = MAPS[mapType]?.ambientCounts;
+    if (!counts) {
+        return null;
+    }
+
+    const r = makeSeededRandom(0xc0ffee ^ mapType.length);
+    const elements = {};
+
+    if (counts.clouds) {
+        elements.clouds = Array.from({ length: counts.clouds }, () => ({
+            fx: r(),
+            fy: r(),
+            rx: 60 + r() * 120,
+            ry: 20 + r() * 30,
+            speed: 0.01 + r() * 0.02,
+            phase: r() * Math.PI * 2,
+            alpha: 0.03 + r() * 0.04
+        }));
+    }
+
+    if (counts.sunGlints) {
+        elements.sunGlints = Array.from({ length: counts.sunGlints }, () => ({
+            fx: r(),
+            fy: r() * 0.4,
+            radius: 180 + r() * 220,
+            phase: r() * Math.PI * 2
+        }));
+    }
+
+    if (counts.sunbeams) {
+        elements.sunbeams = Array.from({ length: counts.sunbeams }, () => ({
+            fx: r(),
+            width: 40 + r() * 70,
+            tilt: -0.25 - r() * 0.2,
+            phase: r() * Math.PI * 2
+        }));
+    }
+
+    if (counts.fireflies) {
+        elements.fireflies = Array.from({ length: counts.fireflies }, () => ({
+            fx: r(),
+            fy: r(),
+            phase: r() * Math.PI * 2
+        }));
+    }
+
+    if (counts.embers) {
+        elements.embers = Array.from({ length: counts.embers }, () => ({
+            fx: r(),
+            fy: r(),
+            speed: 0.01 + r() * 0.03,
+            phase: r() * Math.PI * 2
+        }));
+    }
+
+    if (counts.pulses) {
+        elements.pulses = Array.from({ length: counts.pulses }, () => ({
+            fx: r(),
+            fy: r(),
+            radius: 260 + r() * 260,
+            phase: r() * Math.PI * 2
+        }));
+    }
+
+    return elements;
 }
 
 let movementDirection = null;
@@ -221,9 +384,9 @@ let currentGameId = null;
 const DEFAULT_BASE_STEP = 2;
 const DEFAULT_TICKS_PER_SECOND = 20;
 const DEFAULT_BOOST_MULTIPLIER = 2;
-const DEFAULT_MAX_ENERGY = 1;
-const DEFAULT_BOOST_DRAIN_PER_SECOND = 0.2;
-const DEFAULT_MIN_ENERGY_TO_START_BOOST = 0.15;
+const DEFAULT_MAX_ENERGY = 1000;
+const DEFAULT_BOOST_DRAIN_PER_SECOND = 100;
+const DEFAULT_MIN_ENERGY_TO_START_BOOST = 75;
 let baseStep = DEFAULT_BASE_STEP;
 let ticksPerSecond = DEFAULT_TICKS_PER_SECOND;
 let boostMultiplier = DEFAULT_BOOST_MULTIPLIER;
@@ -463,7 +626,7 @@ const showLastMeal = (worldObject) => {
 
     const mealHeading = document.createElement('div');
     mealHeading.className = 'hud-last-meal-heading';
-    mealHeading.textContent = `${worldObject.emoji} ${Math.round(facts.kcal)} kcal · +${facts.energyKwh.toFixed(2)} kWh`;
+    mealHeading.textContent = `${worldObject.emoji} +${Math.round(facts.kcal)} kcal`;
 
     const mealMacros = document.createElement('div');
     mealMacros.className = 'hud-last-meal-macros';
@@ -475,7 +638,7 @@ const showLastMeal = (worldObject) => {
 const updateEnergyMeter = () => {
     const energyRatio = maxEnergy > 0 ? Math.max(0, Math.min(1, currentEnergy / maxEnergy)) : 0;
     energyFill.style.width = `${(energyRatio * 100).toFixed(1)}%`;
-    energyValue.textContent = `${currentEnergy.toFixed(2)} kWh`;
+    energyValue.textContent = `${Math.round(currentEnergy)} kcal`;
     energyPanel.classList.toggle('is-boosting', isBoosting);
     energyPanel.classList.toggle('is-depleted', currentEnergy < minEnergyToStartBoost);
     boostButton.classList.toggle('is-active', isBoosting);
@@ -2002,6 +2165,10 @@ function drawBackground() {
     if (mapTexturePattern) {
         ctx.fillStyle = mapTexturePattern;
         ctx.fillRect(0, 0, boardWidth, boardHeight);
+    }
+
+    if (map?.drawAmbient && ambientElements) {
+        map.drawAmbient(ctx, boardWidth, boardHeight, performance.now(), ambientElements);
     }
 }
 

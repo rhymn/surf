@@ -17,8 +17,8 @@ const {
     setSnakeWidthForUser,
     growSnakeAfterEatingSnake,
     applyWorldObjectEffectsToUser,
-    MAX_ENERGY_KWH,
-    BOOST_DRAIN_KWH_PER_SECOND,
+    MAX_ENERGY_KCAL,
+    BOOST_DRAIN_KCAL_PER_SECOND,
     MIN_ENERGY_TO_START_BOOST,
     getEnergyForUser,
     setEnergyForUser,
@@ -34,11 +34,10 @@ const {
     FOOD_EMOJIS_BY_TYPE_AND_QUALITY,
     FOOD_NUTRITION_PER_100G,
     FOOD_PORTION_GRAMS_BY_TYPE,
-    ENERGY_KWH_PER_KCAL,
     getRandomFoodForType,
     getFoodQualityForEmoji,
     getFoodNutritionFacts,
-    getFoodEnergyKwh
+    getFoodEnergyKcal
 } = require('../public/world-object-definitions.js');
 
 // ---------------------------------------------------------------------------
@@ -395,36 +394,37 @@ describe('applyWorldObjectEffectsToUser', () => {
     });
 });
 
-describe('boost energy', () => {    test('defaults to a full battery', () => {
-        expect(getEnergyForUser(makeUser())).toBe(MAX_ENERGY_KWH);
+describe('boost energy', () => {
+    test('defaults to a full battery', () => {
+        expect(getEnergyForUser(makeUser())).toBe(MAX_ENERGY_KCAL);
     });
 
     test('clamps stored energy to the battery range', () => {
         const user = makeUser();
-        expect(setEnergyForUser(user, 99)).toBe(MAX_ENERGY_KWH);
+        expect(setEnergyForUser(user, 9999)).toBe(MAX_ENERGY_KCAL);
         expect(setEnergyForUser(user, -5)).toBe(0);
         expect(setEnergyForUser(user, NaN)).toBe(0);
     });
 
     test('drains proportionally to elapsed time', () => {
         const user = makeUser();
-        setEnergyForUser(user, MAX_ENERGY_KWH);
+        setEnergyForUser(user, MAX_ENERGY_KCAL);
 
-        expect(drainBoostEnergy(user, 1000)).toBeCloseTo(MAX_ENERGY_KWH - BOOST_DRAIN_KWH_PER_SECOND, 6);
-        expect(drainBoostEnergy(user, 500)).toBeCloseTo(MAX_ENERGY_KWH - BOOST_DRAIN_KWH_PER_SECOND * 1.5, 6);
+        expect(drainBoostEnergy(user, 1000)).toBeCloseTo(MAX_ENERGY_KCAL - BOOST_DRAIN_KCAL_PER_SECOND, 6);
+        expect(drainBoostEnergy(user, 500)).toBeCloseTo(MAX_ENERGY_KCAL - BOOST_DRAIN_KCAL_PER_SECOND * 1.5, 6);
     });
 
     test('a full battery is emptied by the advertised boost duration', () => {
         const user = makeUser();
-        setEnergyForUser(user, MAX_ENERGY_KWH);
+        setEnergyForUser(user, MAX_ENERGY_KCAL);
 
-        const fullBoostSeconds = MAX_ENERGY_KWH / BOOST_DRAIN_KWH_PER_SECOND;
+        const fullBoostSeconds = MAX_ENERGY_KCAL / BOOST_DRAIN_KCAL_PER_SECOND;
         expect(drainBoostEnergy(user, fullBoostSeconds * 1000)).toBe(0);
     });
 
     test('never drains below empty and ignores invalid elapsed times', () => {
         const user = makeUser();
-        setEnergyForUser(user, 0.05);
+        setEnergyForUser(user, 25);
 
         expect(drainBoostEnergy(user, 10_000)).toBe(0);
         expect(drainBoostEnergy(user, -100)).toBe(0);
@@ -433,21 +433,21 @@ describe('boost energy', () => {    test('defaults to a full battery', () => {
 
     test('food adds energy but cannot overcharge the battery', () => {
         const user = makeUser();
-        setEnergyForUser(user, 0.5);
+        setEnergyForUser(user, 250);
 
-        expect(addEnergyToUser(user, 0.25)).toBeCloseTo(0.75, 6);
-        expect(addEnergyToUser(user, 10)).toBe(MAX_ENERGY_KWH);
+        expect(addEnergyToUser(user, 125)).toBeCloseTo(375, 6);
+        expect(addEnergyToUser(user, 10_000)).toBe(MAX_ENERGY_KCAL);
     });
 
     test('eating food recharges the battery', () => {
         const user = makeUser();
-        setEnergyForUser(user, 0.2);
+        setEnergyForUser(user, 100);
 
         applyWorldObjectEffectsToUser(user, {
             effects: { scoreDelta: 1, growthDelta: 1, widthDelta: 0 }
-        }, { quality: FOOD_QUALITIES.HEALTHY, energyKwh: 0.1 });
+        }, { quality: FOOD_QUALITIES.HEALTHY, energyKcal: 50 });
 
-        expect(getEnergyForUser(user)).toBeCloseTo(0.3, 6);
+        expect(getEnergyForUser(user)).toBeCloseTo(150, 6);
     });
 
     test('boost cannot start until the battery is charged past the minimum', () => {
@@ -456,7 +456,7 @@ describe('boost energy', () => {    test('defaults to a full battery', () => {
         setEnergyForUser(user, 0);
         expect(canStartBoost(user)).toBe(false);
 
-        setEnergyForUser(user, MIN_ENERGY_TO_START_BOOST - 0.01);
+        setEnergyForUser(user, MIN_ENERGY_TO_START_BOOST - 1);
         expect(canStartBoost(user)).toBe(false);
 
         setEnergyForUser(user, MIN_ENERGY_TO_START_BOOST);
@@ -469,10 +469,10 @@ describe('food quality', () => {
         effects: { scoreDelta: 1, growthDelta: 2, widthDelta: 0.2 }
     };
 
-    const eatAs = (quality, energyKwh = 0.1) => {
+    const eatAs = (quality, energyKcal = 50) => {
         const user = makeUser({ l: 10, w: 6, score: 0 });
-        setEnergyForUser(user, 0.5);
-        applyWorldObjectEffectsToUser(user, dotDefinition, { quality, energyKwh });
+        setEnergyForUser(user, 250);
+        applyWorldObjectEffectsToUser(user, dotDefinition, { quality, energyKcal });
         return user;
     };
 
@@ -491,11 +491,11 @@ describe('food quality', () => {
     });
 
     test('battery charge comes from the food, not its quality', () => {
-        const junkEater = eatAs(FOOD_QUALITIES.UNHEALTHY, 0.4);
-        const aipEater = eatAs(FOOD_QUALITIES.AIP, 0.4);
+        const junkEater = eatAs(FOOD_QUALITIES.UNHEALTHY, 200);
+        const aipEater = eatAs(FOOD_QUALITIES.AIP, 200);
 
-        expect(getEnergyForUser(junkEater)).toBeCloseTo(0.9, 6);
-        expect(getEnergyForUser(aipEater)).toBeCloseTo(0.9, 6);
+        expect(getEnergyForUser(junkEater)).toBeCloseTo(450, 6);
+        expect(getEnergyForUser(aipEater)).toBeCloseTo(450, 6);
     });
 
     test('unknown or missing quality falls back to healthy', () => {
@@ -541,7 +541,6 @@ describe('food nutrition', () => {
 
                     expect(facts).not.toBeNull();
                     expect(facts.kcal).toBeGreaterThan(0);
-                    expect(facts.energyKwh).toBeGreaterThan(0);
                 }
             }
         }
@@ -556,7 +555,6 @@ describe('food nutrition', () => {
         const portionRatio = FOOD_PORTION_GRAMS_BY_TYPE.cloud / 100;
 
         expect(facts.kcal).toBeCloseTo(expectedKcalPer100g * portionRatio, 6);
-        expect(facts.energyKwh).toBeCloseTo(facts.kcal * ENERGY_KWH_PER_KCAL, 9);
     });
 
     test('avocado matches its real calorie density within a few percent', () => {
@@ -577,10 +575,10 @@ describe('food nutrition', () => {
     });
 
     test('fatty and sugary foods carry more charge than watery fruit', () => {
-        const watermelon = getFoodEnergyKwh('monster', '🍉');
-        const coconut = getFoodEnergyKwh('monster', '🥥');
-        const strawberry = getFoodEnergyKwh('dot', '🍓');
-        const candy = getFoodEnergyKwh('dot', '🍬');
+        const watermelon = getFoodEnergyKcal('monster', '🍉');
+        const coconut = getFoodEnergyKcal('monster', '🥥');
+        const strawberry = getFoodEnergyKcal('dot', '🍓');
+        const candy = getFoodEnergyKcal('dot', '🍬');
 
         expect(coconut).toBeGreaterThan(watermelon);
         expect(candy).toBeGreaterThan(strawberry);
@@ -588,6 +586,6 @@ describe('food nutrition', () => {
 
     test('unknown food has no nutrition', () => {
         expect(getFoodNutritionFacts('dot', '🪨')).toBeNull();
-        expect(getFoodEnergyKwh('dot', '🪨')).toBe(0);
+        expect(getFoodEnergyKcal('dot', '🪨')).toBe(0);
     });
 });

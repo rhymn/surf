@@ -155,8 +155,6 @@ const FOOD_PORTION_GRAMS_BY_TYPE = {
     [WORLD_OBJECT_TYPES.DOT]: 30
 };
 
-const ENERGY_KWH_PER_KCAL = 0.002;
-
 const getKcalPer100g = (nutrition) => {
     if (!nutrition) {
         return 0;
@@ -187,12 +185,11 @@ const getFoodNutritionFacts = (type, emoji) => {
         carbs: nutrition.carbs * portionRatio,
         fiber: nutrition.fiber * portionRatio,
         protein: nutrition.protein * portionRatio,
-        kcal,
-        energyKwh: kcal * ENERGY_KWH_PER_KCAL
+        kcal
     };
 };
 
-const getFoodEnergyKwh = (type, emoji) => getFoodNutritionFacts(type, emoji)?.energyKwh ?? 0;
+const getFoodEnergyKcal = (type, emoji) => getFoodNutritionFacts(type, emoji)?.kcal ?? 0;
 
 const DEFAULT_WORLD_OBJECT_DEFINITIONS = {
     [WORLD_OBJECT_TYPES.TREE]: {
@@ -286,11 +283,10 @@ if (typeof module !== 'undefined' && module.exports) {
         FOOD_QUALITY_SPAWN_WEIGHTS,
         FOOD_NUTRITION_PER_100G,
         FOOD_PORTION_GRAMS_BY_TYPE,
-        ENERGY_KWH_PER_KCAL,
         getRandomFoodForType,
         getFoodQualityForEmoji,
         getFoodNutritionFacts,
-        getFoodEnergyKwh,
+        getFoodEnergyKcal,
         DEFAULT_WORLD_OBJECT_DEFINITIONS,
         DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS
     };
@@ -303,7 +299,7 @@ if (typeof window !== 'undefined') {
     window.getRandomFoodForType = getRandomFoodForType;
     window.getFoodQualityForEmoji = getFoodQualityForEmoji;
     window.getFoodNutritionFacts = getFoodNutritionFacts;
-    window.getFoodEnergyKwh = getFoodEnergyKwh;
+    window.getFoodEnergyKcal = getFoodEnergyKcal;
     window.DEFAULT_WORLD_OBJECT_DEFINITIONS = DEFAULT_WORLD_OBJECT_DEFINITIONS;
     window.DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS = DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS;
 }

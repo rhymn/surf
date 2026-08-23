@@ -18,11 +18,11 @@ const DEFAULT_FOOD_HIT_BEHAVIOR = FOOD_HIT_BEHAVIORS.MOVE;
 const INITIAL_USER_LENGTH = 6;
 const INITIAL_USER_WIDTH = 6; // matches RULE_SNAKE_SEGMENT_SIZE
 
-// Boost runs off a small battery: a full charge lasts MAX_ENERGY_KWH / BOOST_DRAIN
+// Boost runs off a small battery: a full charge lasts MAX_ENERGY_KCAL / BOOST_DRAIN
 // seconds of boosting, and only food puts energy back in.
-const MAX_ENERGY_KWH = 1;
-const BOOST_DRAIN_KWH_PER_SECOND = 0.2;
-const MIN_ENERGY_TO_START_BOOST = 0.15;
+const MAX_ENERGY_KCAL = 1000;
+const BOOST_DRAIN_KCAL_PER_SECOND = 100;
+const MIN_ENERGY_TO_START_BOOST = 75;
 
 // ---------------------------------------------------------------------------
 // Collision response helpers
@@ -154,7 +154,7 @@ const applyWorldObjectEffectsToUser = (userState, worldObjectDefinition, foodCon
         return;
     }
 
-    const { quality = FOOD_QUALITIES.HEALTHY, energyKwh = 0 } = foodContext;
+    const { quality = FOOD_QUALITIES.HEALTHY, energyKcal = 0 } = foodContext;
     const modifiers = getFoodQualityModifiers(quality);
 
     const scoreDelta = Number.isFinite(worldObjectDefinition.effects.scoreDelta)
@@ -170,7 +170,7 @@ const applyWorldObjectEffectsToUser = (userState, worldObjectDefinition, foodCon
     userState.score += Math.round(scoreDelta * modifiers.score);
     setSnakeLengthForUser(userState, getSnakeLengthForUser(userState) + growthDelta * modifiers.growth);
     setSnakeWidthForUser(userState, getSnakeWidthForUser(userState) + widthDelta * modifiers.width);
-    addEnergyToUser(userState, Number.isFinite(energyKwh) ? energyKwh : 0);
+    addEnergyToUser(userState, Number.isFinite(energyKcal) ? energyKcal : 0);
 };
 
 // ---------------------------------------------------------------------------
@@ -182,10 +182,10 @@ const clampEnergy = (energyValue) => {
         return 0;
     }
 
-    return Math.min(MAX_ENERGY_KWH, Math.max(0, energyValue));
+    return Math.min(MAX_ENERGY_KCAL, Math.max(0, energyValue));
 };
 
-const getEnergyForUser = (userState) => clampEnergy(userState?.energy ?? MAX_ENERGY_KWH);
+const getEnergyForUser = (userState) => clampEnergy(userState?.energy ?? MAX_ENERGY_KCAL);
 
 const setEnergyForUser = (userState, nextEnergy) => {
     if (!userState) {
@@ -211,7 +211,7 @@ const drainBoostEnergy = (userState, elapsedMs) => {
         return getEnergyForUser(userState);
     }
 
-    const drained = (elapsedMs / 1000) * BOOST_DRAIN_KWH_PER_SECOND;
+    const drained = (elapsedMs / 1000) * BOOST_DRAIN_KCAL_PER_SECOND;
     return setEnergyForUser(userState, getEnergyForUser(userState) - drained);
 };
 
@@ -225,8 +225,8 @@ module.exports = {
     getFoodQualityModifiers,
     INITIAL_USER_LENGTH,
     INITIAL_USER_WIDTH,
-    MAX_ENERGY_KWH,
-    BOOST_DRAIN_KWH_PER_SECOND,
+    MAX_ENERGY_KCAL,
+    BOOST_DRAIN_KCAL_PER_SECOND,
     MIN_ENERGY_TO_START_BOOST,
     resolveCollisionResponse,
     toSafeCollisionResponse,

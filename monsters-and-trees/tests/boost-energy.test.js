@@ -88,7 +88,7 @@ describe('boost energy', () => {
         const { player, state } = await joinFreshGame('Recharge Game');
 
         player.emit(SOCKET_EVENTS.SET_BOOST, true);
-        await wait(6000);
+        await wait(11000);
 
         expect(state.energy).toBe(0);
         expect(state.isBoosting).toBe(false);
