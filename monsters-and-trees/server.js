@@ -1229,11 +1229,12 @@ const updateBotPositionsForWorld = (world) => {
 
         let nextDirection = null;
         let nextPosition = null;
+        const botStep = world.botStep ?? BOT_STEP;
 
         for (const candidateDirection of candidateDirections) {
             const candidatePosition = {
-                x: currentPosition.x + candidateDirection.x * BOT_STEP,
-                y: currentPosition.y + candidateDirection.y * BOT_STEP
+                x: currentPosition.x + candidateDirection.x * botStep,
+                y: currentPosition.y + candidateDirection.y * botStep
             };
 
             const outOfBounds =
@@ -1527,7 +1528,8 @@ const joinUserToGame = (socket, gameId, playerName) => {
         playerName: safePlayerName,
         playingType: game.playingType,
         mapType: game.mapType,
-        mapName: game.mapName
+        mapName: game.mapName,
+        speedPreset: game.speedPreset
     });
     socket.emit(SOCKET_EVENTS.ASSIGN_COLOR, userColor);
     socket.emit(SOCKET_EVENTS.ASSIGN_HEAD_EMOJI, userHeadEmoji);
@@ -1537,7 +1539,7 @@ const joinUserToGame = (socket, gameId, playerName) => {
     socket.emit(SOCKET_EVENTS.UPDATE_WORLD_OBJECTS, world.worldObjects);
     socket.emit(SOCKET_EVENTS.UPDATE_FROZEN_SNAKES, world.frozenSnakeCorpses);
     socket.emit(SOCKET_EVENTS.SET_MOVEMENT_CONFIG, {
-        baseStep: MOVEMENT_BASE_STEP,
+        baseStep: world.baseStep ?? MOVEMENT_BASE_STEP,
         ticksPerSecond: MOVEMENT_TICKS_PER_SECOND,
         boostMultiplier: MOVEMENT_BOOST_MULTIPLIER,
         maxEnergy: MAX_ENERGY_KCAL,
@@ -1641,6 +1643,7 @@ io.on('connection', (socket) => {
         borderCollisionResponse,
         dangerousObjectCollisionResponse,
         foodHitBehavior,
+        speedPreset,
         autoJoin
     }) => {
         const game = createGame(
@@ -1651,7 +1654,8 @@ io.on('connection', (socket) => {
             mapType,
             borderCollisionResponse,
             dangerousObjectCollisionResponse,
-            foodHitBehavior
+            foodHitBehavior,
+            speedPreset
         );
 
         if (autoJoin) {

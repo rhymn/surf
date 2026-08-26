@@ -844,6 +844,10 @@ const foodHitBehaviorLabel = document.createElement('label');
 foodHitBehaviorLabel.className = 'field-label';
 foodHitBehaviorLabel.textContent = 'Food on hit';
 
+const speedLabel = document.createElement('label');
+speedLabel.className = 'field-label';
+speedLabel.textContent = 'Speed';
+
 const steeringSettingsTitle = document.createElement('h3');
 steeringSettingsTitle.className = 'section-title';
 steeringSettingsTitle.textContent = 'Your controls';
@@ -931,6 +935,15 @@ dangerousObjectCollisionSelect.className = 'field-select';
 const foodHitBehaviorSelect = document.createElement('select');
 foodHitBehaviorSelect.className = 'field-select';
 
+const speedSelect = document.createElement('select');
+speedSelect.className = 'field-select';
+
+const SPEED_PRESET_OPTIONS = [
+    { value: 'snail', label: '🐌 Snail' },
+    { value: 'mouse', label: '🐭 Mouse' },
+    { value: 'cheetah', label: '🐆 Cheetah' }
+];
+
 const playingTypeOptions = [
     { value: PLAYING_TYPES.LAST_MAN_STANDING, label: 'Last man standing' },
     { value: PLAYING_TYPES.TIMER, label: 'Most points in 60s' },
@@ -975,11 +988,19 @@ for (const foodHitBehaviorOption of FOOD_HIT_BEHAVIOR_OPTIONS) {
     foodHitBehaviorSelect.appendChild(optionElement);
 }
 
+for (const speedOption of SPEED_PRESET_OPTIONS) {
+    const optionElement = document.createElement('option');
+    optionElement.value = speedOption.value;
+    optionElement.textContent = speedOption.label;
+    speedSelect.appendChild(optionElement);
+}
+
 playingTypeSelect.value = PLAYING_TYPES.LAST_MAN_STANDING;
 steeringModeSelect.value = STEERING_MODES.CLASSIC;
 borderCollisionSelect.value = COLLISION_RESPONSES.GAME_OVER;
 dangerousObjectCollisionSelect.value = COLLISION_RESPONSES.GAME_OVER;
 foodHitBehaviorSelect.value = FOOD_HIT_BEHAVIORS.MOVE;
+speedSelect.value = 'mouse';
 
 const PREFS_KEY = 'monstersAndTreesPrefs';
 
@@ -1033,6 +1054,8 @@ lobbyPanel.appendChild(dangerousCollisionLabel);
 lobbyPanel.appendChild(dangerousObjectCollisionSelect);
 lobbyPanel.appendChild(foodHitBehaviorLabel);
 lobbyPanel.appendChild(foodHitBehaviorSelect);
+lobbyPanel.appendChild(speedLabel);
+lobbyPanel.appendChild(speedSelect);
 lobbyPanel.appendChild(steeringSettingsTitle);
 lobbyPanel.appendChild(steeringSettingsHint);
 lobbyPanel.appendChild(steeringModeLabel);
@@ -1301,6 +1324,8 @@ const renderActiveGames = (games) => {
         const foodBehaviorLabel = game.foodHitBehavior === FOOD_HIT_BEHAVIORS.REMOVE
             ? 'Remove'
             : 'Move';
+        const speedLabelText = SPEED_PRESET_OPTIONS.find((option) => option.value === game.speedPreset)?.label
+            ?? game.speedPreset;
 
         const row = document.createElement('div');
         row.className = 'game-card';
@@ -1315,7 +1340,7 @@ const renderActiveGames = (games) => {
         gameSummary.textContent = `${getPlayingTypeLabel(game.playingType)} · ${game.mapName ?? 'Map'} · Host: ${game.ownerName} · Players: ${game.playerCount}`;
 
         const gameLockedRules = document.createElement('div');
-        gameLockedRules.textContent = `Border ${borderCollisionLabel} · Dangerous ${dangerousCollisionLabel} · Food ${foodBehaviorLabel}`;
+        gameLockedRules.textContent = `Border ${borderCollisionLabel} · Dangerous ${dangerousCollisionLabel} · Food ${foodBehaviorLabel} · Speed ${speedLabelText}`;
 
         gameMeta.append(gameTitle, gameSummary, gameLockedRules);
 
@@ -1362,6 +1387,7 @@ createButton.onclick = () => {
     const borderCollisionResponse = borderCollisionSelect.value;
     const dangerousObjectCollisionResponse = dangerousObjectCollisionSelect.value;
     const foodHitBehavior = foodHitBehaviorSelect.value;
+    const speedPreset = speedSelect.value;
     socket.emit(GAME_SOCKET_EVENTS.CREATE_GAME, {
         gameName,
         playerName,
@@ -1369,7 +1395,8 @@ createButton.onclick = () => {
         mapType,
         borderCollisionResponse,
         dangerousObjectCollisionResponse,
-        foodHitBehavior
+        foodHitBehavior,
+        speedPreset
     });
 };
 
@@ -1399,6 +1426,7 @@ randomButton.onclick = () => {
     const randomBorderCollisionResponse = getRandomItem(COLLISION_RESPONSE_OPTIONS).value;
     const randomDangerousObjectCollisionResponse = getRandomItem(COLLISION_RESPONSE_OPTIONS).value;
     const randomFoodHitBehavior = getRandomItem(FOOD_HIT_BEHAVIOR_OPTIONS).value;
+    const randomSpeedPreset = getRandomItem(SPEED_PRESET_OPTIONS).value;
 
     playingTypeSelect.value = randomPlayingType;
     mapTypeSelect.value = randomMapType;
@@ -1406,6 +1434,7 @@ randomButton.onclick = () => {
     borderCollisionSelect.value = randomBorderCollisionResponse;
     dangerousObjectCollisionSelect.value = randomDangerousObjectCollisionResponse;
     foodHitBehaviorSelect.value = randomFoodHitBehavior;
+    speedSelect.value = randomSpeedPreset;
 
     socket.emit(GAME_SOCKET_EVENTS.CREATE_GAME, {
         gameName: getRandomGameName(),
@@ -1415,6 +1444,7 @@ randomButton.onclick = () => {
         borderCollisionResponse: randomBorderCollisionResponse,
         dangerousObjectCollisionResponse: randomDangerousObjectCollisionResponse,
         foodHitBehavior: randomFoodHitBehavior,
+        speedPreset: randomSpeedPreset,
         autoJoin: true
     });
 };
