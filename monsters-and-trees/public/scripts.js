@@ -496,7 +496,8 @@ const initializeLocalSnake = () => {
         color: localSnakeColor,
         length: INITIAL_USER_LENGTH,
         width: gameRules.snakeSegmentSize,
-        headEmoji: localSnakeHeadEmoji
+        headEmoji: localSnakeHeadEmoji,
+        segmentFoods: []
     }
 }
 
@@ -533,6 +534,28 @@ const ensureSnakeCoordinateCountMatchesLength = (snakeState) => {
     }
 
     snakeState.coordinates.splice(targetLength);
+    ensureSegmentFoodsMatchLength(snakeState);
+};
+
+// Body segments show the emoji of the food that grew them, most recently eaten
+// nearest the head. Keeps the queue aligned to the coordinate trail, padding or
+// trimming from the tail end so newly eaten food stays near the front.
+const ensureSegmentFoodsMatchLength = (snakeState) => {
+    if (!snakeState || !Array.isArray(snakeState.coordinates)) {
+        return;
+    }
+
+    if (!Array.isArray(snakeState.segmentFoods)) {
+        snakeState.segmentFoods = [];
+    }
+
+    const targetLength = Math.max(0, snakeState.coordinates.length - 1);
+
+    while (snakeState.segmentFoods.length < targetLength) {
+        snakeState.segmentFoods.push(null);
+    }
+
+    snakeState.segmentFoods.splice(targetLength);
 };
 
 const upsertSnakeById = (snakeId, headCoordinates, nextLength, nextScore, nextWidth) => {
@@ -551,7 +574,8 @@ const upsertSnakeById = (snakeId, headCoordinates, nextLength, nextScore, nextWi
             length: INITIAL_USER_LENGTH,
             score: 0,
             width: gameRules.snakeSegmentSize,
-            headEmoji: '🐍'
+            headEmoji: '🐍',
+            segmentFoods: []
         }
     }
 
@@ -562,6 +586,10 @@ const upsertSnakeById = (snakeId, headCoordinates, nextLength, nextScore, nextWi
     }
 
     if (nextLength > 0) {
+        // A shorter length than before means the snake died and respawned.
+        if (nextLength < snakeState.length) {
+            snakeState.segmentFoods = [];
+        }
         snakeState.length = nextLength;
     }
 
@@ -1784,6 +1812,7 @@ socket.on(GAME_SOCKET_EVENTS.SET_START_POSITION, (position) => {
     hasShownMatchEndAlert = false;
     snakeStates.mySnake.coordinates[0].x = position.x;
     snakeStates.mySnake.coordinates[0].y = position.y;
+    snakeStates.mySnake.segmentFoods = [];
     resetGameTimer();
     updateLobbyControls();
     drawScene();
@@ -1800,6 +1829,27 @@ socket.on(GAME_SOCKET_EVENTS.TELEPORTED, (position) => {
         y: position.y
     }));
     drawScene();
+});
+
+socket.on(GAME_SOCKET_EVENTS.FOOD_EATEN, ({ userId, emoji, segments } = {}) => {
+    if (!emoji || !(segments > 0)) {
+        return;
+    }
+
+    const snakeState = userId === localSocketId ? snakeStates.mySnake : snakeStates[userId];
+    if (!snakeState) {
+        return;
+    }
+
+    if (!Array.isArray(snakeState.segmentFoods)) {
+        snakeState.segmentFoods = [];
+    }
+
+    for (let i = 0; i < segments; i++) {
+        snakeState.segmentFoods.unshift(emoji);
+    }
+
+    ensureSegmentFoodsMatchLength(snakeState);
 });
 
 socket.on(GAME_SOCKET_EVENTS.YOU_WERE_EATEN, () => {
@@ -1827,7 +1877,12 @@ socket.on(GAME_SOCKET_EVENTS.UPDATE_USERS, (usersById) => {
         const userState = usersById[snakeId];
 
         if (snakeId === localSocketId) {
-            snakeStates.mySnake.length = userState.l ?? snakeStates.mySnake.length;
+            const nextLength = userState.l ?? snakeStates.mySnake.length;
+            // A shorter length than before means the snake died and respawned.
+            if (nextLength < snakeStates.mySnake.length) {
+                snakeStates.mySnake.segmentFoods = [];
+            }
+            snakeStates.mySnake.length = nextLength;
             snakeStates.mySnake.width = userState.w ?? snakeStates.mySnake.width;
             snakeStates.mySnake.score = userState.score ?? snakeStates.mySnake.score;
             snakeStates.mySnake.name = userState.name ?? snakeStates.mySnake.name;
@@ -1917,6 +1972,15 @@ function drawSnake(snake) {
             ctx.font = `${Math.max(32, Math.round(segmentSize * 2))}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
             ctx.fillText(snake.headEmoji ?? '🐍', 0, 0);
             ctx.restore();
+            return;
+        }
+
+        ctx.fillStyle = snake.color;
+        const bodyFoodEmoji = snake.segmentFoods?.[index - 1];
+        if (bodyFoodEmoji) {
+            const sprite = getFoodEmojiSprite(bodyFoodEmoji, segmentSize, null);
+            const drawOffset = sprite.drawOffset ?? 0;
+            ctx.drawImage(sprite, coordinate.x - drawOffset, coordinate.y - drawOffset);
             return;
         }
 
@@ -2648,25 +2712,11 @@ function updatePosition() {
                         if (myLength > otherLength) {
                             eatenSnakeIds.add(id);
                             sendSnakeEaten(id);
-                        } else {
-                            reverseMovementDirection();
-                            const bouncedPosition = steeringMode === STEERING_MODES.FREE
-                                ? applySteeringAngleToPosition(
-                                    snakeStates.mySnake.coordinates[0].x,
-                                    snakeStates.mySnake.coordinates[0].y,
-                                    steeringAngle,
-                                    movementStep
-                                )
-                                : applyDirectionToPosition(
-                                snakeStates.mySnake.coordinates[0].x,
-                                snakeStates.mySnake.coordinates[0].y,
-                                movementDirection,
-                                movementStep
-                            );
-                            nextX = bouncedPosition.nextX;
-                            nextY = bouncedPosition.nextY;
-                            hasBounced = true;
                         }
+                        // Touching a bigger snake is resolved authoritatively by the
+                        // server: its tail tip can be nibbled, but touching it
+                        // anywhere else is instantly fatal for us — either way, we
+                        // just report our position and let the server decide.
                         break;
                     }
                 }

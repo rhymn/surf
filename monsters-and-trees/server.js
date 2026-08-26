@@ -90,6 +90,9 @@ const INITIAL_DOT_COUNT = 220;
 const INITIAL_THORN_COUNT = 10;
 const INITIAL_PORTAL_COUNT = 8;
 const INITIAL_USER_SCORE = 0;
+// A snake that isn't big enough to swallow another whole can still nibble the
+// very tip of its tail, one segment per contact, until it grows past it.
+const SNAKE_TAIL_BITE_SEGMENTS = 1;
 const PUBLIC_DIRECTORY = 'public';
 const WORLD_OBJECT_TYPE_DEFINITIONS = JSON.parse(JSON.stringify(DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS));
 const { getWorldObjectRect } = createWorldObjectHelpers(WORLD_OBJECT_TYPE_DEFINITIONS);
@@ -543,6 +546,16 @@ const broadcastFrozenSnakeCorpses = (gameId) => {
     io.to(getRoomNameForGame(gameId)).emit(SOCKET_EVENTS.UPDATE_FROZEN_SNAKES, world.frozenSnakeCorpses);
 };
 
+// Lets every client in the room grow that snake's body with the eaten food's emoji.
+const broadcastFoodEaten = (gameId, userId, emoji, effectiveGrowthDelta) => {
+    if (!gameId || !emoji || !(effectiveGrowthDelta > 0)) {
+        return;
+    }
+
+    const segments = Math.max(1, Math.round(effectiveGrowthDelta));
+    io.to(getRoomNameForGame(gameId)).emit(SOCKET_EVENTS.FOOD_EATEN, { userId, emoji, segments });
+};
+
 // Energy is private: a player only ever sees their own battery.
 const emitEnergyUpdate = (socketId) => {
     const user = connectedUsers[socketId];
@@ -728,15 +741,34 @@ const getSnakeCollision = (attackerId, attackerPosition) => {
         const victimUser = usersInGame[victimId];
         const victimWidth = getSnakeWidthForUser(victimUser);
         const victimTrail = getSnakeTrailForId(victimId);
+        const tailIndex = victimTrail.length - 1;
+        let matchedSegmentIndex = null;
+        let isTailSegment = false;
 
         for (let segmentIndex = 0; segmentIndex < victimTrail.length; segmentIndex++) {
             const victimSegmentHitbox = getSnakeSegmentHitbox(victimTrail[segmentIndex], victimWidth);
-            if (rectanglesOverlap(attackerHitbox, victimSegmentHitbox)) {
-                return {
-                    victimId,
-                    segmentIndex
-                };
+            if (!rectanglesOverlap(attackerHitbox, victimSegmentHitbox)) {
+                continue;
             }
+
+            if (matchedSegmentIndex === null) {
+                matchedSegmentIndex = segmentIndex;
+            }
+
+            // Keep scanning even after the first hit so a simultaneous tail
+            // touch is still detected regardless of scan order.
+            if (segmentIndex === tailIndex) {
+                isTailSegment = true;
+                break;
+            }
+        }
+
+        if (matchedSegmentIndex !== null) {
+            return {
+                victimId,
+                segmentIndex: matchedSegmentIndex,
+                isTailSegment
+            };
         }
     }
 
@@ -775,6 +807,55 @@ const removeSnakeAndFreezeBody = (victimId, createCorpse = true) => {
     delete snakeTrailById[victimId];
     delete connectedUsers[victimId];
     return true;
+};
+
+// A snake can only be swallowed whole once the attacker is strictly bigger;
+// touching a bigger snake's tail tip only nibbles it, but touching a bigger
+// snake anywhere else is instantly fatal for the smaller one.
+// Returns { ateFully: true }, { nibbled: true, bittenSegments } or
+// { attackerDied: true } on success, or null if nothing happened.
+const resolveSnakeBite = (attackerId, attackerUser, victimId, victimUser, isTailSegment, createCorpseForLoser = true) => {
+    if (!attackerUser || !victimUser) {
+        return null;
+    }
+
+    const attackerLength = getSnakeLengthForUser(attackerUser);
+    const victimLength = getSnakeLengthForUser(victimUser);
+
+    if (attackerLength > victimLength) {
+        if (!removeSnakeAndFreezeBody(victimId, createCorpseForLoser)) {
+            return null;
+        }
+
+        growSnakeAfterEatingSnake(attackerUser, victimUser);
+        return { ateFully: true };
+    }
+
+    if (isTailSegment) {
+        const nextVictimLength = Math.max(1, victimLength - SNAKE_TAIL_BITE_SEGMENTS);
+        const bittenSegments = victimLength - nextVictimLength;
+        if (bittenSegments <= 0) {
+            return null;
+        }
+
+        setSnakeLengthForUser(victimUser, nextVictimLength);
+        setSnakeLengthForUser(attackerUser, attackerLength + bittenSegments);
+        attackerUser.score += bittenSegments;
+
+        const victimTrail = snakeTrailById[victimId];
+        if (victimTrail) {
+            victimTrail.splice(Math.max(1, nextVictimLength));
+        }
+
+        return { nibbled: true, bittenSegments };
+    }
+
+    if (!removeSnakeAndFreezeBody(attackerId, createCorpseForLoser)) {
+        return null;
+    }
+
+    growSnakeAfterEatingSnake(victimUser, attackerUser);
+    return { attackerDied: true };
 };
 
 const getCollidedWorldObjectId = (world, position, snakeWidth = RULE_SNAKE_SEGMENT_SIZE) => {
@@ -1021,10 +1102,11 @@ const applyWorldObjectHitForBot = (world, botId, worldObjectId) => {
         return { usersChanged: true, worldObjectsChanged: false };
     }
 
-    applyWorldObjectEffectsToUser(botUser, worldObjectDefinition, {
+    const { effectiveGrowthDelta } = applyWorldObjectEffectsToUser(botUser, worldObjectDefinition, {
         quality: worldObject.quality,
         energyKcal: getFoodEnergyKcal(worldObject.type, worldObject.emoji)
     });
+    broadcastFoodEaten(world.gameId, botId, worldObject.emoji, effectiveGrowthDelta);
 
     if (worldObjectDefinition.removeOnHit) {
         applyFoodHitBehavior(world, worldObjectId, worldObject);
@@ -1128,18 +1210,19 @@ const updateBotPositionsForWorld = (world) => {
         const snakeCollision = getSnakeCollision(botId, botUser.coordinates);
         if (snakeCollision) {
             const victimUser = connectedUsers[snakeCollision.victimId];
-            const attackerLength = getSnakeLengthForUser(botUser);
-            const victimLength = getSnakeLengthForUser(victimUser);
+            // Pass createCorpseForLoser=false: the winner already absorbs the full
+            // reward via growSnakeAfterEatingSnake, so no corpse is created to
+            // avoid double-counting.
+            const biteResult = resolveSnakeBite(botId, botUser, snakeCollision.victimId, victimUser, snakeCollision.isTailSegment, false);
 
-            if (attackerLength > victimLength) {
-                // Pass createCorpse=false: bot already absorbs the full reward via
-                // growSnakeAfterEatingSnake, so no corpse is created to avoid double-counting.
-                const removed = removeSnakeAndFreezeBody(snakeCollision.victimId, false);
-                if (removed) {
-                    growSnakeAfterEatingSnake(botUser, victimUser);
-                }
-                usersChanged = usersChanged || removed;
-                worldObjectsChanged = worldObjectsChanged || removed;
+            if (biteResult?.ateFully || biteResult?.attackerDied) {
+                usersChanged = true;
+                worldObjectsChanged = true;
+                continue;
+            }
+
+            if (biteResult?.nibbled) {
+                usersChanged = true;
                 continue;
             }
 
@@ -1659,11 +1742,12 @@ io.on('connection', (socket) => {
             return;
         }
 
-        applyWorldObjectEffectsToUser(hitterUser, worldObjectDefinition, {
+        const { effectiveGrowthDelta } = applyWorldObjectEffectsToUser(hitterUser, worldObjectDefinition, {
             quality: worldObject.quality,
             energyKcal: getFoodEnergyKcal(worldObject.type, worldObject.emoji)
         });
         emitEnergyUpdate(socket.id);
+        broadcastFoodEaten(gameId, socket.id, worldObject.emoji, effectiveGrowthDelta);
 
         if (worldObjectDefinition.removeOnHit) {
             applyFoodHitBehavior(world, worldObjectId, worldObject);
@@ -1722,23 +1806,28 @@ io.on('connection', (socket) => {
         const snakeCollision = getSnakeCollision(socket.id, user.coordinates);
         if (snakeCollision) {
             const victimUser = connectedUsers[snakeCollision.victimId];
+            const biteResult = resolveSnakeBite(socket.id, user, snakeCollision.victimId, victimUser, snakeCollision.isTailSegment);
 
-            if (victimUser && getSnakeLengthForUser(user) > getSnakeLengthForUser(victimUser)) {
-                const removed = removeSnakeAndFreezeBody(snakeCollision.victimId);
-                if (removed) {
-                    growSnakeAfterEatingSnake(user, victimUser);
-                    broadcastFrozenSnakeCorpses(gameId);
-                    broadcastWorldObjects(gameId);
-                    broadcastUsers(gameId);
-                    evaluateMatchState(gameId);
-                }
+            if (biteResult?.ateFully) {
+                broadcastFrozenSnakeCorpses(gameId);
+                broadcastWorldObjects(gameId);
+                broadcastUsers(gameId);
+                evaluateMatchState(gameId);
+            } else if (biteResult?.nibbled) {
+                broadcastUsers(gameId);
+            } else if (biteResult?.attackerDied) {
+                broadcastFrozenSnakeCorpses(gameId);
+                broadcastWorldObjects(gameId);
+                broadcastUsers(gameId);
+                evaluateMatchState(gameId);
+                return;
             }
         }
 
         io.to(getRoomNameForGame(gameId)).emit(SOCKET_EVENTS.UPDATE_COORDINATES_OF_HEAD, {
             id: socket.id,
             coordinatesOfHead: { x: user.coordinates.x, y: user.coordinates.y },
-            l: authoritativeLength,
+            l: getSnakeLengthForUser(user),
             w: authoritativeWidth
         });
     });

@@ -151,7 +151,7 @@ const growSnakeAfterEatingSnake = (attackerUser, victimUser) => {
 
 const applyWorldObjectEffectsToUser = (userState, worldObjectDefinition, foodContext = {}) => {
     if (!userState || !worldObjectDefinition) {
-        return;
+        return { effectiveGrowthDelta: 0 };
     }
 
     const { quality = FOOD_QUALITIES.HEALTHY, energyKcal = 0 } = foodContext;
@@ -166,11 +166,14 @@ const applyWorldObjectEffectsToUser = (userState, worldObjectDefinition, foodCon
     const widthDelta = Number.isFinite(worldObjectDefinition.effects.widthDelta)
         ? worldObjectDefinition.effects.widthDelta
         : 0;
+    const effectiveGrowthDelta = growthDelta * modifiers.growth;
 
     userState.score += Math.round(scoreDelta * modifiers.score);
-    setSnakeLengthForUser(userState, getSnakeLengthForUser(userState) + growthDelta * modifiers.growth);
+    setSnakeLengthForUser(userState, getSnakeLengthForUser(userState) + effectiveGrowthDelta);
     setSnakeWidthForUser(userState, getSnakeWidthForUser(userState) + widthDelta * modifiers.width);
     addEnergyToUser(userState, Number.isFinite(energyKcal) ? energyKcal : 0);
+
+    return { effectiveGrowthDelta };
 };
 
 // ---------------------------------------------------------------------------
