@@ -9,6 +9,7 @@ const {
     WORLD_OBJECT_TYPES,
     getRandomFoodForType,
     getFoodEnergyKcal,
+    getEmojiDominantColor,
     DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS
 } = require('./public/world-object-definitions.js');
 const { getHeadPickupHitbox } = require('./public/snake-geometry.js');
@@ -76,6 +77,13 @@ const MAP_TYPES = {
     FOREST: 'forest',
     THORNS: 'thorns'
 };
+// Every participant in a game (players and bots) moves at the same shared speed.
+const SPEED_PRESETS = {
+    snail: 0.5,
+    mouse: 1,
+    cheetah: 2
+};
+const DEFAULT_SPEED_PRESET = 'mouse';
 const DEFAULT_BOT_COUNT = 3;
 const DEFAULT_BOT_MOVE_INTERVAL_MS = 200;
 const DEFAULT_BOT_STEP = 4;
@@ -119,6 +127,10 @@ const AUDIO_RTC_ICE_SERVERS = getIceServersConfig();
 const DEFAULT_MAP_TYPE = MAP_TYPES.CLASSIC;
 const DEFAULT_BORDER_COLLISION_RESPONSE = COLLISION_RESPONSES.GAME_OVER;
 const DEFAULT_DANGEROUS_OBJECT_COLLISION_RESPONSE = COLLISION_RESPONSES.GAME_OVER;
+
+const toSafeSpeedPreset = (speedPreset) => {
+    return Object.prototype.hasOwnProperty.call(SPEED_PRESETS, speedPreset) ? speedPreset : DEFAULT_SPEED_PRESET;
+};
 
 const MAP_DEFINITIONS = {
     [MAP_TYPES.CLASSIC]: {
@@ -181,6 +193,9 @@ const getRandomPosition = (width, height, size = RULE_SNAKE_SEGMENT_SIZE) => {
 let connectedUsers = {};
 let botStateById = {};
 let snakeTrailById = {};
+// Parallel to snakeTrailById: which food emoji (if any) grew each body segment,
+// front-to-back matching the trail order (index 0 = segment right behind the head).
+let snakeSegmentFoodsById = {};
 let activeGamesById = {};
 let socketGameById = {};
 const gameWorldsById = {};
@@ -392,6 +407,7 @@ const getActiveGamesPayload = () => {
             borderCollisionResponse: game.borderCollisionResponse,
             dangerousObjectCollisionResponse: game.dangerousObjectCollisionResponse,
             foodHitBehavior: game.foodHitBehavior,
+            speedPreset: game.speedPreset,
             playerCount: game.playerIds.size
         });
     }
@@ -412,7 +428,8 @@ const createGame = (
     mapType,
     borderCollisionResponse,
     dangerousObjectCollisionResponse,
-    foodHitBehavior
+    foodHitBehavior,
+    speedPreset
 ) => {
     const gameId = createGameId();
     const safeMapType = toSafeMapType(mapType);
@@ -426,6 +443,7 @@ const createGame = (
         DEFAULT_DANGEROUS_OBJECT_COLLISION_RESPONSE
     );
     const safeFoodHitBehavior = toSafeFoodHitBehavior(foodHitBehavior);
+    const safeSpeedPreset = toSafeSpeedPreset(speedPreset);
 
     activeGamesById[gameId] = {
         id: gameId,
@@ -438,6 +456,7 @@ const createGame = (
         borderCollisionResponse: safeBorderCollisionResponse,
         dangerousObjectCollisionResponse: safeDangerousObjectCollisionResponse,
         foodHitBehavior: safeFoodHitBehavior,
+        speedPreset: safeSpeedPreset,
         playerIds: new Set()
     };
 
@@ -553,6 +572,7 @@ const broadcastFoodEaten = (gameId, userId, emoji, effectiveGrowthDelta) => {
     }
 
     const segments = Math.max(1, Math.round(effectiveGrowthDelta));
+    recordSnakeFoodSegments(userId, emoji, segments);
     io.to(getRoomNameForGame(gameId)).emit(SOCKET_EVENTS.FOOD_EATEN, { userId, emoji, segments });
 };
 
@@ -679,6 +699,39 @@ const updateSnakeTrail = (snakeId, headCoordinates, length) => {
     const parsedLength = Number.parseInt(`${length ?? INITIAL_USER_LENGTH}`, 10);
     const safeLength = Math.max(1, Number.isNaN(parsedLength) ? INITIAL_USER_LENGTH : parsedLength);
     nextTrail.splice(safeLength);
+    trimSnakeSegmentFoods(snakeId, safeLength);
+};
+
+// Keeps the segment-food queue the same size as the body (length - 1),
+// trimming or padding at the back so newly eaten food stays near the head.
+const trimSnakeSegmentFoods = (snakeId, length) => {
+    if (!snakeSegmentFoodsById[snakeId]) {
+        snakeSegmentFoodsById[snakeId] = [];
+    }
+
+    const segmentFoods = snakeSegmentFoodsById[snakeId];
+    const targetLength = Math.max(0, length - 1);
+
+    while (segmentFoods.length < targetLength) {
+        segmentFoods.push(null);
+    }
+
+    segmentFoods.splice(targetLength);
+};
+
+// Records that a snake just grew by eating a food emoji, closest to the head.
+const recordSnakeFoodSegments = (snakeId, emoji, segments) => {
+    if (!emoji || !(segments > 0)) {
+        return;
+    }
+
+    if (!snakeSegmentFoodsById[snakeId]) {
+        snakeSegmentFoodsById[snakeId] = [];
+    }
+
+    for (let i = 0; i < segments; i++) {
+        snakeSegmentFoodsById[snakeId].unshift(emoji);
+    }
 };
 
 // Portals drop the snake at a fresh safe spot; the trail collapses so the body
@@ -687,6 +740,7 @@ const teleportUserThroughPortal = (world, userId, user) => {
     const exitPosition = getSafeStartPosition(world);
     user.coordinates = { x: exitPosition.x, y: exitPosition.y };
     snakeTrailById[userId] = [{ x: exitPosition.x, y: exitPosition.y }];
+    snakeSegmentFoodsById[userId] = [];
 
     return exitPosition;
 };
@@ -784,12 +838,19 @@ const removeSnakeAndFreezeBody = (victimId, createCorpse = true) => {
     const world = getWorldForGame(victimUser.gameId);
     const victimTrail = getSnakeTrailForId(victimId);
     const bodySegments = victimTrail.slice(1); // exclude head
+    const segmentFoods = snakeSegmentFoodsById[victimId] ?? [];
 
     if (world && createCorpse && bodySegments.length > 0) {
         const corpseId = `corpse-${world.nextCorpseId}`;
         world.nextCorpseId += 1;
         world.frozenSnakeCorpses[corpseId] = {
-            segments: bodySegments,
+            // Each segment becomes a dot colored like the food that grew it,
+            // falling back to the snake's own color for untagged segments.
+            segments: bodySegments.map((position, index) => ({
+                x: position.x,
+                y: position.y,
+                color: getEmojiDominantColor(segmentFoods[index], victimUser.color)
+            })),
             width: getSnakeWidthForUser(victimUser),
             color: victimUser.color
         };
@@ -805,6 +866,7 @@ const removeSnakeAndFreezeBody = (victimId, createCorpse = true) => {
     }
 
     delete snakeTrailById[victimId];
+    delete snakeSegmentFoodsById[victimId];
     delete connectedUsers[victimId];
     return true;
 };
@@ -846,6 +908,7 @@ const resolveSnakeBite = (attackerId, attackerUser, victimId, victimUser, isTail
         if (victimTrail) {
             victimTrail.splice(Math.max(1, nextVictimLength));
         }
+        trimSnakeSegmentFoods(victimId, nextVictimLength);
 
         return { nibbled: true, bittenSegments };
     }
@@ -1005,6 +1068,7 @@ const resetBotUser = (botId) => {
     setSnakeWidthForUser(botUser, INITIAL_USER_WIDTH);
     botState.direction = getRandomBotDirection();
     snakeTrailById[botId] = [{ x: botUser.coordinates.x, y: botUser.coordinates.y }];
+    snakeSegmentFoodsById[botId] = [];
 };
 
 const initializeBotsForWorld = (world) => {
@@ -1025,6 +1089,7 @@ const initializeBotsForWorld = (world) => {
         };
 
         snakeTrailById[botId] = [{ x: startPosition.x, y: startPosition.y }];
+        snakeSegmentFoodsById[botId] = [];
         botStateById[botId] = { direction: getRandomBotDirection() };
         world.botIds.push(botId);
     }
@@ -1035,6 +1100,7 @@ const removeBotsForWorld = (world) => {
         delete connectedUsers[botId];
         delete botStateById[botId];
         delete snakeTrailById[botId];
+        delete snakeSegmentFoodsById[botId];
     }
 
     world.botIds = [];
@@ -1385,6 +1451,10 @@ const removeUserFromCurrentGame = (socket) => {
         delete snakeTrailById[socket.id];
     }
 
+    if (snakeSegmentFoodsById[socket.id]) {
+        delete snakeSegmentFoodsById[socket.id];
+    }
+
     const game = activeGamesById[gameId];
     if (game) {
         game.playerIds.delete(socket.id);
@@ -1443,6 +1513,7 @@ const joinUserToGame = (socket, gameId, playerName) => {
         getHumanUserIdsInGame(gameId).length
     );
     snakeTrailById[socket.id] = [{ x: startPosition.x, y: startPosition.y }];
+    snakeSegmentFoodsById[socket.id] = [];
 
     socket.emit(SOCKET_EVENTS.JOINED_GAME, {
         gameId,
@@ -1512,6 +1583,10 @@ const endGameByOwner = (socket, gameId) => {
 
         if (snakeTrailById[playerId]) {
             delete snakeTrailById[playerId];
+        }
+
+        if (snakeSegmentFoodsById[playerId]) {
+            delete snakeSegmentFoodsById[playerId];
         }
 
         delete socketGameById[playerId];

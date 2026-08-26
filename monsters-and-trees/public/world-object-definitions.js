@@ -275,6 +275,57 @@ const DEFAULT_WORLD_OBJECT_DEFINITIONS = {
 
 const DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS = DEFAULT_WORLD_OBJECT_DEFINITIONS;
 
+// The color a body segment turns into once its snake dies and it becomes a
+// loose dot on the ground, roughly matching the eaten food's dominant color.
+const EMOJI_DOMINANT_COLORS = {
+    '🍉': '#2ecc71',
+    '🍍': '#f1c40f',
+    '🥥': '#8d6e63',
+    '🍈': '#d4e157',
+    '🎃': '#e67e22',
+    '🥬': '#4caf50',
+    '🍆': '#8e44ad',
+    '🥔': '#a1887f',
+    '🍞': '#d7a86e',
+    '🧀': '#f9ca24',
+    '🍕': '#e67e22',
+    '🍔': '#a0522d',
+    '🎂': '#f48fb1',
+    '🍌': '#f4d03f',
+    '🍎': '#e74c3c',
+    '🍏': '#8bc34a',
+    '🍐': '#a8d16a',
+    '🍊': '#f39c12',
+    '🍑': '#ffb08a',
+    '🍋': '#f9e400',
+    '🥭': '#f7a325',
+    '🥑': '#568203',
+    '🥕': '#ed8936',
+    '🥦': '#2e7d32',
+    '🍅': '#e74c3c',
+    '🫑': '#4caf50',
+    '🌽': '#f5d76e',
+    '🥚': '#fef3c7',
+    '🥐': '#d4a373',
+    '🍩': '#e07a9b',
+    '🍪': '#8b5a2b',
+    '🍫': '#5a3921',
+    '🍟': '#f6c453',
+    '🍇': '#7d3c98',
+    '🍒': '#c0392b',
+    '🍓': '#e63950',
+    '🫠': '#3f51b5',
+    '🥝': '#8bc34a',
+    '🫒': '#6b8e23',
+    '🌰': '#8b4513',
+    '🥜': '#d2a679',
+    '🍬': '#ff6f91',
+    '🍭': '#ff4d6d',
+    '🧁': '#f8a5c2'
+};
+
+const getEmojiDominantColor = (emoji, fallbackColor) => EMOJI_DOMINANT_COLORS[emoji] ?? fallbackColor;
+
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         WORLD_OBJECT_TYPES,
@@ -287,6 +338,8 @@ if (typeof module !== 'undefined' && module.exports) {
         getFoodQualityForEmoji,
         getFoodNutritionFacts,
         getFoodEnergyKcal,
+        EMOJI_DOMINANT_COLORS,
+        getEmojiDominantColor,
         DEFAULT_WORLD_OBJECT_DEFINITIONS,
         DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS
     };
@@ -300,6 +353,8 @@ if (typeof window !== 'undefined') {
     window.getFoodQualityForEmoji = getFoodQualityForEmoji;
     window.getFoodNutritionFacts = getFoodNutritionFacts;
     window.getFoodEnergyKcal = getFoodEnergyKcal;
+    window.EMOJI_DOMINANT_COLORS = EMOJI_DOMINANT_COLORS;
+    window.getEmojiDominantColor = getEmojiDominantColor;
     window.DEFAULT_WORLD_OBJECT_DEFINITIONS = DEFAULT_WORLD_OBJECT_DEFINITIONS;
     window.DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS = DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS;
 }

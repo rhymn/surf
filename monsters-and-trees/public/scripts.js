@@ -1997,9 +1997,13 @@ function drawFrozenSnakeCorpses() {
     for (const corpseId in frozenSnakeCorpses) {
         const corpse = frozenSnakeCorpses[corpseId];
         const segWidth = corpse.width ?? gameRules.snakeSegmentSize;
-        ctx.fillStyle = corpse.color ?? '#888888';
+        const dotRadius = segWidth / 2;
+
         for (const segment of corpse.segments) {
-            ctx.fillRect(segment.x, segment.y, segWidth, segWidth);
+            ctx.fillStyle = segment.color ?? corpse.color ?? '#888888';
+            ctx.beginPath();
+            ctx.arc(segment.x + dotRadius, segment.y + dotRadius, dotRadius, 0, Math.PI * 2);
+            ctx.fill();
         }
     }
 }
