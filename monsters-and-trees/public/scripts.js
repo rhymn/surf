@@ -2008,9 +2008,13 @@ function drawSnake(snake) {
         ctx.fillStyle = snake.color;
         const bodyFoodEmoji = snake.segmentFoods?.[index - 1];
         if (bodyFoodEmoji) {
-            const sprite = getFoodEmojiSprite(bodyFoodEmoji, segmentSize, null);
+            // Drawn twice the segment's real size for visibility, still centered on it.
+            const displaySize = segmentSize * 2;
+            const sprite = getFoodEmojiSprite(bodyFoodEmoji, displaySize, null);
             const drawOffset = sprite.drawOffset ?? 0;
-            ctx.drawImage(sprite, coordinate.x - drawOffset, coordinate.y - drawOffset);
+            const centerX = coordinate.x + segmentSize / 2;
+            const centerY = coordinate.y + segmentSize / 2;
+            ctx.drawImage(sprite, centerX - displaySize / 2 - drawOffset, centerY - displaySize / 2 - drawOffset);
             return;
         }
 

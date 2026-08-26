@@ -92,9 +92,9 @@ const DEFAULT_TIMER_DURATION_SECONDS = 60;
 const DEFAULT_SCORE_TARGET = 1000;
 const MAX_SPAWN_ATTEMPTS = 500;
 const INITIAL_TREE_COUNT = 30;
-const INITIAL_MONSTER_COUNT = 120;
-const INITIAL_CLOUD_COUNT = 48;
-const INITIAL_DOT_COUNT = 220;
+const INITIAL_MONSTER_COUNT = 240;
+const INITIAL_CLOUD_COUNT = 96;
+const INITIAL_DOT_COUNT = 440;
 const INITIAL_THORN_COUNT = 10;
 const INITIAL_PORTAL_COUNT = 8;
 const INITIAL_USER_SCORE = 0;
@@ -149,9 +149,9 @@ const MAP_DEFINITIONS = {
         width: 7200,
         height: 5600,
         treeCount: 120,
-        monsterCount: 96,
-        cloudCount: 36,
-        dotCount: 160,
+        monsterCount: 192,
+        cloudCount: 72,
+        dotCount: 320,
         thornCount: 6,
         portalCount: 10
     },
@@ -160,9 +160,9 @@ const MAP_DEFINITIONS = {
         width: 6000,
         height: 6000,
         treeCount: 18,
-        monsterCount: 140,
-        cloudCount: 40,
-        dotCount: 180,
+        monsterCount: 280,
+        cloudCount: 80,
+        dotCount: 360,
         thornCount: 28,
         portalCount: 12
     }
