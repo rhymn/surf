@@ -1121,6 +1121,7 @@ const ensureBotsForWorld = (world) => {
 
 const createWorldForGame = (game) => {
     const mapDefinition = getMapDefinition(game.mapType);
+    const speedMultiplier = SPEED_PRESETS[toSafeSpeedPreset(game.speedPreset)];
     const world = {
         gameId: game.id,
         mapType: toSafeMapType(game.mapType),
@@ -1132,7 +1133,11 @@ const createWorldForGame = (game) => {
         nextCorpseId: 1,
         botIds: [],
         maxHumanParticipantsSeen: 0,
-        matchState: createMatchStateForGame(game)
+        matchState: createMatchStateForGame(game),
+        speedPreset: toSafeSpeedPreset(game.speedPreset),
+        baseStep: MOVEMENT_BASE_STEP * speedMultiplier,
+        botStep: BOT_STEP * speedMultiplier,
+        maxMovementDistancePerUpdate: MOVEMENT_BASE_STEP * speedMultiplier * MOVEMENT_BOOST_MULTIPLIER * MOVEMENT_LAG_TOLERANCE_TICKS
     };
 
     gameWorldsById[game.id] = world;
@@ -1393,9 +1398,10 @@ const getValidatedHeadPosition = (world, user, requestedPosition, snakeWidth) =>
     const deltaX = nextX - previousPosition.x;
     const deltaY = nextY - previousPosition.y;
     const distance = Math.hypot(deltaX, deltaY);
+    const maxMovementDistance = world.maxMovementDistancePerUpdate ?? MAX_MOVEMENT_DISTANCE_PER_UPDATE;
 
-    if (distance > MAX_MOVEMENT_DISTANCE_PER_UPDATE) {
-        const scale = MAX_MOVEMENT_DISTANCE_PER_UPDATE / distance;
+    if (distance > maxMovementDistance) {
+        const scale = maxMovementDistance / distance;
         nextX = previousPosition.x + deltaX * scale;
         nextY = previousPosition.y + deltaY * scale;
     }
