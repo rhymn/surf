@@ -30,7 +30,8 @@ const GAME_SOCKET_EVENT_NAMES = {
     YOU_WERE_EATEN: 'youWereEaten',
     PLAYER_SELF_DESTRUCTED: 'playerSelfDestructed',
     UPDATE_FROZEN_SNAKES: 'updateFrozenSnakes',
-    CONSUME_CORPSE_SEGMENT: 'consumeCorpseSegment'
+    CONSUME_CORPSE_SEGMENT: 'consumeCorpseSegment',
+    WEATHER_UPDATE: 'weatherUpdate'
 };
 
 const SOCKET_EVENTS = GAME_SOCKET_EVENT_NAMES;

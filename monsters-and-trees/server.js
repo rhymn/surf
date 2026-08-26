@@ -84,6 +84,31 @@ const SPEED_PRESETS = {
     cheetah: 2
 };
 const DEFAULT_SPEED_PRESET = 'mouse';
+// Weather is an optional per-game setting: local cells that drift slowly across
+// the map. Windy cells push snakes off course, rain/fog/snow cloud vision (fog
+// worst), rain also slows movement, and storms combine wind with heavy fog.
+const WEATHER_TYPES = {
+    WINDY: 'windy',
+    SNOW: 'snow',
+    RAIN: 'rain',
+    FOG: 'fog',
+    STORM: 'storm'
+};
+// Spawn weights so the milder weather types are more common than storms.
+const WEATHER_TYPE_SPAWN_WEIGHTS = {
+    [WEATHER_TYPES.WINDY]: 3,
+    [WEATHER_TYPES.SNOW]: 2,
+    [WEATHER_TYPES.RAIN]: 3,
+    [WEATHER_TYPES.FOG]: 2,
+    [WEATHER_TYPES.STORM]: 1
+};
+const WEATHER_CELL_BASE_RADIUS = 900;
+const WEATHER_CELL_RADIUS_VARIANCE = 400;
+const WEATHER_CELL_BASE_SPEED = 12;
+const WEATHER_CELL_LIFETIME_MS = 60_000;
+const WEATHER_MAX_CELLS_PER_WORLD = 3;
+const WEATHER_SPAWN_CHANCE_PER_TICK = 0.08;
+const WEATHER_UPDATE_INTERVAL_MS = 500;
 const DEFAULT_BOT_COUNT = 3;
 const DEFAULT_BOT_MOVE_INTERVAL_MS = 200;
 const DEFAULT_BOT_STEP = 4;
@@ -125,8 +150,9 @@ const PLAYING_TYPE = Object.values(PLAYING_TYPES).includes(process.env.PLAYING_T
 const AUDIO_RTC_ENABLED = isAudioRtcEnabled();
 const AUDIO_RTC_ICE_SERVERS = getIceServersConfig();
 const DEFAULT_MAP_TYPE = MAP_TYPES.CLASSIC;
-const DEFAULT_BORDER_COLLISION_RESPONSE = COLLISION_RESPONSES.GAME_OVER;
-const DEFAULT_DANGEROUS_OBJECT_COLLISION_RESPONSE = COLLISION_RESPONSES.GAME_OVER;
+const DEFAULT_BORDER_COLLISION_RESPONSE = COLLISION_RESPONSES.BOUNCE;
+const DEFAULT_DANGEROUS_OBJECT_COLLISION_RESPONSE = COLLISION_RESPONSES.BOUNCE;
+const DEFAULT_WEATHER_ENABLED = true;
 
 const toSafeSpeedPreset = (speedPreset) => {
     return Object.prototype.hasOwnProperty.call(SPEED_PRESETS, speedPreset) ? speedPreset : DEFAULT_SPEED_PRESET;
@@ -346,6 +372,103 @@ const populateWorldObjects = (world) => {
     }
 };
 
+// ---------------------------------------------------------------------------
+// Weather (optional per-game setting)
+// ---------------------------------------------------------------------------
+
+const pickRandomWeatherType = () => {
+    const types = Object.values(WEATHER_TYPES);
+    const totalWeight = types.reduce((sum, type) => sum + WEATHER_TYPE_SPAWN_WEIGHTS[type], 0);
+    let roll = Math.random() * totalWeight;
+
+    for (const type of types) {
+        roll -= WEATHER_TYPE_SPAWN_WEIGHTS[type];
+        if (roll <= 0) {
+            return type;
+        }
+    }
+
+    return WEATHER_TYPES.WINDY;
+};
+
+// Strength means different things per type: push/jitter for windy and storm,
+// vision-fog intensity for snow/fog/storm, and slowdown for rain.
+const getWeatherCellStrength = (type) => {
+    switch (type) {
+        case WEATHER_TYPES.WINDY:
+            return 0.5 + Math.random() * 0.5;
+        case WEATHER_TYPES.RAIN:
+            return 0.4 + Math.random() * 0.4;
+        case WEATHER_TYPES.STORM:
+            return 0.7 + Math.random() * 0.3;
+        default:
+            return 1;
+    }
+};
+
+const spawnWeatherCell = (world) => {
+    const type = pickRandomWeatherType();
+    const driftAngle = Math.random() * Math.PI * 2;
+
+    world.weatherCells.push({
+        id: `weather-${world.nextWeatherCellId}`,
+        type,
+        x: Math.random() * world.boardWidth,
+        y: Math.random() * world.boardHeight,
+        radius: WEATHER_CELL_BASE_RADIUS + Math.random() * WEATHER_CELL_RADIUS_VARIANCE,
+        directionX: Math.cos(driftAngle),
+        directionY: Math.sin(driftAngle),
+        speed: WEATHER_CELL_BASE_SPEED * (0.6 + Math.random() * 0.8),
+        strength: getWeatherCellStrength(type),
+        expiresAtMs: Date.now() + WEATHER_CELL_LIFETIME_MS * (0.7 + Math.random() * 0.6)
+    });
+    world.nextWeatherCellId += 1;
+};
+
+// Cells drift slowly and bounce off the board edges instead of leaving it;
+// expired ones are dropped and new ones spawn occasionally to replace them.
+const updateWeatherForWorld = (world, elapsedMs) => {
+    if (!world.weatherEnabled) {
+        return false;
+    }
+
+    let changed = false;
+    const now = Date.now();
+
+    for (let index = world.weatherCells.length - 1; index >= 0; index--) {
+        const cell = world.weatherCells[index];
+
+        if (now >= cell.expiresAtMs) {
+            world.weatherCells.splice(index, 1);
+            changed = true;
+            continue;
+        }
+
+        const travelDistance = cell.speed * (elapsedMs / 1000);
+        cell.x += cell.directionX * travelDistance;
+        cell.y += cell.directionY * travelDistance;
+
+        if (cell.x < 0 || cell.x > world.boardWidth) {
+            cell.directionX *= -1;
+            cell.x = clampPosition(cell.x, 0, world.boardWidth);
+        }
+
+        if (cell.y < 0 || cell.y > world.boardHeight) {
+            cell.directionY *= -1;
+            cell.y = clampPosition(cell.y, 0, world.boardHeight);
+        }
+
+        changed = true;
+    }
+
+    if (world.weatherCells.length < WEATHER_MAX_CELLS_PER_WORLD && Math.random() < WEATHER_SPAWN_CHANCE_PER_TICK) {
+        spawnWeatherCell(world);
+        changed = true;
+    }
+
+    return changed;
+};
+
 const createMatchStateForGame = (game) => {
     return {
         playingType: game?.playingType ?? PLAYING_TYPE,
@@ -408,6 +531,7 @@ const getActiveGamesPayload = () => {
             dangerousObjectCollisionResponse: game.dangerousObjectCollisionResponse,
             foodHitBehavior: game.foodHitBehavior,
             speedPreset: game.speedPreset,
+            weatherEnabled: game.weatherEnabled,
             playerCount: game.playerIds.size
         });
     }
@@ -429,7 +553,8 @@ const createGame = (
     borderCollisionResponse,
     dangerousObjectCollisionResponse,
     foodHitBehavior,
-    speedPreset
+    speedPreset,
+    weatherEnabled
 ) => {
     const gameId = createGameId();
     const safeMapType = toSafeMapType(mapType);
@@ -457,6 +582,7 @@ const createGame = (
         dangerousObjectCollisionResponse: safeDangerousObjectCollisionResponse,
         foodHitBehavior: safeFoodHitBehavior,
         speedPreset: safeSpeedPreset,
+        weatherEnabled: weatherEnabled === undefined ? DEFAULT_WEATHER_ENABLED : Boolean(weatherEnabled),
         playerIds: new Set()
     };
 
@@ -502,7 +628,8 @@ const getGameRulesForGame = (gameId) => {
         snakeSegmentSize: RULE_SNAKE_SEGMENT_SIZE,
         snakeHeadSizeMultiplier: RULE_SNAKE_HEAD_SIZE_MULTIPLIER,
         playerCollisionSize: RULE_PLAYER_COLLISION_SIZE,
-        worldObjectsEnabled: true
+        worldObjectsEnabled: true,
+        weatherEnabled: Boolean(game?.weatherEnabled)
     };
 };
 
@@ -563,6 +690,15 @@ const broadcastFrozenSnakeCorpses = (gameId) => {
     }
 
     io.to(getRoomNameForGame(gameId)).emit(SOCKET_EVENTS.UPDATE_FROZEN_SNAKES, world.frozenSnakeCorpses);
+};
+
+const broadcastWeather = (gameId) => {
+    const world = getWorldForGame(gameId);
+    if (!world) {
+        return;
+    }
+
+    io.to(getRoomNameForGame(gameId)).emit(SOCKET_EVENTS.WEATHER_UPDATE, world.weatherCells);
 };
 
 // Lets every client in the room grow that snake's body with the eaten food's emoji.
@@ -1137,12 +1273,20 @@ const createWorldForGame = (game) => {
         speedPreset: toSafeSpeedPreset(game.speedPreset),
         baseStep: MOVEMENT_BASE_STEP * speedMultiplier,
         botStep: BOT_STEP * speedMultiplier,
-        maxMovementDistancePerUpdate: MOVEMENT_BASE_STEP * speedMultiplier * MOVEMENT_BOOST_MULTIPLIER * MOVEMENT_LAG_TOLERANCE_TICKS
+        maxMovementDistancePerUpdate: MOVEMENT_BASE_STEP * speedMultiplier * MOVEMENT_BOOST_MULTIPLIER * MOVEMENT_LAG_TOLERANCE_TICKS,
+        weatherEnabled: Boolean(game.weatherEnabled),
+        weatherCells: [],
+        nextWeatherCellId: 1
     };
 
     gameWorldsById[game.id] = world;
     populateWorldObjects(world);
     initializeBotsForWorld(world);
+
+    if (world.weatherEnabled) {
+        spawnWeatherCell(world);
+        spawnWeatherCell(world);
+    }
 
     return world;
 };
@@ -1555,6 +1699,7 @@ const joinUserToGame = (socket, gameId, playerName) => {
         mapType: mapConfigForJoin.mapType
     });
     socket.emit(SOCKET_EVENTS.SET_START_POSITION, startPosition);
+    socket.emit(SOCKET_EVENTS.WEATHER_UPDATE, world.weatherCells);
 
     broadcastUsers(gameId);
     broadcastActiveGames();
@@ -1644,6 +1789,7 @@ io.on('connection', (socket) => {
         dangerousObjectCollisionResponse,
         foodHitBehavior,
         speedPreset,
+        weatherEnabled,
         autoJoin
     }) => {
         const game = createGame(
@@ -1655,7 +1801,8 @@ io.on('connection', (socket) => {
             borderCollisionResponse,
             dangerousObjectCollisionResponse,
             foodHitBehavior,
-            speedPreset
+            speedPreset,
+            weatherEnabled
         );
 
         if (autoJoin) {
@@ -1932,6 +2079,21 @@ io.on('connection', (socket) => {
 setInterval(updateBotPositions, BOT_MOVE_INTERVAL_MS);
 setInterval(evaluateAllMatchStates, 250);
 setInterval(drainBoostingUsers, BOOST_DRAIN_INTERVAL_MS);
+
+let lastWeatherTickMs = Date.now();
+const updateAllWeather = () => {
+    const now = Date.now();
+    const elapsedMs = now - lastWeatherTickMs;
+    lastWeatherTickMs = now;
+
+    for (const gameId in gameWorldsById) {
+        const world = gameWorldsById[gameId];
+        if (updateWeatherForWorld(world, elapsedMs)) {
+            broadcastWeather(gameId);
+        }
+    }
+};
+setInterval(updateAllWeather, WEATHER_UPDATE_INTERVAL_MS);
 
 server.listen(port, () => {
     console.log(`Server is running on http://localhost:${server.address().port}`);

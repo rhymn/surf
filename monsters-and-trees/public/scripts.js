@@ -404,6 +404,11 @@ const OBJECT_TYPE_THORN = GAME_WORLD_OBJECT_TYPES.THORN;
 const OBJECT_TYPE_DOT = GAME_WORLD_OBJECT_TYPES.DOT;
 const OBJECT_TYPE_PORTAL = GAME_WORLD_OBJECT_TYPES.PORTAL;
 let movementStep = baseStep;
+// Windy weather nudges movement off course and jitters free-steering aim.
+const WIND_PUSH_FACTOR = 0.6;
+const WIND_STEERING_JITTER_RADIANS = 0.15;
+// Rain makes the ground slick, so movement loses up to this fraction of speed.
+const RAIN_SLOWDOWN_FACTOR = 0.35;
 let localSnakeColor = 'red';
 let localSnakeHeadEmoji = '🐍';
 const INITIAL_USER_LENGTH = 6;
@@ -448,7 +453,8 @@ let gameRules = {
     snakeSegmentSize: 10,
     snakeHeadSizeMultiplier: 2,
     playerCollisionSize: 10,
-    worldObjectsEnabled: true
+    worldObjectsEnabled: true,
+    weatherEnabled: false
 };
 
 let worldObjectDefinitions = JSON.parse(JSON.stringify(window.DEFAULT_WORLD_OBJECT_TYPE_DEFINITIONS));
@@ -485,6 +491,7 @@ const monsterSVG = 'data:image/svg+xml;base64,' + btoa(`
 
 let worldObjects = {};
 let frozenSnakeCorpses = {};
+let weatherCells = [];
 const treeImage = new Image();
 treeImage.src = treeSVG;
 
@@ -772,6 +779,11 @@ timerOverlay.textContent = '00:00';
 timerOverlay.style.display = 'none';
 document.body.appendChild(timerOverlay);
 
+const dayNightClockOverlay = document.createElement('div');
+dayNightClockOverlay.className = 'hud-clock';
+dayNightClockOverlay.style.display = 'none';
+document.body.appendChild(dayNightClockOverlay);
+
 const lobbyOverlay = document.createElement('div');
 lobbyOverlay.className = 'lobby-overlay';
 lobbyOverlay.style.position = 'absolute';
@@ -944,6 +956,18 @@ const SPEED_PRESET_OPTIONS = [
     { value: 'cheetah', label: '🐆 Cheetah' }
 ];
 
+const weatherLabel = document.createElement('label');
+weatherLabel.className = 'field-label';
+weatherLabel.textContent = 'Weather';
+
+const weatherSelect = document.createElement('select');
+weatherSelect.className = 'field-select';
+
+const WEATHER_OPTIONS = [
+    { value: 'off', label: 'Off' },
+    { value: 'on', label: 'On — windy, rainy, foggy, snowy and stormy patches drift across the map' }
+];
+
 const playingTypeOptions = [
     { value: PLAYING_TYPES.LAST_MAN_STANDING, label: 'Last man standing' },
     { value: PLAYING_TYPES.TIMER, label: 'Most points in 60s' },
@@ -995,12 +1019,20 @@ for (const speedOption of SPEED_PRESET_OPTIONS) {
     speedSelect.appendChild(optionElement);
 }
 
+for (const weatherOption of WEATHER_OPTIONS) {
+    const optionElement = document.createElement('option');
+    optionElement.value = weatherOption.value;
+    optionElement.textContent = weatherOption.label;
+    weatherSelect.appendChild(optionElement);
+}
+
 playingTypeSelect.value = PLAYING_TYPES.LAST_MAN_STANDING;
 steeringModeSelect.value = STEERING_MODES.CLASSIC;
-borderCollisionSelect.value = COLLISION_RESPONSES.GAME_OVER;
-dangerousObjectCollisionSelect.value = COLLISION_RESPONSES.GAME_OVER;
+borderCollisionSelect.value = COLLISION_RESPONSES.BOUNCE;
+dangerousObjectCollisionSelect.value = COLLISION_RESPONSES.BOUNCE;
 foodHitBehaviorSelect.value = FOOD_HIT_BEHAVIORS.MOVE;
 speedSelect.value = 'mouse';
+weatherSelect.value = 'on';
 
 const PREFS_KEY = 'monstersAndTreesPrefs';
 
@@ -1056,6 +1088,8 @@ lobbyPanel.appendChild(foodHitBehaviorLabel);
 lobbyPanel.appendChild(foodHitBehaviorSelect);
 lobbyPanel.appendChild(speedLabel);
 lobbyPanel.appendChild(speedSelect);
+lobbyPanel.appendChild(weatherLabel);
+lobbyPanel.appendChild(weatherSelect);
 lobbyPanel.appendChild(steeringSettingsTitle);
 lobbyPanel.appendChild(steeringSettingsHint);
 lobbyPanel.appendChild(steeringModeLabel);
@@ -1137,6 +1171,7 @@ const emitRejoinCurrentGame = () => {
         canvas.style.display = 'block';
         overlay.style.display = 'block';
         timerOverlay.style.display = 'block';
+        dayNightClockOverlay.style.display = 'block';
         lobbyOverlay.style.display = 'none';
         stopMovementLoop();
         startMovementLoop();
@@ -1168,6 +1203,7 @@ const showGameCanvas = () => {
     canvas.style.display = 'block';
     overlay.style.display = 'block';
     timerOverlay.style.display = 'block';
+    dayNightClockOverlay.style.display = 'block';
     lobbyOverlay.style.display = 'none';
     updateLobbyControls();
 };
@@ -1326,6 +1362,7 @@ const renderActiveGames = (games) => {
             : 'Move';
         const speedLabelText = SPEED_PRESET_OPTIONS.find((option) => option.value === game.speedPreset)?.label
             ?? game.speedPreset;
+        const weatherLabelText = game.weatherEnabled ? 'On' : 'Off';
 
         const row = document.createElement('div');
         row.className = 'game-card';
@@ -1340,7 +1377,7 @@ const renderActiveGames = (games) => {
         gameSummary.textContent = `${getPlayingTypeLabel(game.playingType)} · ${game.mapName ?? 'Map'} · Host: ${game.ownerName} · Players: ${game.playerCount}`;
 
         const gameLockedRules = document.createElement('div');
-        gameLockedRules.textContent = `Border ${borderCollisionLabel} · Dangerous ${dangerousCollisionLabel} · Food ${foodBehaviorLabel} · Speed ${speedLabelText}`;
+        gameLockedRules.textContent = `Border ${borderCollisionLabel} · Dangerous ${dangerousCollisionLabel} · Food ${foodBehaviorLabel} · Speed ${speedLabelText} · Weather ${weatherLabelText}`;
 
         gameMeta.append(gameTitle, gameSummary, gameLockedRules);
 
@@ -1388,6 +1425,7 @@ createButton.onclick = () => {
     const dangerousObjectCollisionResponse = dangerousObjectCollisionSelect.value;
     const foodHitBehavior = foodHitBehaviorSelect.value;
     const speedPreset = speedSelect.value;
+    const weatherEnabled = weatherSelect.value === 'on';
     socket.emit(GAME_SOCKET_EVENTS.CREATE_GAME, {
         gameName,
         playerName,
@@ -1396,7 +1434,8 @@ createButton.onclick = () => {
         borderCollisionResponse,
         dangerousObjectCollisionResponse,
         foodHitBehavior,
-        speedPreset
+        speedPreset,
+        weatherEnabled
     });
 };
 
@@ -1427,6 +1466,7 @@ randomButton.onclick = () => {
     const randomDangerousObjectCollisionResponse = getRandomItem(COLLISION_RESPONSE_OPTIONS).value;
     const randomFoodHitBehavior = getRandomItem(FOOD_HIT_BEHAVIOR_OPTIONS).value;
     const randomSpeedPreset = getRandomItem(SPEED_PRESET_OPTIONS).value;
+    const randomWeatherOption = getRandomItem(WEATHER_OPTIONS).value;
 
     playingTypeSelect.value = randomPlayingType;
     mapTypeSelect.value = randomMapType;
@@ -1435,6 +1475,7 @@ randomButton.onclick = () => {
     dangerousObjectCollisionSelect.value = randomDangerousObjectCollisionResponse;
     foodHitBehaviorSelect.value = randomFoodHitBehavior;
     speedSelect.value = randomSpeedPreset;
+    weatherSelect.value = randomWeatherOption;
 
     socket.emit(GAME_SOCKET_EVENTS.CREATE_GAME, {
         gameName: getRandomGameName(),
@@ -1445,6 +1486,7 @@ randomButton.onclick = () => {
         dangerousObjectCollisionResponse: randomDangerousObjectCollisionResponse,
         foodHitBehavior: randomFoodHitBehavior,
         speedPreset: randomSpeedPreset,
+        weatherEnabled: randomWeatherOption === 'on',
         autoJoin: true
     });
 };
@@ -1500,6 +1542,31 @@ const getPlayingTypeObjectiveText = () => {
 
     return 'Stay alive';
 };
+
+// A full 24 in-game-hour day/night cycle plays out every 10 real minutes,
+// shared by everyone since it is derived from wall-clock time.
+const DAY_CYCLE_DURATION_MS = 10 * 60 * 1000;
+
+const getDayNightInfo = (nowMs = Date.now()) => {
+    const cycleProgress = (nowMs % DAY_CYCLE_DURATION_MS) / DAY_CYCLE_DURATION_MS;
+    const hour = cycleProgress * 24;
+    // Peaks at noon (hour 12), troughs at midnight (hour 0/24).
+    const brightness = (Math.sin(cycleProgress * Math.PI * 2 - Math.PI / 2) + 1) / 2;
+    const goldenHour = Math.max(0, 1 - Math.abs(brightness - 0.5) * 4);
+    const hh = `${Math.floor(hour)}`.padStart(2, '0');
+    const mm = `${Math.floor((hour % 1) * 60)}`.padStart(2, '0');
+    const icon = brightness > 0.6 ? '☀️' : brightness > 0.35 ? '🌤️' : brightness > 0.15 ? '🌆' : '🌙';
+
+    return { hour, brightness, goldenHour, timeLabel: `${hh}:${mm}`, icon };
+};
+
+const updateDayNightClock = () => {
+    const { icon, timeLabel } = getDayNightInfo();
+    dayNightClockOverlay.textContent = `${icon} ${timeLabel}`;
+};
+
+setInterval(updateDayNightClock, MS_PER_SECOND);
+updateDayNightClock();
 
 const updateGameTimer = () => {
     if (isGameOver && !(currentMatchState?.playingType === PLAYING_TYPES.TIMER && currentMatchState?.isEnded)) {
@@ -1660,6 +1727,7 @@ socket.on(GAME_SOCKET_EVENTS.GAME_ENDED, ({ gameId, gameName }) => {
     canvas.style.display = 'none';
     overlay.style.display = 'none';
     timerOverlay.style.display = 'none';
+    dayNightClockOverlay.style.display = 'none';
     lobbyOverlay.style.display = 'flex';
     updateLobbyControls();
     alert(`Game "${gameName}" was ended by the owner.`);
@@ -1707,6 +1775,10 @@ socket.on(GAME_SOCKET_EVENTS.UPDATE_WORLD_OBJECTS, (nextWorldObjects) => {
 socket.on(GAME_SOCKET_EVENTS.UPDATE_FROZEN_SNAKES, (nextFrozenSnakeCorpses) => {
     frozenSnakeCorpses = nextFrozenSnakeCorpses;
     drawScene();
+});
+
+socket.on(GAME_SOCKET_EVENTS.WEATHER_UPDATE, (nextWeatherCells) => {
+    weatherCells = Array.isArray(nextWeatherCells) ? nextWeatherCells : [];
 });
 
 const applyMovementConfig = (movementConfig) => {
@@ -2101,6 +2173,131 @@ const getFoodEmojiSprite = (emoji, size, quality) => {
     return sprite;
 };
 
+// Finds the weather cell (optionally of a given type, or one of several types)
+// covering a world position.
+function getWeatherCellAtPosition(position, type) {
+    const types = Array.isArray(type) ? type : type ? [type] : null;
+
+    for (const cell of weatherCells) {
+        if (types && !types.includes(cell.type)) {
+            continue;
+        }
+
+        if (Math.hypot(position.x - cell.x, position.y - cell.y) <= cell.radius) {
+            return cell;
+        }
+    }
+
+    return null;
+}
+
+// One glow-plus-particle style per weather type, all seeded off world position
+// so wind streaks/rain/snow stay stable frame to frame while drifting with time.
+const WEATHER_GLOW_COLORS = {
+    windy: '148, 163, 184',
+    snow: '255, 255, 255',
+    rain: '96, 125, 165',
+    fog: '203, 213, 225',
+    storm: '71, 85, 105'
+};
+
+function drawWindStreaks(cell, timeMs, color, lineAlpha, streakCount) {
+    ctx.strokeStyle = `rgba(${color}, ${lineAlpha})`;
+    ctx.lineWidth = 2;
+    for (let i = 0; i < streakCount; i++) {
+        const seedAngle = (i / streakCount) * Math.PI * 2;
+        const ringRadius = cell.radius * (0.2 + (i % 4) * 0.2);
+        const progress = (timeMs * 0.0004 + i * 0.31) % 1;
+        const streakX = cell.x + Math.cos(seedAngle) * ringRadius + cell.directionX * (progress - 0.5) * cell.radius;
+        const streakY = cell.y + Math.sin(seedAngle) * ringRadius + cell.directionY * (progress - 0.5) * cell.radius;
+        ctx.beginPath();
+        ctx.moveTo(streakX, streakY);
+        ctx.lineTo(streakX - cell.directionX * 26, streakY - cell.directionY * 26);
+        ctx.stroke();
+    }
+}
+
+function drawFallingParticles(cell, timeMs, color, radius, count, fallSpeed) {
+    ctx.fillStyle = `rgba(${color}, 0.85)`;
+    for (let i = 0; i < count; i++) {
+        const seedX = (i * 928371 % 1000) / 1000;
+        const seedY = (i * 55371 % 1000) / 1000;
+        const particleX = cell.x - cell.radius + seedX * cell.radius * 2;
+        const fallProgress = (timeMs * fallSpeed + seedY) % 1;
+        const particleY = cell.y - cell.radius + fallProgress * cell.radius * 2;
+        ctx.beginPath();
+        ctx.arc(particleX, particleY, radius, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+function drawWeatherCells(timeMs) {
+    for (const cell of weatherCells) {
+        const baseColor = WEATHER_GLOW_COLORS[cell.type] ?? WEATHER_GLOW_COLORS.snow;
+        const glowAlpha = cell.type === 'windy' ? 0.16 : cell.type === 'storm' ? 0.3 : 0.24;
+
+        const glow = ctx.createRadialGradient(cell.x, cell.y, 0, cell.x, cell.y, cell.radius);
+        glow.addColorStop(0, `rgba(${baseColor}, ${glowAlpha})`);
+        glow.addColorStop(1, `rgba(${baseColor}, 0)`);
+        ctx.fillStyle = glow;
+        ctx.beginPath();
+        ctx.arc(cell.x, cell.y, cell.radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        switch (cell.type) {
+            case 'windy':
+                // Streaks drifting in the gust direction hint at which way it blows.
+                drawWindStreaks(cell, timeMs, '226, 232, 240', 0.35, 10);
+                break;
+            case 'rain':
+                drawFallingParticles(cell, timeMs, '191, 219, 254', 1.5, 30, 0.0009);
+                break;
+            case 'fog':
+                // Slow-drifting mist patches instead of individual particles.
+                ctx.fillStyle = 'rgba(226, 232, 240, 0.18)';
+                for (let i = 0; i < 6; i++) {
+                    const seedAngle = (i / 6) * Math.PI * 2 + timeMs * 0.00005;
+                    const patchX = cell.x + Math.cos(seedAngle) * cell.radius * 0.5;
+                    const patchY = cell.y + Math.sin(seedAngle) * cell.radius * 0.5;
+                    ctx.beginPath();
+                    ctx.arc(patchX, patchY, cell.radius * 0.35, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                break;
+            case 'storm':
+                drawWindStreaks(cell, timeMs, '203, 213, 225', 0.3, 8);
+                drawFallingParticles(cell, timeMs, '148, 163, 184', 1.8, 26, 0.0011);
+                // Occasional lightning flash across the cell.
+                if (Math.sin(timeMs * 0.006 + cell.x) > 0.985) {
+                    ctx.fillStyle = 'rgba(241, 245, 249, 0.35)';
+                    ctx.beginPath();
+                    ctx.arc(cell.x, cell.y, cell.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                break;
+            default:
+                drawFallingParticles(cell, timeMs, '255, 255, 255', 2, 24, 0.0002);
+                break;
+        }
+    }
+}
+
+// Tints the whole view with darkness at night and a warm glow at dawn/dusk.
+function drawDayNightOverlay() {
+    const { brightness, goldenHour } = getDayNightInfo();
+
+    const darkness = Math.max(0, Math.min(1, (1 - brightness) * 0.75));
+    if (darkness > 0.02) {
+        ctx.fillStyle = `rgba(5, 8, 20, ${darkness})`;
+        ctx.fillRect(0, 0, viewportWidth, viewportHeight);
+    }
+
+    if (goldenHour > 0.05) {
+        ctx.fillStyle = `rgba(255, 140, 60, ${goldenHour * 0.2})`;
+        ctx.fillRect(0, 0, viewportWidth, viewportHeight);
+    }
+}
+
 function drawPortalSwirl(worldObject, size) {
     const radius = size / 2;
     const centerX = worldObject.x + radius;
@@ -2280,6 +2477,9 @@ function drawScene() {
     }
 
     ctx.clearRect(0, 0, viewportWidth, viewportHeight);
+    // Anything outside the game board's edges should read as black, not blank white.
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(0, 0, viewportWidth, viewportHeight);
     ctx.save();
 
     ctx.translate(viewportWidth / 2 - snakeStates.mySnake.coordinates[0].x, viewportHeight / 2 - snakeStates.mySnake.coordinates[0].y);
@@ -2302,7 +2502,13 @@ function drawScene() {
         drawSnake(user)
     }
 
+    if (weatherCells.length > 0) {
+        drawWeatherCells(performance.now());
+    }
+
     ctx.restore();
+
+    drawDayNightOverlay();
 
     drawMinimap();
 }
@@ -2631,11 +2837,34 @@ function updatePosition() {
 
         applySteeringRotationFromKeys();
 
+        const activeWindCell = weatherCells.length > 0
+            ? getWeatherCellAtPosition({ x: nextX, y: nextY }, ['windy', 'storm'])
+            : null;
+        const activeRainCell = weatherCells.length > 0
+            ? getWeatherCellAtPosition({ x: nextX, y: nextY }, 'rain')
+            : null;
+        const effectiveMovementStep = activeRainCell
+            ? movementStep * (1 - RAIN_SLOWDOWN_FACTOR * activeRainCell.strength)
+            : movementStep;
+
+        if (activeWindCell && steeringMode === STEERING_MODES.FREE) {
+            steeringAngle = normalizeAngle(
+                steeringAngle + (Math.random() - 0.5) * WIND_STEERING_JITTER_RADIANS * activeWindCell.strength
+            );
+        }
+
         const movedPosition = steeringMode === STEERING_MODES.FREE
-            ? applySteeringAngleToPosition(nextX, nextY, steeringAngle, movementStep)
-            : applyDirectionToPosition(nextX, nextY, movementDirection, movementStep);
+            ? applySteeringAngleToPosition(nextX, nextY, steeringAngle, effectiveMovementStep)
+            : applyDirectionToPosition(nextX, nextY, movementDirection, effectiveMovementStep);
         nextX = movedPosition.nextX;
         nextY = movedPosition.nextY;
+
+        if (activeWindCell) {
+            // Wind pushes the snake off its intended line, making it hard to steer.
+            const windPush = movementStep * WIND_PUSH_FACTOR * activeWindCell.strength;
+            nextX += activeWindCell.directionX * windPush;
+            nextY += activeWindCell.directionY * windPush;
+        }
 
         if (gameRules.worldObjectsEnabled) {
             const currentSnakeWidth = snakeStates.mySnake.width ?? gameRules.snakeSegmentSize;
