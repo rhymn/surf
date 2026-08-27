@@ -102,12 +102,12 @@ const WEATHER_TYPE_SPAWN_WEIGHTS = {
     [WEATHER_TYPES.FOG]: 2,
     [WEATHER_TYPES.STORM]: 1
 };
-const WEATHER_CELL_BASE_RADIUS = 900;
-const WEATHER_CELL_RADIUS_VARIANCE = 400;
+const WEATHER_CELL_BASE_RADIUS = 1200;
+const WEATHER_CELL_RADIUS_VARIANCE = 700;
 const WEATHER_CELL_BASE_SPEED = 12;
-const WEATHER_CELL_LIFETIME_MS = 60_000;
-const WEATHER_MAX_CELLS_PER_WORLD = 3;
-const WEATHER_SPAWN_CHANCE_PER_TICK = 0.08;
+const WEATHER_CELL_LIFETIME_MS = 75_000;
+const WEATHER_MAX_CELLS_PER_WORLD = 7;
+const WEATHER_SPAWN_CHANCE_PER_TICK = 0.3;
 const WEATHER_UPDATE_INTERVAL_MS = 500;
 const DEFAULT_BOT_COUNT = 3;
 const DEFAULT_BOT_MOVE_INTERVAL_MS = 200;
@@ -1284,8 +1284,9 @@ const createWorldForGame = (game) => {
     initializeBotsForWorld(world);
 
     if (world.weatherEnabled) {
-        spawnWeatherCell(world);
-        spawnWeatherCell(world);
+        for (let i = 0; i < WEATHER_MAX_CELLS_PER_WORLD; i++) {
+            spawnWeatherCell(world);
+        }
     }
 
     return world;
