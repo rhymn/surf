@@ -22,6 +22,8 @@ const {
     MAX_ENERGY_KCAL,
     BOOST_DRAIN_KCAL_PER_SECOND,
     MIN_ENERGY_TO_START_BOOST,
+    SPEED_STAR_MULTIPLIER,
+    SPEED_STAR_DURATION_MS,
     toSafeCollisionResponse,
     toSafeFoodHitBehavior,
     rectanglesOverlap,
@@ -34,7 +36,10 @@ const {
     applyWorldObjectEffectsToUser,
     getEnergyForUser,
     canStartBoost,
-    drainBoostEnergy
+    drainBoostEnergy,
+    activateSpeedStarForUser,
+    getSpeedStarRemainingMs,
+    isSpeedStarActive
 } = require('./server/game-logic.js');
 
 const DEFAULT_PORT = 4000;
@@ -61,11 +66,13 @@ const RULE_SNAKE_SEGMENT_SIZE = 6;
 const RULE_SNAKE_HEAD_SIZE_MULTIPLIER = 2;
 const RULE_PLAYER_COLLISION_SIZE = 6;
 
-// Clients report their own head position, so the server caps how far a snake may
+// Clients still steer themselves, so the server caps how far a snake may
 // travel between two reports. Generous enough to absorb lag spikes and batching.
 const MOVEMENT_LAG_TOLERANCE_TICKS = 10;
+// The star outruns boost, so the cap has to leave room for the faster of the two.
+const MAX_MOVEMENT_SPEED_MULTIPLIER = Math.max(MOVEMENT_BOOST_MULTIPLIER, SPEED_STAR_MULTIPLIER);
 const MAX_MOVEMENT_DISTANCE_PER_UPDATE =
-    MOVEMENT_BASE_STEP * MOVEMENT_BOOST_MULTIPLIER * MOVEMENT_LAG_TOLERANCE_TICKS;
+    MOVEMENT_BASE_STEP * MAX_MOVEMENT_SPEED_MULTIPLIER * MOVEMENT_LAG_TOLERANCE_TICKS;
 
 const PLAYING_TYPES = {
     TIMER: 'timer',
@@ -122,6 +129,7 @@ const INITIAL_CLOUD_COUNT = 96;
 const INITIAL_DOT_COUNT = 440;
 const INITIAL_THORN_COUNT = 10;
 const INITIAL_PORTAL_COUNT = 8;
+const INITIAL_STAR_COUNT = 6;
 const INITIAL_USER_SCORE = 0;
 // A snake that isn't big enough to swallow another whole can still nibble the
 // very tip of its tail, one segment per contact, until it grows past it.
@@ -168,7 +176,8 @@ const MAP_DEFINITIONS = {
         cloudCount: INITIAL_CLOUD_COUNT,
         dotCount: INITIAL_DOT_COUNT,
         thornCount: INITIAL_THORN_COUNT,
-        portalCount: INITIAL_PORTAL_COUNT
+        portalCount: INITIAL_PORTAL_COUNT,
+        starCount: INITIAL_STAR_COUNT
     },
     [MAP_TYPES.FOREST]: {
         name: 'Dense Forest',
@@ -179,7 +188,8 @@ const MAP_DEFINITIONS = {
         cloudCount: 72,
         dotCount: 320,
         thornCount: 6,
-        portalCount: 10
+        portalCount: 10,
+        starCount: 5
     },
     [MAP_TYPES.THORNS]: {
         name: 'Thorn Field',
@@ -190,7 +200,8 @@ const MAP_DEFINITIONS = {
         cloudCount: 80,
         dotCount: 360,
         thornCount: 28,
-        portalCount: 12
+        portalCount: 12,
+        starCount: 8
     }
 };
 
@@ -369,6 +380,10 @@ const populateWorldObjects = (world) => {
 
     for (let i = 0; i < (mapDefinition.portalCount ?? 0); i++) {
         addWorldObject(world, WORLD_OBJECT_TYPES.PORTAL);
+    }
+
+    for (let i = 0; i < (mapDefinition.starCount ?? 0); i++) {
+        addWorldObject(world, WORLD_OBJECT_TYPES.STAR);
     }
 };
 
@@ -723,6 +738,20 @@ const emitEnergyUpdate = (socketId) => {
         energy: getEnergyForUser(user),
         maxEnergy: MAX_ENERGY_KCAL,
         isBoosting: Boolean(user.isBoosting)
+    });
+};
+
+// The star rush is private too: only its owner needs the countdown.
+const emitSpeedStarUpdate = (socketId) => {
+    const user = connectedUsers[socketId];
+    if (!user) {
+        return;
+    }
+
+    io.to(socketId).emit(SOCKET_EVENTS.SPEED_STAR_UPDATE, {
+        remainingMs: getSpeedStarRemainingMs(user),
+        durationMs: SPEED_STAR_DURATION_MS,
+        multiplier: SPEED_STAR_MULTIPLIER
     });
 };
 
@@ -1200,6 +1229,7 @@ const resetBotUser = (botId) => {
     botUser.coordinates = getSafeStartPosition(world);
     botUser.score = INITIAL_USER_SCORE;
     botUser.headEmoji = getRandomAnimalHeadEmoji();
+    botUser.speedStarUntilMs = 0;
     setSnakeLengthForUser(botUser, INITIAL_USER_LENGTH);
     setSnakeWidthForUser(botUser, INITIAL_USER_WIDTH);
     botState.direction = getRandomBotDirection();
@@ -1273,7 +1303,7 @@ const createWorldForGame = (game) => {
         speedPreset: toSafeSpeedPreset(game.speedPreset),
         baseStep: MOVEMENT_BASE_STEP * speedMultiplier,
         botStep: BOT_STEP * speedMultiplier,
-        maxMovementDistancePerUpdate: MOVEMENT_BASE_STEP * speedMultiplier * MOVEMENT_BOOST_MULTIPLIER * MOVEMENT_LAG_TOLERANCE_TICKS,
+        maxMovementDistancePerUpdate: MOVEMENT_BASE_STEP * speedMultiplier * MAX_MOVEMENT_SPEED_MULTIPLIER * MOVEMENT_LAG_TOLERANCE_TICKS,
         weatherEnabled: Boolean(game.weatherEnabled),
         weatherCells: [],
         nextWeatherCellId: 1
@@ -1316,6 +1346,12 @@ const applyWorldObjectHitForBot = (world, botId, worldObjectId) => {
     if (worldObject.type === WORLD_OBJECT_TYPES.PORTAL) {
         teleportUserThroughPortal(world, botId, botUser);
         return { usersChanged: true, worldObjectsChanged: false };
+    }
+
+    if (worldObject.type === WORLD_OBJECT_TYPES.STAR) {
+        activateSpeedStarForUser(botUser);
+        applyFoodHitBehavior(world, worldObjectId, worldObject);
+        return { usersChanged: true, worldObjectsChanged: true };
     }
 
     const { effectiveGrowthDelta } = applyWorldObjectEffectsToUser(botUser, worldObjectDefinition, {
@@ -1374,7 +1410,8 @@ const updateBotPositionsForWorld = (world) => {
 
         let nextDirection = null;
         let nextPosition = null;
-        const botStep = world.botStep ?? BOT_STEP;
+        const baseBotStep = world.botStep ?? BOT_STEP;
+        const botStep = isSpeedStarActive(botUser) ? baseBotStep * SPEED_STAR_MULTIPLIER : baseBotStep;
 
         for (const candidateDirection of candidateDirections) {
             const candidatePosition = {
@@ -1657,7 +1694,8 @@ const joinUserToGame = (socket, gameId, playerName) => {
         l: INITIAL_USER_LENGTH,
         w: INITIAL_USER_WIDTH,
         energy: MAX_ENERGY_KCAL,
-        isBoosting: false
+        isBoosting: false,
+        speedStarUntilMs: 0
     };
 
     world.maxHumanParticipantsSeen = Math.max(
@@ -1689,9 +1727,12 @@ const joinUserToGame = (socket, gameId, playerName) => {
         boostMultiplier: MOVEMENT_BOOST_MULTIPLIER,
         maxEnergy: MAX_ENERGY_KCAL,
         boostDrainPerSecond: BOOST_DRAIN_KCAL_PER_SECOND,
-        minEnergyToStartBoost: MIN_ENERGY_TO_START_BOOST
+        minEnergyToStartBoost: MIN_ENERGY_TO_START_BOOST,
+        speedStarMultiplier: SPEED_STAR_MULTIPLIER,
+        speedStarDurationMs: SPEED_STAR_DURATION_MS
     });
     emitEnergyUpdate(socket.id);
+    emitSpeedStarUpdate(socket.id);
     socket.emit(SOCKET_EVENTS.SET_GAME_RULES, getGameRulesForGame(gameId));
     const mapConfigForJoin = getMapConfigForGame(gameId);
     socket.emit(SOCKET_EVENTS.SET_VIRTUAL_DIMENSIONS, {
@@ -1972,6 +2013,14 @@ io.on('connection', (socket) => {
             const exitPosition = teleportUserThroughPortal(world, socket.id, hitterUser);
             socket.emit(SOCKET_EVENTS.TELEPORTED, exitPosition);
             broadcastUsers(gameId);
+            return;
+        }
+
+        if (worldObject.type === WORLD_OBJECT_TYPES.STAR) {
+            activateSpeedStarForUser(hitterUser);
+            emitSpeedStarUpdate(socket.id);
+            applyFoodHitBehavior(world, worldObjectId, worldObject);
+            broadcastWorldObjects(gameId);
             return;
         }
 

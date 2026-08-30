@@ -4,7 +4,13 @@ const WORLD_OBJECT_TYPES = {
     CLOUD: 'cloud',
     THORN: 'thorn',
     DOT: 'dot',
-    PORTAL: 'portal'
+    PORTAL: 'portal',
+    STAR: 'star'
+};
+
+// Power-ups always look the same, so they skip the random food tables.
+const POWER_UP_EMOJIS_BY_TYPE = {
+    [WORLD_OBJECT_TYPES.STAR]: '⭐'
 };
 
 // Food quality drives the reward. AIP (autoimmune protocol) excludes grains,
@@ -59,6 +65,11 @@ const pickRandomFoodQuality = () => {
 };
 
 const getRandomFoodForType = (type) => {
+    const powerUpEmoji = POWER_UP_EMOJIS_BY_TYPE[type];
+    if (powerUpEmoji) {
+        return { emoji: powerUpEmoji, quality: null };
+    }
+
     const emojisByQuality = FOOD_EMOJIS_BY_TYPE_AND_QUALITY[type];
     if (!emojisByQuality) {
         return null;
@@ -270,6 +281,20 @@ const DEFAULT_WORLD_OBJECT_DEFINITIONS = {
             scoreDelta: 0,
             widthDelta: 0
         }
+    },
+    // The Super Mario star: no growth or score, just a burst of raw speed.
+    [WORLD_OBJECT_TYPES.STAR]: {
+        size: 30,
+        spawnPadding: 0,
+        collisionInset: 0,
+        blocksSpawn: false,
+        removeOnHit: true,
+        effects: {
+            instantLose: false,
+            growthDelta: 0,
+            scoreDelta: 0,
+            widthDelta: 0
+        }
     }
 };
 
@@ -329,6 +354,7 @@ const getEmojiDominantColor = (emoji, fallbackColor) => EMOJI_DOMINANT_COLORS[em
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         WORLD_OBJECT_TYPES,
+        POWER_UP_EMOJIS_BY_TYPE,
         FOOD_QUALITIES,
         FOOD_EMOJIS_BY_TYPE_AND_QUALITY,
         FOOD_QUALITY_SPAWN_WEIGHTS,
@@ -347,6 +373,7 @@ if (typeof module !== 'undefined' && module.exports) {
 
 if (typeof window !== 'undefined') {
     window.WORLD_OBJECT_TYPES = WORLD_OBJECT_TYPES;
+    window.POWER_UP_EMOJIS_BY_TYPE = POWER_UP_EMOJIS_BY_TYPE;
     window.FOOD_QUALITIES = FOOD_QUALITIES;
     window.FOOD_EMOJIS_BY_TYPE_AND_QUALITY = FOOD_EMOJIS_BY_TYPE_AND_QUALITY;
     window.getRandomFoodForType = getRandomFoodForType;

@@ -24,6 +24,12 @@ const MAX_ENERGY_KCAL = 1000;
 const BOOST_DRAIN_KCAL_PER_SECOND = 100;
 const MIN_ENERGY_TO_START_BOOST = 75;
 
+// Eating a star grants a Super Mario style speed rush: no energy cost, no growth,
+// just a fixed window where the snake moves at SPEED_STAR_MULTIPLIER times its
+// normal step. Re-eating a star restarts the window rather than stacking it.
+const SPEED_STAR_MULTIPLIER = 5;
+const SPEED_STAR_DURATION_MS = 15_000;
+
 // ---------------------------------------------------------------------------
 // Collision response helpers
 // ---------------------------------------------------------------------------
@@ -219,6 +225,34 @@ const drainBoostEnergy = (userState, elapsedMs) => {
 };
 
 // ---------------------------------------------------------------------------
+// Speed star power-up
+// ---------------------------------------------------------------------------
+
+const activateSpeedStarForUser = (userState, nowMs = Date.now()) => {
+    if (!userState) {
+        return 0;
+    }
+
+    userState.speedStarUntilMs = nowMs + SPEED_STAR_DURATION_MS;
+    return userState.speedStarUntilMs;
+};
+
+const getSpeedStarRemainingMs = (userState, nowMs = Date.now()) => {
+    const activeUntilMs = userState?.speedStarUntilMs;
+    if (!Number.isFinite(activeUntilMs)) {
+        return 0;
+    }
+
+    return Math.max(0, activeUntilMs - nowMs);
+};
+
+const isSpeedStarActive = (userState, nowMs = Date.now()) => getSpeedStarRemainingMs(userState, nowMs) > 0;
+
+const getSpeedMultiplierForUser = (userState, nowMs = Date.now()) => {
+    return isSpeedStarActive(userState, nowMs) ? SPEED_STAR_MULTIPLIER : 1;
+};
+
+// ---------------------------------------------------------------------------
 
 module.exports = {
     COLLISION_RESPONSES,
@@ -231,6 +265,8 @@ module.exports = {
     MAX_ENERGY_KCAL,
     BOOST_DRAIN_KCAL_PER_SECOND,
     MIN_ENERGY_TO_START_BOOST,
+    SPEED_STAR_MULTIPLIER,
+    SPEED_STAR_DURATION_MS,
     resolveCollisionResponse,
     toSafeCollisionResponse,
     toSafeFoodHitBehavior,
@@ -246,5 +282,9 @@ module.exports = {
     setEnergyForUser,
     addEnergyToUser,
     canStartBoost,
-    drainBoostEnergy
+    drainBoostEnergy,
+    activateSpeedStarForUser,
+    getSpeedStarRemainingMs,
+    isSpeedStarActive,
+    getSpeedMultiplierForUser
 };

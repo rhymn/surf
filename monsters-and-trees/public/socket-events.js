@@ -15,6 +15,7 @@ const GAME_SOCKET_EVENT_NAMES = {
     SET_MOVEMENT_CONFIG: 'setMovementConfig',
     SET_BOOST: 'setBoost',
     ENERGY_UPDATE: 'energyUpdate',
+    SPEED_STAR_UPDATE: 'speedStarUpdate',
     SET_PLAYING_TYPE: 'setPlayingType',
     SET_GAME_RULES: 'setGameRules',
     MATCH_STATE_UPDATE: 'matchStateUpdate',

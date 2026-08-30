@@ -387,12 +387,19 @@ const DEFAULT_BOOST_MULTIPLIER = 2;
 const DEFAULT_MAX_ENERGY = 1000;
 const DEFAULT_BOOST_DRAIN_PER_SECOND = 100;
 const DEFAULT_MIN_ENERGY_TO_START_BOOST = 75;
+const DEFAULT_SPEED_STAR_MULTIPLIER = 5;
+const DEFAULT_SPEED_STAR_DURATION_MS = 15000;
 let baseStep = DEFAULT_BASE_STEP;
 let ticksPerSecond = DEFAULT_TICKS_PER_SECOND;
 let boostMultiplier = DEFAULT_BOOST_MULTIPLIER;
 let maxEnergy = DEFAULT_MAX_ENERGY;
 let boostDrainPerSecond = DEFAULT_BOOST_DRAIN_PER_SECOND;
 let minEnergyToStartBoost = DEFAULT_MIN_ENERGY_TO_START_BOOST;
+let speedStarMultiplier = DEFAULT_SPEED_STAR_MULTIPLIER;
+let speedStarDurationMs = DEFAULT_SPEED_STAR_DURATION_MS;
+// Wall-clock deadline for the local star rush; the server keeps its own copy.
+let speedStarUntilMs = 0;
+let wasSpeedStarActive = false;
 let currentEnergy = DEFAULT_MAX_ENERGY;
 let updateIntervalMs = 1000 / ticksPerSecond;
 let hasMovementConfig = false;
@@ -403,6 +410,7 @@ const OBJECT_TYPE_CLOUD = GAME_WORLD_OBJECT_TYPES.CLOUD;
 const OBJECT_TYPE_THORN = GAME_WORLD_OBJECT_TYPES.THORN;
 const OBJECT_TYPE_DOT = GAME_WORLD_OBJECT_TYPES.DOT;
 const OBJECT_TYPE_PORTAL = GAME_WORLD_OBJECT_TYPES.PORTAL;
+const OBJECT_TYPE_STAR = GAME_WORLD_OBJECT_TYPES.STAR;
 let movementStep = baseStep;
 // Windy weather nudges movement off course and jitters free-steering aim.
 const WIND_PUSH_FACTOR = 0.6;
@@ -647,8 +655,26 @@ const lastMealPanel = document.createElement('div');
 lastMealPanel.className = 'hud-last-meal';
 lastMealPanel.style.display = 'none';
 
-energyPanel.append(energyHeader, energyTrack, lastMealPanel, boostButton);
+const speedStarPanel = document.createElement('div');
+speedStarPanel.className = 'hud-speed-star';
+speedStarPanel.style.display = 'none';
+
+energyPanel.append(energyHeader, energyTrack, speedStarPanel, lastMealPanel, boostButton);
 overlay.appendChild(energyPanel);
+
+const isSpeedStarActive = () => speedStarUntilMs > Date.now();
+
+const updateSpeedStarMeter = () => {
+    const remainingMs = Math.max(0, speedStarUntilMs - Date.now());
+
+    if (remainingMs <= 0) {
+        speedStarPanel.style.display = 'none';
+        return;
+    }
+
+    speedStarPanel.style.display = 'block';
+    speedStarPanel.textContent = `⭐ ${speedStarMultiplier}× speed · ${(remainingMs / 1000).toFixed(1)}s`;
+};
 
 const showLastMeal = (worldObject) => {
     const facts = window.getFoodNutritionFacts?.(worldObject.type, worldObject.emoji);
@@ -702,7 +728,12 @@ const refreshBoostState = () => {
     }
 
     isBoosting = (isBoostHeld || isBoostLatched) && hasChargeToBoost && canControlSnake && !isBoostLockedOut;
-    movementStep = isBoosting ? baseStep * boostMultiplier : baseStep;
+    // The star overrides the battery boost: it is faster and costs nothing.
+    if (isSpeedStarActive()) {
+        movementStep = baseStep * speedStarMultiplier;
+    } else {
+        movementStep = isBoosting ? baseStep * boostMultiplier : baseStep;
+    }
 
     if (isBoosting !== lastSentBoostState) {
         lastSentBoostState = isBoosting;
@@ -710,6 +741,7 @@ const refreshBoostState = () => {
     }
 
     updateEnergyMeter();
+    updateSpeedStarMeter();
 };
 
 const setBoostHeld = (isHeld) => {
@@ -1788,7 +1820,9 @@ const applyMovementConfig = (movementConfig) => {
         boostMultiplier: configuredBoostMultiplier,
         maxEnergy: configuredMaxEnergy,
         boostDrainPerSecond: configuredBoostDrain,
-        minEnergyToStartBoost: configuredMinEnergyToStartBoost
+        minEnergyToStartBoost: configuredMinEnergyToStartBoost,
+        speedStarMultiplier: configuredSpeedStarMultiplier,
+        speedStarDurationMs: configuredSpeedStarDurationMs
     } = movementConfig;
 
     if (typeof configuredBaseStep === 'number' && configuredBaseStep > 0) {
@@ -1815,6 +1849,14 @@ const applyMovementConfig = (movementConfig) => {
         minEnergyToStartBoost = configuredMinEnergyToStartBoost;
     }
 
+    if (typeof configuredSpeedStarMultiplier === 'number' && configuredSpeedStarMultiplier > 0) {
+        speedStarMultiplier = configuredSpeedStarMultiplier;
+    }
+
+    if (typeof configuredSpeedStarDurationMs === 'number' && configuredSpeedStarDurationMs > 0) {
+        speedStarDurationMs = configuredSpeedStarDurationMs;
+    }
+
     updateIntervalMs = 1000 / ticksPerSecond;
     hasMovementConfig = true;
     refreshBoostState();
@@ -1838,6 +1880,20 @@ socket.on(GAME_SOCKET_EVENTS.ENERGY_UPDATE, (energyUpdate) => {
         maxEnergy = energyUpdate.maxEnergy;
     }
 
+    refreshBoostState();
+});
+
+socket.on(GAME_SOCKET_EVENTS.SPEED_STAR_UPDATE, (speedStarUpdate) => {
+    if (typeof speedStarUpdate?.multiplier === 'number' && speedStarUpdate.multiplier > 0) {
+        speedStarMultiplier = speedStarUpdate.multiplier;
+    }
+
+    if (typeof speedStarUpdate?.durationMs === 'number' && speedStarUpdate.durationMs > 0) {
+        speedStarDurationMs = speedStarUpdate.durationMs;
+    }
+
+    const remainingMs = Number(speedStarUpdate?.remainingMs);
+    speedStarUntilMs = Number.isFinite(remainingMs) && remainingMs > 0 ? Date.now() + remainingMs : 0;
     refreshBoostState();
 });
 
@@ -2343,6 +2399,27 @@ function drawPortalSwirl(worldObject, size) {
     ctx.restore();
 }
 
+function drawSpeedStar(worldObject, size) {
+    const radius = size / 2;
+    const centerX = worldObject.x + radius;
+    const centerY = worldObject.y + radius;
+    const pulse = 0.75 + 0.25 * Math.sin(performance.now() / 220);
+
+    ctx.save();
+    const glow = ctx.createRadialGradient(centerX, centerY, radius * 0.1, centerX, centerY, radius * 1.9 * pulse);
+    glow.addColorStop(0, 'rgba(255, 249, 196, 0.95)');
+    glow.addColorStop(0.5, 'rgba(250, 204, 21, 0.55)');
+    glow.addColorStop(1, 'rgba(250, 204, 21, 0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius * 1.9 * pulse, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    const sprite = getFoodEmojiSprite('⭐', size, null);
+    ctx.drawImage(sprite, worldObject.x, worldObject.y);
+}
+
 function drawWorldObjects() {
     for (const worldObjectId in worldObjects) {
         const worldObject = worldObjects[worldObjectId];
@@ -2358,6 +2435,11 @@ function drawWorldObjects() {
 
         if (worldObject.type === OBJECT_TYPE_PORTAL) {
             drawPortalSwirl(worldObject, worldObjectDefinition.size);
+            continue;
+        }
+
+        if (worldObject.type === OBJECT_TYPE_STAR) {
+            drawSpeedStar(worldObject, worldObjectDefinition.size);
             continue;
         }
 
@@ -2421,6 +2503,12 @@ function drawMinimap() {
 
         if (worldObject.type === OBJECT_TYPE_PORTAL) {
             ctx.fillStyle = '#a855f7';
+            ctx.fillRect(originX + worldObject.x * scale - 1, originY + worldObject.y * scale - 1, 3.5, 3.5);
+            continue;
+        }
+
+        if (worldObject.type === OBJECT_TYPE_STAR) {
+            ctx.fillStyle = '#fde047';
             ctx.fillRect(originX + worldObject.x * scale - 1, originY + worldObject.y * scale - 1, 3.5, 3.5);
             continue;
         }
@@ -2503,7 +2591,13 @@ function drawScene() {
     }
 
     if (weatherCells.length > 0) {
+        // Clip so a cell's glow/particles near the edge don't spill past the map border.
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, boardWidth, boardHeight);
+        ctx.clip();
         drawWeatherCells(performance.now());
+        ctx.restore();
     }
 
     ctx.restore();
@@ -2829,6 +2923,13 @@ function updatePosition() {
     nextY = snakeStates.mySnake.coordinates[0].y;
 
     if (!isPaused && !isGameOver && !isEaten) {
+        if (isSpeedStarActive() !== wasSpeedStarActive) {
+            wasSpeedStarActive = isSpeedStarActive();
+            refreshBoostState();
+        } else if (wasSpeedStarActive) {
+            updateSpeedStarMeter();
+        }
+
         if (isBoosting) {
             // Predict the drain locally; the server correction arrives via energyUpdate.
             currentEnergy = Math.max(0, currentEnergy - boostDrainPerSecond * (updateIntervalMs / 1000));
@@ -2932,7 +3033,15 @@ function updatePosition() {
                 // The server validates the hit against our reported position, so send it first.
                 emitHeadCoordinates(nextX, nextY);
                 notifyOfHitWorldObject(worldObjectId);
-                showLastMeal(worldObject);
+
+                if (worldObject.type === OBJECT_TYPE_STAR) {
+                    // Start the rush immediately; the server's speedStarUpdate corrects it.
+                    speedStarUntilMs = Date.now() + speedStarDurationMs;
+                    wasSpeedStarActive = true;
+                    refreshBoostState();
+                } else {
+                    showLastMeal(worldObject);
+                }
 
                 if (!worldObjectDefinition.removeOnHit) {
                     continue;
