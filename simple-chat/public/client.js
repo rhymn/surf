@@ -178,6 +178,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Listen for previous messages from the server
     socket.on('previousMessages', (messages) => {
+        if (messages.length === 0) {
+            const startOfThread = document.createElement('div');
+            startOfThread.textContent = 'Welcome to Simple Chat. This is the start of the thread.';
+            startOfThread.classList.add('message', 'start-of-thread');
+            messagesDiv.appendChild(startOfThread);
+        }
         messages.forEach((msg) => {
             appendMessage(msg);
         });

@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="A small public home for Simple Chat and Monsters and Trees.">
+        <title>Play and Talk</title>
+        <style>
+            :root {
+                --ink: #17272b;
+                --paper: #f6f1e7;
+                --sun: #f7bd32;
+                --leaf: #2f9252;
+                --sky: #9bd4e5;
+                --coral: #e96342;
+            }
+
+            * { box-sizing: border-box; }
+
+            body {
+                min-height: 100vh;
+                margin: 0;
+                color: var(--ink);
+                font-family: Georgia, 'Times New Roman', serif;
+                background-color: var(--paper);
+                background-image: linear-gradient(rgba(23, 39, 43, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(23, 39, 43, 0.05) 1px, transparent 1px);
+                background-size: 24px 24px;
+            }
+
+            main {
+                width: min(1040px, calc(100% - 40px));
+                min-height: 100vh;
+                margin: 0 auto;
+                padding: 32px 0 48px;
+                display: grid;
+                align-content: start;
+                gap: 44px;
+            }
+
+            header { max-width: 660px; }
+
+            .eyebrow, .label {
+                margin: 0 0 12px;
+                font-family: 'Trebuchet MS', sans-serif;
+                font-size: 12px;
+                font-weight: 700;
+                letter-spacing: 1.5px;
+                text-transform: uppercase;
+            }
+
+            .eyebrow { color: var(--coral); }
+
+            h1 {
+                margin: 0;
+                font-size: clamp(48px, 9vw, 104px);
+                line-height: 0.91;
+                letter-spacing: 0;
+                font-weight: 700;
+            }
+
+            header p {
+                max-width: 480px;
+                margin: 22px 0 0;
+                font-size: 20px;
+                line-height: 1.45;
+            }
+
+            .destinations {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                border: 2px solid var(--ink);
+            }
+
+            article {
+                min-height: 340px;
+                padding: 30px;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-start;
+                border-right: 2px solid var(--ink);
+            }
+
+            article:last-child { border-right: 0; }
+            .chat { background: var(--sky); }
+            .game { background: var(--sun); }
+            .harrypotter {
+                grid-column: 1 / -1;
+                min-height: 250px;
+                background: var(--leaf);
+                color: var(--paper);
+            }
+            .label { color: var(--ink); }
+            .harrypotter .label { color: var(--paper); }
+
+            h2 {
+                margin: 0;
+                font-size: clamp(32px, 4.5vw, 52px);
+                line-height: 0.98;
+                letter-spacing: 0;
+            }
+
+            article p {
+                max-width: 390px;
+                margin: 18px 0 28px;
+                font-size: 18px;
+                line-height: 1.4;
+            }
+
+            a {
+                margin-top: auto;
+                padding: 12px 18px;
+                color: var(--paper);
+                background: var(--ink);
+                border: 2px solid var(--ink);
+                font-family: 'Trebuchet MS', sans-serif;
+                font-size: 15px;
+                font-weight: 700;
+                line-height: 1;
+                text-decoration: none;
+            }
+
+            a:hover, a:focus-visible {
+                color: var(--ink);
+                background: transparent;
+                outline: 0;
+            }
+
+            a.is-waking {
+                pointer-events: none;
+                opacity: 0.5;
+            }
+
+            footer {
+                font-family: 'Trebuchet MS', sans-serif;
+                font-size: 13px;
+                font-weight: 700;
+                letter-spacing: 0.5px;
+                text-transform: uppercase;
+            }
+
+            @media (max-width: 640px) {
+                main { width: min(100% - 28px, 520px); padding: 28px 0; gap: 34px; }
+                .destinations { grid-template-columns: 1fr; }
+                article { min-height: 270px; border-right: 0; border-bottom: 2px solid var(--ink); }
+                article:last-child { border-bottom: 0; }
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            <header>
+                <p class="eyebrow">A public corner of the internet</p>
+                <h1>Play.<br>Talk.<br>Stay awhile.</h1>
+                <p>Choose a room to share a thought, or step into the forest and see who is there.</p>
+            </header>
+
+            <section class="destinations" aria-label="Choose an app">
+                <article class="chat">
+                    <p class="label">No account needed</p>
+                    <h2>Simple Chat</h2>
+                    <p>Start a private room and share its link with the people you want to reach.</p>
+                    <a href="https://simple-chat-5haz.onrender.com/random">Start a new chat</a>
+                </article>
+                <article class="game">
+                    <p class="label">Multiplayer game</p>
+                    <h2>Monsters<br>and Trees</h2>
+                    <p>Join a live world, gather what you need, and outlast everyone else.</p>
+                    <a href="https://monsters-and-trees.onrender.com">Enter the forest</a>
+                </article>
+                <article class="harrypotter">
+                    <p class="label">Explore the wizarding world</p>
+                    <h2>Harry Potter</h2>
+                    <p>Browse characters, years, relationships, actors, and magical creatures.</p>
+                    <a href="https://harrypotter-6m00.onrender.com">Explore Harry Potter</a>
+                </article>
+            </section>
+
+            <footer>Three small places to meet online</footer>
+        </main>
+        <script>
+            const appLinks = document.querySelectorAll('.destinations a');
+
+            appLinks.forEach((link) => {
+                link.classList.add('is-waking');
+                link.setAttribute('aria-disabled', 'true');
+                link.setAttribute('tabindex', '-1');
+            });
+
+            function wakeLinkedApps() {
+                [
+                    'https://simple-chat-5haz.onrender.com',
+                    'https://monsters-and-trees.onrender.com',
+                    'https://harrypotter-6m00.onrender.com'
+                ].forEach((url) => {
+                    fetch(url, {mode: 'no-cors'}).catch(() => {});
+                });
+            }
+
+            wakeLinkedApps();
+
+            setTimeout(() => {
+                appLinks.forEach((link) => {
+                    link.classList.remove('is-waking');
+                    link.removeAttribute('aria-disabled');
+                    link.removeAttribute('tabindex');
+                });
+            }, 5000);
+        </script>
+    </body>
+</html>

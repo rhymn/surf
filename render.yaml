@@ -73,6 +73,14 @@ services:
         source: /
         destination: /index.html
 
+  - type: web
+    name: community
+    runtime: static
+    staticPublishPath: .
+    branch: main
+    rootDir: community
+    region: frankfurt
+
 databases:
   - name: db
     plan: basic-256mb
