@@ -1,7 +1,7 @@
 [
   {
     "id": "book6-001", "language": "sv", "canon": "book", "spoilerThroughBook": 6, "category": "characters", "difficulty": "medium",
-    "question": "Vem ber Snape att avlägga en obrytbar ed för att skydda Draco?",
+    "question": "Vem ber Snape att svära en obrytbar ed om att skydda Draco?",
     "options": ["Bellatrix Lestrange", "Narcissa Malfoy", "Dolores Umbridge", "Molly Weasley"], "correctOptionIndex": 1,
     "explanation": "Dracos mamma Narcissa ber Snape skydda sonen och hjälpa honom med hans uppdrag.", "source": {"type": "book", "book": 6, "chapter": 2},
     "entities": [], "reviewStatus": "draft"

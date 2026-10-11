@@ -1,7 +1,7 @@
 [
   {
     "id": "book7-001", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "potions", "difficulty": "easy",
-    "question": "Vem tar sex av Harrys vänner formen av med polyjuice när han lämnar Privet Drive?",
+    "question": "Vems skepnad antar sex av Harrys vänner med polyjuice när Harry lämnar Privet Drive?",
     "options": ["Alastor Moody", "Dudley Dursley", "Harry Potter", "Albus Dumbledore"], "correctOptionIndex": 2,
     "explanation": "Sex personer tar Harrys utseende för att göra det svårt att identifiera den riktige Harry.", "source": {"type": "book", "book": 7, "chapter": 4},
     "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
@@ -86,8 +86,8 @@
   {
     "id": "book7-013", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "objects", "difficulty": "medium",
     "question": "I vilket föremål har Dumbledore gömt uppståndelsestenen åt Harry?",
-    "options": ["I Gryffindors svärd", "I en chokladgrodeask", "I den första kvick som Harry fångade", "I Harrys gamla trollstav"], "correctOptionIndex": 2,
-    "explanation": "Stenen ligger inuti den kvick som Dumbledore testamenterade till Harry.", "source": {"type": "book", "book": 7, "chapter": 34},
+    "options": ["I Gryffindors svärd", "I en chokladgrodeask", "I den första kvicken Harry fångade", "I Harrys gamla trollstav"], "correctOptionIndex": 2,
+    "explanation": "Stenen ligger inuti den kvicken som Dumbledore testamenterade till Harry.", "source": {"type": "book", "book": 7, "chapter": 34},
     "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
   },
   {

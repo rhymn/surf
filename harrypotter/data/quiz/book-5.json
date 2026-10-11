@@ -1,7 +1,7 @@
 [
   {
     "id": "book5-001", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "plot", "difficulty": "easy",
-    "question": "Vem skyddar Harry tillsammans med sig själv mot dementorerna i Little Whinging?",
+    "question": "Vem skyddar Harry, utöver sig själv, mot dementorerna i Little Whinging?",
     "options": ["Ron", "Hermione", "Vernon", "Dudley"], "correctOptionIndex": 3,
     "explanation": "Harry använder sin patronus för att skydda sig själv och Dudley.", "source": {"type": "book", "book": 5, "chapter": 1},
     "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"

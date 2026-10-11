@@ -181,8 +181,8 @@
   },
   {
     "id": "film-026", "language": "sv", "canon": "film", "spoilerThroughBook": 2, "category": "creatures", "difficulty": "medium",
-    "question": "Vad gör Fawkes med basiliskens ögon i filmen?",
-    "options": ["Gör den blind", "Gör dem blå", "Fryser dem", "Gör dem osynliga"], "correctOptionIndex": 0,
+    "question": "Vad gör Fawkes med basilisken i filmen?",
+    "options": ["Gör den blind", "Gör den blå", "Fryser den", "Gör den osynlig"], "correctOptionIndex": 0,
     "explanation": "Fawkes angriper ögonen och gör basilisken blind så att dess direkta blick inte längre kan döda Harry.",
     "source": {"type": "film", "title": "Hemligheternas kammare", "scene": "Fawkes möter basilisken i kammaren"}, "entities": [], "reviewStatus": "draft"
   },
@@ -427,7 +427,7 @@
   {
     "id": "film-061", "language": "sv", "canon": "film", "spoilerThroughBook": 5, "category": "actors", "difficulty": "medium",
     "question": "Vem spelar Luna Lovegood i Fenixorden?",
-    "options": ["Bonnie Wright", "Evanna Lynch", "Katie Leung", "Clemence Poesy"], "correctOptionIndex": 1,
+    "options": ["Bonnie Wright", "Evanna Lynch", "Katie Leung", "Clémence Poésy"], "correctOptionIndex": 1,
     "explanation": "Evanna Lynch spelar Luna Lovegood.",
     "source": {"type": "film", "title": "Fenixorden", "scene": "Eftertexter: Luna Lovegood"}, "entities": [], "reviewStatus": "draft"
   },
@@ -510,7 +510,7 @@
   },
   {
     "id": "film-073", "language": "sv", "canon": "film", "spoilerThroughBook": 6, "category": "actors", "difficulty": "extreme",
-    "question": "Vem spelar Tom Riddle som barn i sjätte filmen?",
+    "question": "Vem spelar den elvaårige Tom Riddle i sjätte filmen?",
     "options": ["Frank Dillane", "Hero Fiennes Tiffin", "Christian Coulson", "Tom Felton"], "correctOptionIndex": 1,
     "explanation": "Hero Fiennes Tiffin spelar den elvaårige Tom Riddle i minnet från barnhemmet.",
     "source": {"type": "film", "title": "Halvblodsprinsen", "scene": "Barnhemsminnet och eftertexter: Tom Riddle, aged 11"}, "entities": [], "reviewStatus": "draft"
@@ -679,8 +679,8 @@
   {
     "id": "film-097", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "actors", "difficulty": "extreme",
     "question": "Vem spelar Aberforth Dumbledore i den sista filmen?",
-    "options": ["Michael Gambon", "Ciaran Hinds", "Jim Broadbent", "Richard Griffiths"], "correctOptionIndex": 1,
-    "explanation": "Ciaran Hinds spelar Aberforth Dumbledore.",
+    "options": ["Michael Gambon", "Ciarán Hinds", "Jim Broadbent", "Richard Griffiths"], "correctOptionIndex": 1,
+    "explanation": "Ciarán Hinds spelar Aberforth Dumbledore.",
     "source": {"type": "film", "title": "Dödsrelikerna del 2", "scene": "Eftertexter: Aberforth Dumbledore"}, "entities": [], "reviewStatus": "draft"
   },
   {

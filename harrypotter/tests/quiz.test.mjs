@@ -224,6 +224,40 @@ test('all Swedish questions are playable without changing their review metadata'
   assert.equal(JSON.stringify(bank), original);
 });
 
+test('content audit removes ambiguous prompts and preserves their answer keys', () => {
+  const expected = {
+    'book4-005': ['Vilket föremål utser deltagarna i den magiska trekampen?', 'Den flammande bägaren'],
+    'book5-001': ['Vem skyddar Harry, utöver sig själv, mot dementorerna i Little Whinging?', 'Dudley'],
+    'book6-001': ['Vem ber Snape att svära en obrytbar ed om att skydda Draco?', 'Narcissa Malfoy'],
+    'film-073': ['Vem spelar den elvaårige Tom Riddle i sjätte filmen?', 'Hero Fiennes Tiffin']
+  };
+  for (const [id, [prompt, answer]] of Object.entries(expected)) {
+    const question = bank.find(question => question.id === id);
+    assert.equal(question.question, prompt, id);
+    assert.equal(question.options[question.correctOptionIndex], answer, id);
+  }
+  assert.ok(bank.find(question => question.id === 'film-061').options.includes('Clémence Poésy'));
+  assert.ok(bank.find(question => question.id === 'film-097').options.includes('Ciarán Hinds'));
+});
+
+test('independent model audits clarify polyjuice, Swedish Snitch forms, and basilisk grammar', () => {
+  const expected = {
+    'book7-001': ['Vems skepnad antar sex av Harrys vänner med polyjuice när Harry lämnar Privet Drive?', 'Harry Potter'],
+    'book7-013': ['I den första kvicken Harry fångade', 'Stenen ligger inuti den kvicken som Dumbledore testamenterade till Harry.'],
+    'film-026': ['Vad gör Fawkes med basilisken i filmen?', 'Gör den blind']
+  };
+  const polyjuice = bank.find(question => question.id === 'book7-001');
+  assert.equal(polyjuice.question, expected['book7-001'][0]);
+  assert.equal(polyjuice.options[polyjuice.correctOptionIndex], expected['book7-001'][1]);
+  const snitch = bank.find(question => question.id === 'book7-013');
+  assert.equal(snitch.options[snitch.correctOptionIndex], expected['book7-013'][0]);
+  assert.equal(snitch.explanation, expected['book7-013'][1]);
+  const basilisk = bank.find(question => question.id === 'film-026');
+  assert.equal(basilisk.question, expected['film-026'][0]);
+  assert.equal(basilisk.options[basilisk.correctOptionIndex], expected['film-026'][1]);
+  assert.ok(bank.find(question => question.id === 'film-094').options.includes('Bellatrixs'));
+});
+
 test('100 additional film questions cover eight films with scene references and spoiler limits', () => {
   const filmTitles = ['De vises sten', 'Hemligheternas kammare', 'Fången från Azkaban', 'Den flammande bägaren', 'Fenixorden', 'Halvblodsprinsen', 'Dödsrelikerna del 1', 'Dödsrelikerna del 2'];
   const additions = [];

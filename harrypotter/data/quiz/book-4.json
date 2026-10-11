@@ -29,7 +29,7 @@
   },
   {
     "id": "book4-005", "language": "sv", "canon": "book", "spoilerThroughBook": 4, "category": "objects", "difficulty": "easy",
-    "question": "Vilket föremål väljer deltagarna i den magiska trekampen?",
+    "question": "Vilket föremål utser deltagarna i den magiska trekampen?",
     "options": ["Den flammande bägaren", "Sorteringshatten", "Marodörkartan", "En tidvändare"], "correctOptionIndex": 0,
     "explanation": "Den flammande bägaren väljer vilka namn som ska representera skolorna.", "source": {"type": "book", "book": 4, "chapter": 16},
     "entities": [], "reviewStatus": "draft"
