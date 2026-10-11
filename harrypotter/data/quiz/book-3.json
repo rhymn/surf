@@ -78,9 +78,9 @@
   },
   {
     "id": "book3-012", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "characters", "difficulty": "medium",
-    "question": "Vem visar sig Rons råtta Skabbis egentligen vara?",
+    "question": "Vem visar sig Rons råtta Scabbers egentligen vara?",
     "options": ["Sirius Black", "Peter Pettigrew", "Remus Lupin", "James Potter"], "correctOptionIndex": 1,
-    "explanation": "Skabbis är Peter Pettigrew, som har gömt sig i sin animagusform.", "source": {"type": "book", "book": 3, "chapter": 19},
+    "explanation": "Scabbers är Peter Pettigrew, som har gömt sig i sin animagusform.", "source": {"type": "book", "book": 3, "chapter": 19},
     "entities": [{"type": "pets", "id": "scabbers"}], "reviewStatus": "draft"
   },
   {

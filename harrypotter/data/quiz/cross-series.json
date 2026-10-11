@@ -7,7 +7,7 @@
   },
   {
     "id": "world-002", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "pets", "difficulty": "easy",
-    "question": "Vad heter Harrys uggla?", "options": ["Hedwig", "Krummben", "Skabbis", "Piggelin"], "correctOptionIndex": 0,
+    "question": "Vad heter Harrys uggla?", "options": ["Hedwig", "Krummben", "Scabbers", "Piggelin"], "correctOptionIndex": 0,
     "explanation": "Harrys uggla heter Hedwig.", "source": {"type": "wiki", "entityType": "pets", "entityId": "hedwig", "field": "name"},
     "entities": [{"type": "characters", "id": "harry"}, {"type": "pets", "id": "hedwig"}], "reviewStatus": "reviewed"
   },
@@ -19,19 +19,19 @@
   },
   {
     "id": "world-004", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "pets", "difficulty": "easy",
-    "question": "Vad heter Hermiones katt i den svenska översättningen?", "options": ["Krummben", "Hedwig", "Skabbis", "Piggelin"], "correctOptionIndex": 0,
+    "question": "Vad heter Hermiones katt i den svenska översättningen?", "options": ["Krummben", "Hedwig", "Scabbers", "Piggelin"], "correctOptionIndex": 0,
     "explanation": "Hermiones katt heter Krummben, eller Crookshanks på engelska.", "source": {"type": "wiki", "entityType": "pets", "entityId": "crookshanks", "field": "name"},
     "entities": [{"type": "characters", "id": "hermione"}, {"type": "pets", "id": "crookshanks"}], "reviewStatus": "reviewed"
   },
   {
     "id": "world-005", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "pets", "difficulty": "easy",
-    "question": "Vad heter Rons tamråtta i den svenska översättningen?", "options": ["Skabbis", "Krummben", "Piggelin", "Hedwig"], "correctOptionIndex": 0,
-    "explanation": "Rons tamråtta heter Skabbis, eller Scabbers på engelska.", "source": {"type": "wiki", "entityType": "pets", "entityId": "scabbers", "field": "name"},
+    "question": "Vad heter Rons tamråtta i den svenska översättningen?", "options": ["Scabbers", "Krummben", "Piggelin", "Hedwig"], "correctOptionIndex": 0,
+    "explanation": "Rons tamråtta heter Scabbers även i den svenska översättningen.", "source": {"type": "wiki", "entityType": "pets", "entityId": "scabbers", "field": "name"},
     "entities": [{"type": "characters", "id": "ron"}, {"type": "pets", "id": "scabbers"}], "reviewStatus": "reviewed"
   },
   {
     "id": "world-006", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "pets", "difficulty": "medium",
-    "question": "Vad heter Rons lilla uggla i den svenska översättningen?", "options": ["Piggelin", "Hedwig", "Krummben", "Skabbis"], "correctOptionIndex": 0,
+    "question": "Vad heter Rons lilla uggla i den svenska översättningen?", "options": ["Piggelin", "Hedwig", "Krummben", "Scabbers"], "correctOptionIndex": 0,
     "explanation": "Rons lilla uggla heter Piggelin, eller Pigwidgeon på engelska.", "source": {"type": "wiki", "entityType": "pets", "entityId": "pigwidgeon", "field": "name"},
     "entities": [{"type": "characters", "id": "ron"}, {"type": "pets", "id": "pigwidgeon"}], "reviewStatus": "reviewed"
   },
