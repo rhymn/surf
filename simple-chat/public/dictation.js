@@ -72,6 +72,7 @@ const initializeDictation = () => {
                     .filter(Boolean).join(' ');
                 displayed = draft + (text ? `${draft && !/\s$/.test(draft) ? ' ' : ''}${text}` : '');
                 input.value = displayed;
+                input.dispatchEvent(new Event('dictation-input'));
             };
             current.onend = () => {
                 if (recognition !== current) return;

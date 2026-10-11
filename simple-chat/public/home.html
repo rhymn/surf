@@ -6,6 +6,7 @@
         <title>My chats - Simple Chat</title>
         <script src="/icons.js" defer></script>
         <script src="/home.js" defer></script>
+        <script src="/read-state.js"></script>
         <style>
             * { box-sizing: border-box; }
             body { margin: 0; color: #202624; background: #fafbfa; font-family: Arial, sans-serif; font-size: 16px; }
@@ -31,6 +32,7 @@
             .chat-link:hover { background: #eef4ef; }
             .chat-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }
             .chat-title { margin: 0; font-size: 18px; overflow-wrap: anywhere; }
+            .unread-count { background: #267347; color: white; padding: 3px 8px; border-radius: 4px; font-size: 13px; white-space: nowrap; }
             .room-id { color: #69766d; font-size: 13px; font-family: monospace; overflow-wrap: anywhere; }
             .participants { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px; }
             .participant { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; font-size: 14px; color: #59645e; }

@@ -23,6 +23,12 @@ const renderChats = (chats) => {
         code.className = 'room-id';
         code.textContent = chat.room;
         heading.append(title, code);
+        if (chat.unreadCount > 0) {
+            const unread = document.createElement('span');
+            unread.className = 'unread-count';
+            unread.textContent = `${chat.unreadCount} unread`;
+            heading.appendChild(unread);
+        }
         const people = document.createElement('div');
         people.className = 'participants';
         for (const person of chat.participants) {
@@ -74,7 +80,7 @@ const loadChats = async () => {
         }
         const response = await fetch('/chats', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ rooms }), signal: current.signal
+            body: JSON.stringify({ rooms, userId: localStorage.getItem('userId') || '', readThrough: chatReadState.get() }), signal: current.signal
         });
         if (!response.ok) throw new Error('Unable to load chats. Try refreshing.');
         const chats = await response.json();

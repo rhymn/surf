@@ -81,7 +81,7 @@ async function saveParticipant(room, userId, username) {
     return db.none('INSERT INTO chat_participants(room, userid, username) VALUES($1, $2, $3) ON CONFLICT (room, userid) DO UPDATE SET username = EXCLUDED.username', [room, userId, username]);
 }
 
-async function getChatSummaries(rooms) {
+async function getChatSummaries(rooms, userId = '', readThrough = {}) {
     await ready;
     const titles = await db.any('SELECT room, title FROM chat_rooms WHERE room = ANY($1::text[])', [rooms]);
     const participants = await db.any(`
@@ -94,10 +94,18 @@ async function getChatSummaries(rooms) {
         ) AS participants ORDER BY room, userid, priority, timestamp DESC
     `, [rooms]);
     const counts = await db.any('SELECT room, COUNT(*)::integer AS message_count FROM messages WHERE room = ANY($1::text[]) AND removed = FALSE GROUP BY room', [rooms]);
+    const unread = await db.any(`
+        SELECT messages.room, COUNT(*)::integer AS unread_count
+        FROM messages JOIN unnest($1::text[], $3::bigint[]) AS cursors(room, last_read)
+        ON messages.room = cursors.room
+        WHERE messages.id > cursors.last_read AND messages.userid <> $2 AND messages.removed = FALSE
+        GROUP BY messages.room
+    `, [rooms, userId, rooms.map(room => readThrough[room] || 0)]);
     return rooms.map(room => ({
         room,
         title: titles.find(chat => chat.room === room)?.title || '',
         messageCount: counts.find(chat => chat.room === room)?.message_count || 0,
+        unreadCount: unread.find(chat => chat.room === room)?.unread_count || 0,
         participants: participants.filter(participant => participant.room === room)
             .map(({ userid, username }) => ({ userId: userid, username }))
     }));

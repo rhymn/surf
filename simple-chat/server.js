@@ -67,13 +67,18 @@ app.post('/invite', (req, res) => {
 
 app.post('/chats', async (req, res) => {
     const rooms = req.body?.rooms;
+    const userId = req.body?.userId || '';
+    const readThrough = req.body?.readThrough || {};
     if (!Array.isArray(rooms) || rooms.length > 200 ||
+        typeof userId !== 'string' || userId.length > 128 ||
+        typeof readThrough !== 'object' || Array.isArray(readThrough) ||
+        Object.values(readThrough).some(id => !Number.isSafeInteger(id) || id < 0) ||
         rooms.some(room => typeof room !== 'string' || room.length > 128 || !isRealGroupName(room))) {
         res.status(400).json({ error: 'Invalid chat list.' });
         return;
     }
     try {
-        const chats = await getChatSummaries([...new Set(rooms)]);
+        const chats = await getChatSummaries([...new Set(rooms)], userId, readThrough);
         for (const chat of chats) {
             const online = new Map();
             for (const peer of io.sockets.sockets.values()) {
@@ -118,6 +123,29 @@ io.on('connection', (socket) => {
     const room = `chat:${groupName}`;
     const userId = socket.handshake.auth?.userId;
     socket.data.userId = userId;
+    let typingTimer;
+    let typing = false;
+    let lastTypingBroadcast = 0;
+    const stopTyping = () => {
+        clearTimeout(typingTimer);
+        if (!typing) return;
+        typing = false;
+        socket.to(room).emit('typing', { peerId: socket.id, userId, username: users[socket.id], active: false });
+    };
+    socket.on('typing', (active) => {
+        if (typeof active !== 'boolean' || !users[socket.id] || !userId) return;
+        if (!active) {
+            stopTyping();
+            return;
+        }
+        if (!typing || Date.now() - lastTypingBroadcast >= 1000) {
+            socket.to(room).emit('typing', { peerId: socket.id, userId, username: users[socket.id], active: true });
+            lastTypingBroadcast = Date.now();
+        }
+        typing = true;
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(stopTyping, 5000);
+    });
     socket.join(room);
     console.log(`User joined room: ${room}`);
 
@@ -163,6 +191,7 @@ io.on('connection', (socket) => {
 
     // Handle chat messages
     socket.on('message', async (msg, reply) => {
+        stopTyping();
         if (!msg || typeof msg.message !== 'string' || !msg.message.trim() ||
             typeof msg.username !== 'string' || typeof userId !== 'string' || !userId) {
             if (typeof reply === 'function') reply({ error: 'Unable to send this message. Reload and try again.' });
@@ -223,6 +252,7 @@ io.on('connection', (socket) => {
     registerAudioSignaling(io, socket, room, users);
 
     socket.on('disconnect', () => {
+        stopTyping();
         const username = users[socket.id];
         delete users[socket.id];
         // io.to(room).emit('message', `${username} left the chat`);

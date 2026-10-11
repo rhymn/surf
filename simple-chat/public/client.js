@@ -173,6 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.on('connect', () => socket.emit('newUser', getUsername()));
     document.addEventListener('username-changed', () => socket.emit('newUser', getUsername()));
     const dictation = initializeDictation();
+    initializeTyping(socket);
     initializeAudioCall(socket);
 
     const messagesDiv = document.getElementById('messages');
@@ -193,21 +194,43 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.appendChild(newMessageIndicator);
 
     let userScrolled = false;
+    let latestMessageId = 0;
+    let loadingHistory = false;
+    let readTimer;
     const messageElements = new Map();
     const deletedMessageIds = new Set();
     const editedMessages = new Map();
 
+    const markVisibleMessagesRead = () => {
+        if (loadingHistory || document.hidden || !document.hasFocus() ||
+            document.getElementById('menu-modal').open ||
+            messagesDiv.scrollTop + messagesDiv.clientHeight < messagesDiv.scrollHeight - 2) return;
+        chatReadState.mark(group(), latestMessageId);
+        messageElements.forEach(element => element.classList.remove('unread'));
+        newMessageIndicator.style.display = 'none';
+    };
+    const scheduleRead = () => {
+        clearTimeout(readTimer);
+        readTimer = setTimeout(markVisibleMessagesRead, 700);
+    };
+    window.addEventListener('focus', scheduleRead);
+    document.addEventListener('visibilitychange', scheduleRead);
+    document.getElementById('menu-modal').addEventListener('close', scheduleRead);
+    window.addEventListener('pagehide', () => clearTimeout(readTimer));
+
     messagesDiv.addEventListener('scroll', () => {
-        if (messagesDiv.scrollTop + messagesDiv.clientHeight < messagesDiv.scrollHeight) {
+        if (messagesDiv.scrollTop + messagesDiv.clientHeight < messagesDiv.scrollHeight - 2) {
             userScrolled = true;
         } else {
             userScrolled = false;
             newMessageIndicator.style.display = 'none';
         }
+        scheduleRead();
     });
 
     // Listen for previous messages from the server
     socket.on('previousMessages', (messages) => {
+        loadingHistory = true;
         if (messages.length === 0) {
             const startOfThread = document.createElement('div');
             startOfThread.textContent = 'Welcome to Simple Chat. This is the start of the thread.';
@@ -218,6 +241,8 @@ document.addEventListener('DOMContentLoaded', () => {
             appendMessage(msg);
         });
         messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to the newest message
+        loadingHistory = false;
+        scheduleRead();
     });
 
     const updateMessageState = (element, msg) => {
@@ -229,12 +254,15 @@ document.addEventListener('DOMContentLoaded', () => {
         label.textContent = !removed && msg.edited ? 'edited' : '';
         label.hidden = !label.textContent;
         element.classList.toggle('removed', Boolean(removed));
+        element.classList.toggle('unread', !removed && !isFromMe(msg) &&
+            msg.id > (chatReadState.get()[group()] || 0));
         if (removed) element.querySelectorAll('button').forEach(button => button.remove());
     };
 
     const appendMessage = (msg) => {
         msg = editedMessages.get(msg.id) || msg;
         const {id, username:sender, userid} = msg;
+        if (Number.isSafeInteger(id)) latestMessageId = Math.max(latestMessageId, id);
         const message = msg.message;
         if (messageElements.has(id)) {
             updateMessageState(messageElements.get(id), msg);
@@ -302,6 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             newMessageIndicator.style.display = 'block';
         }
+        scheduleRead();
 
     }
 
@@ -344,6 +373,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Listen for form submission
+    document.getElementById('message-input').addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' || event.isComposing || event.keyCode === 229) return;
+        event.preventDefault();
+        if (!event.repeat) document.getElementById('chat-form').requestSubmit();
+    });
+
     document.getElementById('chat-form').addEventListener('submit', (event) => {
         event.preventDefault();
         dictation.stop();

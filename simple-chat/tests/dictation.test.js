@@ -20,7 +20,8 @@ const setup = ({ supported = true, secure = true, prefixed = false, startError =
                 options: ['', 'sv-SE', 'en-US', 'en-GB'].map(value => ({ value })),
                 setAttribute: (key, value) => attributes.set(key, value),
                 getAttribute: key => attributes.get(key),
-                addEventListener: (event, handler) => { elements.get(id)[event] = handler; }
+                addEventListener: (event, handler) => { elements.get(id)[event] = handler; },
+                dispatchEvent: event => elements.get(id)[event.type]?.()
             });
         }
         return elements.get(id);
@@ -38,6 +39,7 @@ const setup = ({ supported = true, secure = true, prefixed = false, startError =
             addEventListener: (event, handler) => events.set(event, handler)
         },
         navigator: { language: browserLanguage },
+        Event: class { constructor(type) { this.type = type; } },
         Intl: displayNames ? Intl : {},
         localStorage: {
             getItem: key => storage.get(key),

@@ -10,6 +10,7 @@ const setup = ({ candidates = [] } = {}) => {
     const members = new Map();
     const sockets = new Map();
     const events = [];
+    const timers = new Map();
     let connectionHandler;
     let nextId = 1;
     let failing = false;
@@ -74,12 +75,15 @@ const setup = ({ candidates = [] } = {}) => {
     };
     runInNewContext(readFileSync(join(__dirname, '../server.js'), 'utf8'), {
         __dirname: join(__dirname, '..'),
+        setTimeout: (callback, delay) => { const timer = {}; timers.set(timer, { callback, delay }); return timer; },
+        clearTimeout: timer => timers.delete(timer),
         require: name => dependencies[name], process: { env: {} }, console: { log() {}, error() {}, warn() {} }
     });
     const connect = (userId, room = 'room') => {
         const handlers = new Map();
         const socket = {
             id: userId, data: {}, handshake: { auth: { room, userId } },
+            to: target => ({ emit: (event, payload) => events.push({ target, exclude: userId, event, payload }) }),
             join() {}, emit: (event, payload) => {
                 if (event === 'roomTitle') events.push({ target: userId, event, payload });
             }, disconnect() {},
@@ -93,7 +97,7 @@ const setup = ({ candidates = [] } = {}) => {
             return result;
         };
     };
-    return { rows, titles, events, connect, routes, activeRooms, sockets, members, fail: () => { failing = true; } };
+    return { rows, titles, events, connect, routes, activeRooms, sockets, members, timers, fail: () => { failing = true; } };
 };
 
 test('saved messages use socket identity and carry IDs; owners can delete after reconnecting', async () => {
@@ -333,7 +337,8 @@ test('summary storage requests only known room IDs and includes visitor and mess
             none: async (sql, values) => { if (values) calls.push({ sql, values }); },
             any: async (sql, values) => {
                 calls.push({ sql, values });
-                return sql.startsWith('SELECT room, title') ? [{ room: 'aaaa', title: 'Weekend' }]
+                return sql.includes('AS unread_count') ? [{ room: 'aaaa', unread_count: 2 }]
+                    : sql.startsWith('SELECT room, title') ? [{ room: 'aaaa', title: 'Weekend' }]
                     : sql.includes('COUNT(*)') ? [{ room: 'aaaa', message_count: 12 }]
                     : [{ room: 'aaaa', userid: 'alice', username: 'Alice' }];
             }
@@ -342,12 +347,14 @@ test('summary storage requests only known room IDs and includes visitor and mess
         console: { log() {}, error() {} }, module: { exports: {} }
     };
     runInNewContext(readFileSync(join(__dirname, '../db.js'), 'utf8'), context);
-    const chats = await context.module.exports.getChatSummaries(['aaaa', 'bbbb']);
+    const chats = await context.module.exports.getChatSummaries(['aaaa', 'bbbb'], 'alice', { aaaa: 10 });
     assert.equal(chats[0].title, 'Weekend');
     assert.equal(chats[0].participants[0].username, 'Alice');
     assert.equal(chats[1].participants.length, 0);
     assert.equal(chats[0].messageCount, 12);
     assert.equal(chats[1].messageCount, 0);
+    assert.equal(chats[0].unreadCount, 2);
+    assert.equal(chats[1].unreadCount, 0);
     assert.match(calls[1].sql, /DISTINCT ON \(room, userid\)/);
     assert.match(calls[1].sql, /FROM chat_participants WHERE room = ANY\(\$1::text\[\]\)/);
     assert.match(calls[1].sql, /FROM messages WHERE room = ANY\(\$1::text\[\]\)/);
@@ -355,6 +362,47 @@ test('summary storage requests only known room IDs and includes visitor and mess
     assert.match(calls[2].sql, /room = ANY\(\$1::text\[\]\) AND removed = FALSE GROUP BY room/);
     assert.deepEqual(Array.from(calls[2].values[0]), ['aaaa', 'bbbb']);
     await context.module.exports.saveParticipant('aaaa', 'alice', 'New name');
-    assert.match(calls[3].sql, /ON CONFLICT \(room, userid\) DO UPDATE SET username/);
-    assert.deepEqual(Array.from(calls[3].values), ['aaaa', 'alice', 'New name']);
+    assert.match(calls[3].sql, /messages.id > cursors.last_read AND messages.userid <> \$2 AND messages.removed = FALSE/);
+    assert.equal(calls[3].values[1], 'alice');
+    assert.deepEqual(Array.from(calls[3].values[2]), [10, 0]);
+    assert.match(calls[4].sql, /ON CONFLICT \(room, userid\) DO UPDATE SET username/);
+    assert.deepEqual(Array.from(calls[4].values), ['aaaa', 'alice', 'New name']);
+});
+
+test('typing is room-scoped, uses registered names, throttles updates and stops on send', async () => {
+    const state = setup();
+    const alice = state.connect('alice', 'aaaa');
+    await alice('typing', true);
+    assert.equal(state.events.filter(event => event.event === 'typing').length, 0);
+    await alice('newUser', 'Alice');
+    await alice('typing', true);
+    await alice('typing', true);
+    await alice('typing', { username: 'Forged', active: true });
+    const notifications = state.events.filter(event => event.event === 'typing');
+    assert.equal(notifications.length, 1);
+    assert.equal(notifications[0].target, 'chat:aaaa');
+    assert.equal(notifications[0].exclude, 'alice');
+    assert.equal(notifications[0].payload.username, 'Alice');
+    await alice('message', { username: 'Alice', message: 'Sent' });
+    assert.equal(state.events.filter(event => event.event === 'typing').at(-1).payload.active, false);
+    assert.equal(state.timers.size, 0);
+});
+
+test('typing expires and disconnect removes active typing before username cleanup', async () => {
+    for (const reason of ['timeout', 'disconnect', 'stop']) {
+        const state = setup();
+        const alice = state.connect('alice');
+        await alice('newUser', 'Alice');
+        await alice('typing', true);
+        if (reason === 'timeout') {
+            const timer = Array.from(state.timers.values())[0];
+            assert.equal(timer.delay, 5000);
+            timer.callback();
+        } else if (reason === 'disconnect') await alice('disconnect');
+        else await alice('typing', false);
+        const last = state.events.filter(event => event.event === 'typing').at(-1);
+        assert.equal(last.payload.active, false);
+        assert.equal(last.payload.username, 'Alice');
+        assert.equal(state.timers.size, 0);
+    }
 });
