@@ -103,5 +103,54 @@
     "options": ["Draco Malfoy", "Severus Snape", "Lucius Malfoy", "Albus Dumbledore"], "correctOptionIndex": 0,
     "explanation": "Draco hade vunnit stavens trohet från Dumbledore; Harry vann den senare genom att övermanna Draco.", "source": {"type": "book", "book": 7, "chapter": 36},
     "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book7-016", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "objects", "difficulty": "medium",
+    "question": "Vem ärver Beedles sagobok av Dumbledore?",
+    "options": ["Harry Potter", "Ron Weasley", "Hermione Granger", "Ginny Weasley"], "correctOptionIndex": 2,
+    "explanation": "Dumbledore lämnar sitt exemplar av Beedles sagor till Hermione i sitt testamente.", "source": {"type": "book", "book": 7, "chapter": 7},
+    "entities": [{"type": "characters", "id": "hermione"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book7-017", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "objects", "difficulty": "easy",
+    "question": "Vilket föremål ärver Ron från Dumbledore?",
+    "options": ["En tidvändare", "En trollstav", "En silverkompass", "En tändarliknande ljussläckare"], "correctOptionIndex": 3,
+    "explanation": "Ron får Dumbledores ljussläckare, som senare hjälper honom att hitta tillbaka till sina vänner.", "source": {"type": "book", "book": 7, "chapter": 7},
+    "entities": [{"type": "characters", "id": "ron"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book7-018", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "characters", "difficulty": "medium",
+    "question": "Vem hjälper trion att fly från Malfoys herrgård?",
+    "options": ["Dobby", "Kreacher", "Winky", "Grawp"], "correctOptionIndex": 0,
+    "explanation": "Dobby kommer till herrgården och hjälper fångarna att fly med sin husalvsmagi.", "source": {"type": "book", "book": 7, "chapter": 23},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book7-019", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "magic", "difficulty": "hard",
+    "question": "Vilket namn är magiskt tabubelagt under trions flykt?",
+    "options": ["Dumbledore", "Voldemort", "Grindelwald", "Harry Potter"], "correctOptionIndex": 1,
+    "explanation": "Namnet Voldemort är tabubelagt, vilket gör att motståndarnas förföljare kan spåra personer som säger det.", "source": {"type": "book", "book": 7, "chapter": 20},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book7-020", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "spells", "difficulty": "hard",
+    "question": "Vilken djurform har Aberforths patronus?",
+    "options": ["En hjort", "En örn", "En get", "En hund"], "correctOptionIndex": 2,
+    "explanation": "Aberforths patronus har formen av en get, vilket han använder som förklaring när dödsätarna söker efter Harry i Hogsmeade.", "source": {"type": "book", "book": 7, "chapter": 28},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book7-021", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "objects", "difficulty": "easy",
+    "question": "Vad använder Harry för att se Snapes sista minnen?",
+    "options": ["En tidvändare", "En kristallkula", "Marodörkartan", "En minnessåll"], "correctOptionIndex": 3,
+    "explanation": "Harry häller Snapes minnen i minnessållen på rektorns kontor och ser berättelsen om hans förflutna.", "source": {"type": "book", "book": 7, "chapter": 33},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book7-022", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "places", "difficulty": "extreme",
+    "question": "Vems porträtt döljer Hogwarts-passagen på Svinhuvudet?",
+    "options": ["Ariana Dumbledores", "Kendra Dumbledores", "Rowena Ravenclaws", "Helga Hufflepuffs"], "correctOptionIndex": 0,
+    "explanation": "Passagen till Hogwarts finns bakom porträttet av Aberforths syster Ariana.", "source": {"type": "book", "book": 7, "chapter": 28},
+    "entities": [], "reviewStatus": "draft"
   }
 ]

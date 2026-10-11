@@ -103,5 +103,54 @@
     "options": ["En hjort", "En utter", "En hund", "En häst"], "correctOptionIndex": 0,
     "explanation": "Harrys kroppsliga patronus tar formen av en hjort.", "source": {"type": "book", "book": 3, "chapter": 21},
     "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book3-016", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "characters", "difficulty": "hard",
+    "question": "Vad heter Nattbussens konduktör?",
+    "options": ["Ernie Prang", "Dedalus Diggle", "Amos Diggory", "Stan Shunpike"], "correctOptionIndex": 3,
+    "explanation": "Stan Shunpike är konduktören som tar emot Harry på Nattbussen.", "source": {"type": "book", "book": 3, "chapter": 3},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book3-017", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "pets", "difficulty": "medium",
+    "question": "Vem ger Ron en ny uggla i slutet av bok 3?",
+    "options": ["Sirius Black", "Remus Lupin", "Albus Dumbledore", "Minerva McGonagall"], "correctOptionIndex": 0,
+    "explanation": "Sirius låter Ron behålla den lilla ugglan som ersättning för det husdjur Ron förlorat.", "source": {"type": "book", "book": 3, "chapter": 22},
+    "entities": [{"type": "characters", "id": "ron"}, {"type": "pets", "id": "pigwidgeon"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book3-018", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "objects", "difficulty": "hard",
+    "question": "Vem skickade Åskviggen till Harry?",
+    "options": ["Oliver Wood", "Sirius Black", "Arthur Weasley", "Rubeus Hagrid"], "correctOptionIndex": 1,
+    "explanation": "Sirius berättar i sitt brev att det var han som beställde Åskviggen åt Harry.", "source": {"type": "book", "book": 3, "chapter": 22},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book3-019", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "hogwarts", "difficulty": "easy",
+    "question": "Vilket ämne lämnar Hermione efter bråket med Trelawney?",
+    "options": ["Astronomi", "Trolldryckskonst", "Spådomskonst", "Förvandlingskonst"], "correctOptionIndex": 2,
+    "explanation": "Hermione lämnar spådomslektionen och slutar läsa ämnet.", "source": {"type": "book", "book": 3, "chapter": 15},
+    "entities": [{"type": "characters", "id": "hermione"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book3-020", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "creatures", "difficulty": "medium",
+    "question": "Vilken form får boggarten framför Lupin på lektionen?",
+    "options": ["En spindel", "En orm", "Ett spöke", "En silvervit klotform"], "correctOptionIndex": 3,
+    "explanation": "Boggarten antar en silvervit klotform framför Lupin, en ledtråd till hans rädsla för fullmånen.", "source": {"type": "book", "book": 3, "chapter": 7},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book3-021", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "places", "difficulty": "hard",
+    "question": "Varför användes den tjutande stugan när Lupin var elev?",
+    "options": ["För hans varulvsförvandlingar", "För hemliga dueller", "För drakuppfödning", "För att förvara provsvar"], "correctOptionIndex": 0,
+    "explanation": "Lupin fördes till stugan vid fullmåne så att hans förvandlingar inte skulle utsätta andra elever för fara.", "source": {"type": "book", "book": 3, "chapter": 18},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book3-022", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "characters", "difficulty": "extreme",
+    "question": "Vad heter Nattbussens chaufför?",
+    "options": ["Stan Shunpike", "Ernie Prang", "Dedalus Diggle", "Mundungus Fletcher"], "correctOptionIndex": 1,
+    "explanation": "Ernie Prang kör Nattbussen medan Stan Shunpike arbetar som konduktör.", "source": {"type": "book", "book": 3, "chapter": 3},
+    "entities": [], "reviewStatus": "draft"
   }
 ]

@@ -103,5 +103,54 @@
     "options": ["Tom Riddle", "Horace Slughorn", "Sirius Black", "Severus Snape"], "correctOptionIndex": 3,
     "explanation": "Snape avslöjar att läroboken och dess anteckningar var hans.", "source": {"type": "book", "book": 6, "chapter": 28},
     "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book6-016", "language": "sv", "canon": "book", "spoilerThroughBook": 6, "category": "characters", "difficulty": "extreme",
+    "question": "Vilken av Dumbledores händer är svårt skadad i bok 6?",
+    "options": ["Den vänstra", "Båda", "Ingen av dem", "Den högra"], "correctOptionIndex": 3,
+    "explanation": "Harry lägger märke till att Dumbledores högra hand är svart och svårt skadad.", "source": {"type": "book", "book": 6, "chapter": 3},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book6-017", "language": "sv", "canon": "book", "spoilerThroughBook": 6, "category": "characters", "difficulty": "medium",
+    "question": "Vad heter Tom Riddles mamma?",
+    "options": ["Merope Gaunt", "Eileen Prince", "Hepzibah Smith", "Walburga Black"], "correctOptionIndex": 0,
+    "explanation": "Merope Gaunt är Tom Riddles mamma och tillhör familjen Gaunt.", "source": {"type": "book", "book": 6, "chapter": 10},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book6-018", "language": "sv", "canon": "book", "spoilerThroughBook": 6, "category": "characters", "difficulty": "medium",
+    "question": "Vilken magisk bakgrund har Voldemorts pappa?",
+    "options": ["Han är trollkarl", "Han är mugglare", "Han är husalv", "Han är kentaur"], "correctOptionIndex": 1,
+    "explanation": "Tom Riddle senior är en mugglare som bor nära familjen Gaunt.", "source": {"type": "book", "book": 6, "chapter": 10},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book6-019", "language": "sv", "canon": "book", "spoilerThroughBook": 6, "category": "objects", "difficulty": "hard",
+    "question": "Vad reparerar Draco för att släppa in dödsätarna?",
+    "options": ["En tidvändare", "En flyttnyckel", "Ett försvinnandeskåp", "En förtrollad spegel"], "correctOptionIndex": 2,
+    "explanation": "Draco reparerar försvinnandeskåpet på Hogwarts, vars partner står hos Borgin och Burkes.", "source": {"type": "book", "book": 6, "chapter": 27},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book6-020", "language": "sv", "canon": "book", "spoilerThroughBook": 6, "category": "plot", "difficulty": "medium",
+    "question": "Vem dricker drycken i grottans stenskål?",
+    "options": ["Harry", "Snape", "Draco", "Dumbledore"], "correctOptionIndex": 3,
+    "explanation": "Dumbledore dricker drycken och låter Harry hjälpa honom att fortsätta tills skålen är tömd.", "source": {"type": "book", "book": 6, "chapter": 26},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book6-021", "language": "sv", "canon": "book", "spoilerThroughBook": 6, "category": "creatures", "difficulty": "medium",
+    "question": "Vems begravning deltar Slughorn i vid Hagrids stuga?",
+    "options": ["Aragogs", "Norberts", "Vingfåles", "Fawkes"], "correctOptionIndex": 0,
+    "explanation": "Harry och Slughorn deltar när Hagrid begraver spindeln Aragog.", "source": {"type": "book", "book": 6, "chapter": 22},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book6-022", "language": "sv", "canon": "book", "spoilerThroughBook": 6, "category": "objects", "difficulty": "hard",
+    "question": "Vilka initialer avslutar brevet i den falska medaljongen?",
+    "options": ["R.J.L.", "R.A.B.", "A.P.W.", "T.M.R."], "correctOptionIndex": 1,
+    "explanation": "Brevet i medaljongen är undertecknat R.A.B. och berättar att den riktiga horrokruxen har tagits.", "source": {"type": "book", "book": 6, "chapter": 28},
+    "entities": [], "reviewStatus": "draft"
   }
 ]

@@ -117,5 +117,54 @@
     "options": ["93", "95", "96", "97"], "correctOptionIndex": 3,
     "explanation": "Profetian om Harry och Voldemort står på hyllrad 97 på Mysterieavdelningen.", "source": {"type": "book", "book": 5, "chapter": 34},
     "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book5-018", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "magic", "difficulty": "easy",
+    "question": "Vad kan Tonks ändra utan polyjuice-elixir?",
+    "options": ["Andras minnen", "Sitt utseende", "Sin födelsedag", "Andras trollstavskärnor"], "correctOptionIndex": 1,
+    "explanation": "Tonks kan ändra sitt eget utseende med sin medfödda magiska förmåga.", "source": {"type": "book", "book": 5, "chapter": 3},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book5-019", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "hogwarts", "difficulty": "medium",
+    "question": "Vilka blir Gryffindors nya prefekter i Harrys årskurs?",
+    "options": ["Harry och Hermione", "Ron och Ginny", "Ron och Hermione", "Neville och Lavender"], "correctOptionIndex": 2,
+    "explanation": "Ron och Hermione får prefektmärken inför det femte skolåret.", "source": {"type": "book", "book": 5, "chapter": 9},
+    "entities": [{"type": "characters", "id": "ron"}, {"type": "characters", "id": "hermione"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book5-020", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "characters", "difficulty": "medium",
+    "question": "Vem intervjuar Harry för artikeln i The Quibbler?",
+    "options": ["Xenophilius Lovegood", "Barnabas Cuffe", "Gilderoy Lockhart", "Rita Skeeter"], "correctOptionIndex": 3,
+    "explanation": "Hermione ordnar så att Rita Skeeter skriver Harrys berättelse om Voldemorts återkomst för The Quibbler.", "source": {"type": "book", "book": 5, "chapter": 25},
+    "entities": [{"type": "characters", "id": "harry"}, {"type": "characters", "id": "hermione"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book5-021", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "characters", "difficulty": "hard",
+    "question": "Vem föreslår namnet Dumbledores armé?",
+    "options": ["Ginny Weasley", "Cho Chang", "Hermione Granger", "Neville Longbottom"], "correctOptionIndex": 0,
+    "explanation": "Ginny föreslår Dumbledores armé, medan Cho först föreslår ett namn som syftar på en försvarsförening.", "source": {"type": "book", "book": 5, "chapter": 18},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book5-022", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "hogwarts", "difficulty": "hard",
+    "question": "Vem ersätter Trelawney som spådomslärare i bok 5?",
+    "options": ["Hagrid", "Firenze", "Lupin", "Snape"], "correctOptionIndex": 1,
+    "explanation": "Dumbledore anställer kentauren Firenze efter att Umbridge avskedat Trelawney från undervisningen.", "source": {"type": "book", "book": 5, "chapter": 27},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book5-023", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "hogwarts", "difficulty": "extreme",
+    "question": "Vad står O.W.L.s för i den engelska texten?",
+    "options": ["Outstanding Wizarding Lessons", "Official Wand Licences", "Ordinary Wizarding Levels", "Order of Wizarding Learning"], "correctOptionIndex": 2,
+    "explanation": "O.W.L.s står för Ordinary Wizarding Levels, proven som Hogwarts elever gör under femte året.", "source": {"type": "book", "book": 5, "chapter": 31},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book5-024", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "characters", "difficulty": "hard",
+    "question": "Vem avslöjar Dumbledores armé för Umbridge i boken?",
+    "options": ["Cho Chang", "Luna Lovegood", "Lavender Brown", "Marietta Edgecombe"], "correctOptionIndex": 3,
+    "explanation": "I boken är det Marietta Edgecombe som berättar för Umbridge om gruppen, inte Cho.", "source": {"type": "book", "book": 5, "chapter": 27},
+    "entities": [], "reviewStatus": "draft"
   }
 ]

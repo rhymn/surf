@@ -117,5 +117,54 @@
     "options": ["31 juli", "26 januari", "19 september", "1 mars"], "correctOptionIndex": 1,
     "explanation": "Lockharts födelsedag, den 26 januari, är en av uppgifterna i hans självinriktade prov.", "source": {"type": "book", "book": 2, "chapter": 6},
     "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book2-018", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "creatures", "difficulty": "easy",
+    "question": "Vilken färg har varelserna Lockhart släpper ur buren?",
+    "options": ["Gul", "Grön", "Klarblå", "Röd"], "correctOptionIndex": 2,
+    "explanation": "Lockhart släpper ut små klarblå varelser som omedelbart ställer till kaos i klassrummet.", "source": {"type": "book", "book": 2, "chapter": 6},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book2-019", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "objects", "difficulty": "easy",
+    "question": "Vad händer med Rons trollstav vid bilkraschen?",
+    "options": ["Den blir osynlig", "Den förvandlas till glas", "Den försvinner helt", "Den bryts nästan av"], "correctOptionIndex": 3,
+    "explanation": "Rons trollstav skadas svårt vid kraschen och fungerar sedan opålitligt trots att han lagar den med tejp.", "source": {"type": "book", "book": 2, "chapter": 5},
+    "entities": [{"type": "characters", "id": "ron"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book2-020", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "creatures", "difficulty": "medium",
+    "question": "Vilken varelse finns i Hemligheternas kammare?",
+    "options": ["En basilisk", "En drake", "En dementor", "En varulv"], "correctOptionIndex": 0,
+    "explanation": "Kammarens monster är en basilisk, en jättelik orm vars direkta blick är dödlig.", "source": {"type": "book", "book": 2, "chapter": 17},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book2-021", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "characters", "difficulty": "medium",
+    "question": "Vilket spöke hemsöker toaletten med kammarens ingång?",
+    "options": ["Grå damen", "Myrtle", "Nästan huvudlösa Nick", "Blodiga baronen"], "correctOptionIndex": 1,
+    "explanation": "Ingången till kammaren finns vid handfaten på den toalett som Myrtle hemsöker.", "source": {"type": "book", "book": 2, "chapter": 16},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book2-022", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "potions", "difficulty": "medium",
+    "question": "Varför får Hermione kattdrag av polyjuice-elixiret?",
+    "options": ["Hon dricker för lite", "Hon blandar i mjölk", "Hon använder ett katthår", "Hon glömmer att röra om"], "correctOptionIndex": 2,
+    "explanation": "Håret som Hermione trodde kom från Millicent Bulstrode kommer från en katt; elixiret är inte avsett för djurförvandlingar.", "source": {"type": "book", "book": 2, "chapter": 12},
+    "entities": [{"type": "characters", "id": "hermione"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book2-023", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "magic", "difficulty": "medium",
+    "question": "Vad från Fawkes läker Harrys sår i kammaren?",
+    "options": ["En fjäder", "Aska", "Blod", "Tårar"], "correctOptionIndex": 3,
+    "explanation": "Fenixens tårar läker såret efter basiliskens huggtand och räddar Harry från giftet.", "source": {"type": "book", "book": 2, "chapter": 17},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book2-024", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "spells", "difficulty": "hard",
+    "question": "Vilken besvärjelse slår tillbaka mot Lockhart i tunneln?",
+    "options": ["Obliviate", "Alohomora", "Lumos", "Wingardium Leviosa"], "correctOptionIndex": 0,
+    "explanation": "Lockhart försöker ändra Harrys och Rons minnen med Obliviate, men Rons skadade trollstav får besvärjelsen att träffa honom själv.", "source": {"type": "book", "book": 2, "chapter": 16},
+    "entities": [{"type": "characters", "id": "ron"}], "reviewStatus": "draft"
   }
 ]

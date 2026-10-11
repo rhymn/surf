@@ -103,5 +103,54 @@
     "options": ["Severus Snape", "Filius Flitwick", "Quirinus Quirrell", "Pomona Sprout"], "correctOptionIndex": 2,
     "explanation": "Det är Quirrell, inte Snape, som försöker få tag på stenen åt Voldemort.", "source": {"type": "book", "book": 1, "chapter": 17},
     "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book1-016", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "creatures", "difficulty": "easy",
+    "question": "Hur många huvuden har hunden som vaktar falluckan?",
+    "options": ["Två", "Tre", "Fyra", "Fem"], "correctOptionIndex": 1,
+    "explanation": "Hunden som vaktar falluckan har tre huvuden.", "source": {"type": "book", "book": 1, "chapter": 9},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book1-017", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "characters", "difficulty": "easy",
+    "question": "Vilket elevhem placeras Draco Malfoy i?",
+    "options": ["Ravenclaw", "Hufflepuff", "Slytherin", "Gryffindor"], "correctOptionIndex": 2,
+    "explanation": "Sorteringshatten placerar Draco i Slytherin.", "source": {"type": "book", "book": 1, "chapter": 7},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book1-018", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "herbology", "difficulty": "medium",
+    "question": "Vad använder Hermione mot djävulssnaran i boken?",
+    "options": ["Kallt vatten", "Is", "Extra jord", "Magisk eld"], "correctOptionIndex": 3,
+    "explanation": "Hermione framkallar eld eftersom djävulssnaran inte tycker om ljus och värme.", "source": {"type": "book", "book": 1, "chapter": 16},
+    "entities": [{"type": "characters", "id": "hermione"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book1-019", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "places", "difficulty": "extreme",
+    "question": "Vilket Gringottsvalv tömmer Hagrid under Harrys besök?",
+    "options": ["713", "711", "687", "719"], "correctOptionIndex": 0,
+    "explanation": "Hagrid hämtar det hemliga paketet ur valv 713 på Dumbledores uppdrag.", "source": {"type": "book", "book": 1, "chapter": 5},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book1-020", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "objects", "difficulty": "hard",
+    "question": "Vilket träslag är Harrys första trollstav gjord av?",
+    "options": ["Idegran", "Järnek", "Ek", "Alm"], "correctOptionIndex": 1,
+    "explanation": "Harrys trollstav är gjord av järnek och innehåller en fenixfjäder.", "source": {"type": "book", "book": 1, "chapter": 5},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book1-021", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "characters", "difficulty": "medium",
+    "question": "Vilken kentaur hjälper Harry i Förbjudna skogen?",
+    "options": ["Bane", "Ronan", "Firenze", "Magorian"], "correctOptionIndex": 2,
+    "explanation": "Firenze hjälper Harry efter mötet med den huvförsedda gestalten i skogen.", "source": {"type": "book", "book": 1, "chapter": 15},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book1-022", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "hogwarts", "difficulty": "hard",
+    "question": "Hur många poäng får Neville vid sista festen i bok 1?",
+    "options": ["Fem", "Tjugo", "Femtio", "Tio"], "correctOptionIndex": 3,
+    "explanation": "Dumbledore ger Neville tio poäng för modet att stå upp mot sina vänner.", "source": {"type": "book", "book": 1, "chapter": 17},
+    "entities": [], "reviewStatus": "draft"
   }
 ]

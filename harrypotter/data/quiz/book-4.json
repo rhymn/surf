@@ -103,5 +103,54 @@
     "options": ["Igor Karkaroff", "Ludo Bagman", "Barty Crouch junior", "Lucius Malfoy"], "correctOptionIndex": 2,
     "explanation": "Barty Crouch junior har hållit Moody fången och använt polyjuice-elixir för att ta hans plats.", "source": {"type": "book", "book": 4, "chapter": 35, "verificationUrl": "https://www.hp-lexicon.org/source/the-harry-potter-novels/gf/gf35/"},
     "entities": [], "reviewStatus": "reviewed"
+  },
+  {
+    "id": "book4-016", "language": "sv", "canon": "book", "spoilerThroughBook": 4, "category": "spells", "difficulty": "medium",
+    "question": "Hur många oförlåtliga förbannelser visar Moody?",
+    "options": ["Två", "Fyra", "Tre", "Fem"], "correctOptionIndex": 2,
+    "explanation": "Moody demonstrerar tre oförlåtliga förbannelser: Imperius, Cruciatus och dödsförbannelsen.", "source": {"type": "book", "book": 4, "chapter": 14},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book4-017", "language": "sv", "canon": "book", "spoilerThroughBook": 4, "category": "spells", "difficulty": "medium",
+    "question": "Vad gör Imperiusförbannelsen med sitt offer?",
+    "options": ["Gör offret osynligt", "Tar bort offrets röst", "Förvandlar offret till sten", "Låter någon styra offrets handlingar"], "correctOptionIndex": 3,
+    "explanation": "Imperius låter den som kastar förbannelsen kontrollera en annan persons handlingar.", "source": {"type": "book", "book": 4, "chapter": 14},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book4-018", "language": "sv", "canon": "book", "spoilerThroughBook": 4, "category": "characters", "difficulty": "hard",
+    "question": "Vem är Beauxbatons rektor under trekampen?",
+    "options": ["Olympe Maxime", "Igor Karkaroff", "Fleur Delacour", "Minerva McGonagall"], "correctOptionIndex": 0,
+    "explanation": "Madame Olympe Maxime leder Beauxbatons och följer med skolans elever till Hogwarts.", "source": {"type": "book", "book": 4, "chapter": 15},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book4-019", "language": "sv", "canon": "book", "spoilerThroughBook": 4, "category": "transport", "difficulty": "medium",
+    "question": "Hur anländer Durmstrangs elever till Hogwarts?",
+    "options": ["I en flygande buss", "Med ett skepp ur sjön", "På hippogriffer", "I en vagn dragen av enhörningar"], "correctOptionIndex": 1,
+    "explanation": "Durmstrangs skepp stiger upp ur sjön vid Hogwarts.", "source": {"type": "book", "book": 4, "chapter": 15},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book4-020", "language": "sv", "canon": "book", "spoilerThroughBook": 4, "category": "objects", "difficulty": "medium",
+    "question": "Var måste Harry öppna ägget för att förstå dess sång?",
+    "options": ["I elden", "I månsken", "Under vatten", "I fullständig tystnad"], "correctOptionIndex": 2,
+    "explanation": "Äggets skrik blir en begriplig sång när Harry lyssnar på det under vatten.", "source": {"type": "book", "book": 4, "chapter": 25},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book4-021", "language": "sv", "canon": "book", "spoilerThroughBook": 4, "category": "characters", "difficulty": "hard",
+    "question": "Vilken djurform använder Rita Skeeter för att spionera?",
+    "options": ["En råtta", "En katt", "En fladdermus", "En skalbagge"], "correctOptionIndex": 3,
+    "explanation": "Hermione upptäcker att Rita Skeeter är en oregistrerad animagus som kan bli en skalbagge.", "source": {"type": "book", "book": 4, "chapter": 37},
+    "entities": [{"type": "characters", "id": "hermione"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book4-022", "language": "sv", "canon": "book", "spoilerThroughBook": 4, "category": "characters", "difficulty": "hard",
+    "question": "Vem kontrollerar förkämparnas trollstavar?",
+    "options": ["Garrick Ollivander", "Alastor Moody", "Ludo Bagman", "Barty Crouch senior"], "correctOptionIndex": 0,
+    "explanation": "Ollivander undersöker trollstavarna för att kontrollera att de fungerar inför trekampen.", "source": {"type": "book", "book": 4, "chapter": 18},
+    "entities": [], "reviewStatus": "draft"
   }
 ]

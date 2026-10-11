@@ -7,6 +7,15 @@ const fetcher = async filename => ({ ok: true, json: async () => JSON.parse(awai
 const bank = await loadQuestionBank('', fetcher);
 const starter = bank.filter(question => /^film-00[1-5]$|^world-00[1-8]$/.test(question.id));
 
+test('Scabbers keeps its stable ID and Swedish name in the wiki and quiz', async () => {
+  const pets = JSON.parse(await readFile(new URL('../data/pets.json', import.meta.url), 'utf8'));
+  assert.equal(pets.find(pet => pet.id === 'scabbers').name, 'Scabbers');
+  const question = bank.find(question => question.id === 'world-005');
+  assert.equal(question.options[question.correctOptionIndex], 'Scabbers');
+  assert.ok(question.entities.some(entity => entity.type === 'pets' && entity.id === 'scabbers'));
+  assert.equal(JSON.stringify(bank).includes('Skabbis'), false);
+});
+
 test('bank has valid questions, existing wiki references, and answers matching local sources', async () => {
   assert.ok(bank.length > 0);
   for (const question of bank) {
@@ -133,4 +142,23 @@ test('book batches cover all seven books with valid chapter bounds and spoiler l
       if (question.reviewStatus === 'draft') assert.equal(playableIds.has(question.id), false, question.id);
     }
   }
+});
+
+test('additional batch contains 49 Swedish questions across seven books and four levels', () => {
+  const firstIds = [16, 18, 16, 16, 18, 16, 16];
+  const additions = [];
+  const playableIds = new Set(filterQuestions(bank).map(question => question.id));
+  for (let book = 1; book <= 7; book += 1) {
+    for (let offset = 0; offset < 7; offset += 1) {
+      const id = `book${book}-${String(firstIds[book - 1] + offset).padStart(3, '0')}`;
+      const question = bank.find(question => question.id === id);
+      assert.ok(question, id);
+      assert.equal(question.language, 'sv', id);
+      assert.equal(question.source.book, book, id);
+      if (question.reviewStatus === 'draft') assert.equal(playableIds.has(id), false, id);
+      additions.push(question);
+    }
+  }
+  assert.equal(additions.length, 49);
+  assert.deepEqual([...new Set(additions.map(question => question.difficulty))].sort(), ['easy', 'extreme', 'hard', 'medium']);
 });
