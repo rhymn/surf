@@ -31,7 +31,9 @@ const initializeAudioCall = (socket) => {
         notificationButton.hidden = !notificationSupported;
         notificationButton.disabled = enablingNotifications || (notificationSupported && window.Notification.permission === 'denied');
         notificationButton.setAttribute('aria-pressed', String(Boolean(notificationsEnabled)));
-        notificationButton.title = notificationsEnabled ? 'Disable call notifications' : 'Enable call notifications';
+        notificationButton.title = notificationSupported && window.Notification.permission === 'denied'
+            ? 'Call notifications blocked in browser settings'
+            : notificationsEnabled ? 'Disable call notifications' : 'Enable call notifications';
         notificationButton.setAttribute('aria-label', notificationButton.title);
         joinButton.hidden = joined || joining;
         joinButton.disabled = !supported || !socket.connected;

@@ -217,6 +217,9 @@ test('denied permissions and registration failures do not break calling', async 
         await state.element('call-notifications').click();
         assert.equal(state.storage.has('callNotifications'), false);
         assert.equal(state.notifications.length, 0);
+        if (options.permission === 'denied') {
+            assert.match(state.element('call-notifications').title, /blocked in browser settings/);
+        }
         await state.element('join-call').click();
         assert.equal(state.requests(), 1);
         assert.equal(state.element('audio-controls').hidden, false);
