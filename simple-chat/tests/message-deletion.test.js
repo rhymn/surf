@@ -4,15 +4,23 @@ const { readFileSync } = require('node:fs');
 const { join } = require('node:path');
 const { runInNewContext } = require('node:vm');
 
-const setup = () => {
+const setup = ({ candidates = [] } = {}) => {
     const rows = new Map();
     const titles = new Map();
     const events = [];
     let connectionHandler;
     let nextId = 1;
     let failing = false;
-    const app = { use() {}, get() {}, post() {} };
+    const routes = new Map();
+    const activeRooms = new Map();
+    const app = { use() {}, get: (route, handler) => routes.set(route, handler), post() {} };
     const database = {
+        reserveRoom: async room => {
+            if (failing) throw new Error('Database unavailable');
+            if (titles.has(room) || Array.from(rows.values()).some(row => row.room === room)) return null;
+            titles.set(room, '');
+            return { room };
+        },
         getRoomTitle: async room => titles.get(room) || '',
         setRoomTitle: async (room, title) => {
             if (failing) throw new Error('Database unavailable');
@@ -46,10 +54,12 @@ const setup = () => {
         express: Object.assign(() => app, { static() {} }),
         http: { createServer: () => ({ listen() {} }) },
         'socket.io': () => ({
+            sockets: { adapter: { rooms: activeRooms } },
             on: (event, handler) => { connectionHandler = handler; },
             to: target => ({ emit: (event, payload) => events.push({ target, event, payload }) })
         }),
         './db': database,
+        'node:crypto': { randomInt: () => Number.parseInt(candidates.shift() || '0000', 36) },
         './audio-signaling': { registerAudioSignaling() {} },
         'body-parser': { json() {} }
     };
@@ -72,7 +82,7 @@ const setup = () => {
             return result;
         };
     };
-    return { rows, titles, events, connect, fail: () => { failing = true; } };
+    return { rows, titles, events, connect, routes, activeRooms, fail: () => { failing = true; } };
 };
 
 test('saved messages use socket identity and carry IDs; owners can delete after reconnecting', async () => {
@@ -153,6 +163,9 @@ test('storage persists edited and removed states with room and ownership predica
     await storage.getRoomTitle('room');
     assert.equal(calls[4].sql, 'SELECT title FROM chat_rooms WHERE room = $1');
     assert.deepEqual(Array.from(calls[4].values), ['room']);
+    await storage.reserveRoom('abcd');
+    assert.match(calls[5].sql, /WHERE NOT EXISTS \(SELECT 1 FROM messages WHERE room = \$1\) ON CONFLICT \(room\) DO NOTHING RETURNING room/);
+    assert.deepEqual(Array.from(calls[5].values), ['abcd']);
 });
 
 test('owners can edit saved messages after reconnecting without changing identity or position', async () => {
@@ -225,4 +238,32 @@ test('invalid titles and database errors do not broadcast updates', async () => 
     assert.match((await first('setRoomTitle', 'Weekend plans')).error, /could not be saved/);
     assert.equal(state.titles.size, 0);
     assert.equal(state.events.filter(event => event.target === 'chat:room').length, 0);
+});
+
+test('new room IDs have exactly four characters and skip stored, historical, and active rooms', async () => {
+    const state = setup({ candidates: ['aaaa', 'bbbb', 'cccc', '000d'] });
+    state.titles.set('aaaa', 'Existing');
+    state.rows.set(1, { room: 'bbbb' });
+    state.activeRooms.set('chat:cccc', new Set(['connected']));
+    let destination;
+    await state.routes.get('/random')({}, { redirect: value => { destination = value; } });
+    assert.equal(destination, '/000d');
+    assert.match(destination, /^\/[a-z0-9]{4}$/);
+    assert.equal(state.titles.has('000d'), true);
+});
+
+test('room generation returns a retryable error on repeated collisions or database failure', async () => {
+    for (const failure of [false, true]) {
+        const state = setup();
+        state.titles.set('0000', 'Existing');
+        if (failure) state.fail();
+        let code;
+        let message;
+        await state.routes.get('/random')({}, {
+            redirect: () => assert.fail('Must not redirect to an existing room'),
+            status: value => { code = value; return { send: value => { message = value; } }; }
+        });
+        assert.equal(code, 503);
+        assert.match(message, /Try again/);
+    }
 });

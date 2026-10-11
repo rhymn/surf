@@ -1,7 +1,8 @@
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
-const { saveMessage, getMessages, deleteMessage, editMessage, getRoomTitle, setRoomTitle } = require('./db');
+const { saveMessage, getMessages, deleteMessage, editMessage, getRoomTitle, setRoomTitle, reserveRoom } = require('./db');
+const { randomInt } = require('node:crypto');
 const { registerAudioSignaling } = require('./audio-signaling');
 const bodyParser = require('body-parser')
 
@@ -31,10 +32,21 @@ app.get('/icons.js', (req, res) => {
     res.sendFile(require.resolve('lucide/dist/umd/lucide.js'));
 });
 
-app.get('/random', (req, res) => {
-    // Redirect to a new random room/group
-    const groupName = Math.random().toString(36).substring(5);
-    res.redirect(`/${groupName}`);
+app.get('/random', async (req, res) => {
+    try {
+        for (let attempt = 0; attempt < 20; attempt++) {
+            const groupName = randomInt(36 ** 4).toString(36).padStart(4, '0');
+            if (io.sockets.adapter.rooms.has(`chat:${groupName}`)) continue;
+            if (await reserveRoom(groupName)) {
+                res.redirect(`/${groupName}`);
+                return;
+            }
+        }
+        res.status(503).send('Unable to create a new room. Try again.');
+    } catch (error) {
+        console.error('Error creating room:', error);
+        res.status(503).send('Unable to create a new room. Try again.');
+    }
 });
 
 const isRealGroupName = (groupName) => {

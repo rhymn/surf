@@ -65,11 +65,17 @@ async function setRoomTitle(room, title) {
     return db.one('INSERT INTO chat_rooms(room, title) VALUES($1, $2) ON CONFLICT (room) DO UPDATE SET title = EXCLUDED.title RETURNING title', [room, title]);
 }
 
+async function reserveRoom(room) {
+    await ready;
+    return db.oneOrNone('INSERT INTO chat_rooms(room) SELECT $1 WHERE NOT EXISTS (SELECT 1 FROM messages WHERE room = $1) ON CONFLICT (room) DO NOTHING RETURNING room', [room]);
+}
+
 module.exports = {
     saveMessage,
     deleteMessage,
     editMessage,
     getMessages,
     getRoomTitle,
-    setRoomTitle
+    setRoomTitle,
+    reserveRoom
 };
