@@ -37,6 +37,13 @@
       #difficulty legend { font-size: 15px; font-weight: normal; padding-bottom: 4px; }
       #difficulty label { display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 44px; font-size: 14px; cursor: pointer; }
       #difficulty input { width: 16px; height: 16px; margin: 0; flex-shrink: 0; accent-color: var(--accent); }
+      #subject-panel { align-self: end; margin: 0; border: 0; }
+      #subject-panel > summary { min-height: 48px; font-size: 15px; font-weight: normal; }
+      #subject-panel[open] { grid-column: 1 / -1; }
+      #category legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+      #subject-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 8px; }
+      #category label { display: flex; align-items: center; gap: 8px; min-height: 44px; font-size: 14px; cursor: pointer; overflow-wrap: anywhere; }
+      #category input { width: 16px; height: 16px; margin: 0; flex-shrink: 0; accent-color: var(--accent); }
       #start, #practice { margin-top: 4px; }
       body[data-playing="true"] header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
       body[data-playing="true"] nav a:not(:first-child) { display: none; }
@@ -82,9 +89,14 @@
           <p><label for="canon">Källa</label>
             <select id="canon"><option value="all">Alla</option><option value="book">Böcker</option><option value="film">Filmer</option></select>
           </p>
-          <p><label for="category">Ämne</label>
-            <select id="category"><option value="all">Alla ämnen</option></select>
-          </p>
+          <details id="subject-panel">
+            <summary id="subject-summary">Ämnen: Alla</summary>
+            <fieldset id="category">
+              <legend>Ämnen</legend>
+              <label><input id="all-categories" type="checkbox" checked />Alla ämnen</label>
+              <div id="subject-options"></div>
+            </fieldset>
+          </details>
           <p><label for="spoilers">Spoilers t.o.m. bok</label>
             <select id="spoilers"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7" selected>7</option></select>
           </p>
@@ -110,7 +122,7 @@
         <fieldset id="answer-options"><legend>Välj ett svar</legend></fieldset>
         <div id="feedback" role="status" aria-live="polite"></div>
         <details id="answer-details" hidden>
-          <summary>Förklaring och källa</summary>
+          <summary>Källa och länkar</summary>
           <div id="source"></div>
           <ul id="related"></ul>
         </details>

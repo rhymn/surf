@@ -88,6 +88,19 @@ test('difficulty selections combine levels and preserve single-level callers', (
   assert.deepEqual(filterQuestions(questions, { difficulty: 'all' }), questions);
 });
 
+test('subject selections combine areas and intersect with difficulty and spoiler filters', () => {
+  const characters = { ...starter[0], id: 'subject-character', category: 'characters', canon: 'book', spoilerThroughBook: 2 };
+  const objects = { ...starter[0], id: 'subject-object', category: 'objects', canon: 'book', difficulty: 'hard', spoilerThroughBook: 7, reviewStatus: 'draft' };
+  const questions = [starter[0], characters, objects];
+  assert.deepEqual(filterQuestions(questions, { category: ['characters', 'objects'] }), [characters, objects]);
+  assert.deepEqual(filterQuestions(questions, { category: [], difficulty: 'all' }), []);
+  assert.deepEqual(filterQuestions(questions, { category: ['objects', 'objects'] }), [objects]);
+  assert.deepEqual(filterQuestions(questions, { category: 'objects' }), [objects]);
+  assert.deepEqual(filterQuestions(questions, { category: 'all' }), questions);
+  assert.deepEqual(filterQuestions(questions, { category: ['characters', 'objects'], difficulty: ['hard', 'extreme'] }), [objects]);
+  assert.deepEqual(filterQuestions(questions, { category: ['characters', 'objects'], spoilerThroughBook: 6 }), [characters]);
+});
+
 test('hard difficulty has verified playable questions and still respects spoiler limits', () => {
   const hard = filterQuestions(bank, { difficulty: ['hard'] });
   const verifiedIds = ['book2-007', 'book4-015', 'book5-015'];

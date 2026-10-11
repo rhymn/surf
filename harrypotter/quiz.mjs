@@ -2,7 +2,12 @@ import { loadQuestionBank, filterQuestions, createRound, checkAnswer } from './q
 
 const element = id => document.getElementById(id);
 const storageKey = 'harrypotter.quiz.v1';
-const categoryNames = { actors: 'Skådespelare', characters: 'Karaktärer', pets: 'Husdjur', objects: 'Objects' };
+const categoryNames = {
+  actors: 'Skådespelare', characters: 'Karaktärer', pets: 'Husdjur', objects: 'Objects',
+  places: 'Platser', creatures: 'Varelser', hogwarts: 'Hogwarts', quidditch: 'Quidditch',
+  spells: 'Besvärjelser', plot: 'Händelser', herbology: 'Örtlära', potions: 'Trolldrycker',
+  magic: 'Magi', history: 'Historia', transport: 'Resor'
+};
 const params = new URLSearchParams(location.search);
 const entity = params.get('type') && params.get('id') ? { type: params.get('type'), id: params.get('id') } : null;
 let bank = [];
@@ -45,7 +50,7 @@ function restore() {
 function eligible() {
   return filterQuestions(bank, {
     canon: element('canon').value,
-    category: element('category').value,
+    category: [...element('subject-options').querySelectorAll('input:checked')].map(input => input.value),
     difficulty: [...element('difficulty').querySelectorAll('input:checked')].map(input => input.value),
     spoilerThroughBook: Number(element('spoilers').value),
     entity
@@ -53,6 +58,13 @@ function eligible() {
 }
 
 function updateSettings() {
+  const subjects = [...element('subject-options').querySelectorAll('input')];
+  const selectedSubjects = subjects.filter(input => input.checked);
+  const allSelected = subjects.length > 0 && selectedSubjects.length === subjects.length;
+  element('all-categories').checked = allSelected;
+  element('all-categories').indeterminate = selectedSubjects.length > 0 && !allSelected;
+  element('subject-summary').textContent = `Ämnen: ${allSelected ? 'Alla' : selectedSubjects.length === 0 ? 'Inga' : selectedSubjects.length}`;
+  element('subject-summary').title = selectedSubjects.map(input => categoryNames[input.value] || input.value).join(', ');
   const questions = eligible();
   element('available').textContent = questions.length === 0 ? 'Inga frågor matchar dina val.' : `${questions.length} frågor tillgängliga`;
   element('start').disabled = questions.length === 0;
@@ -130,7 +142,7 @@ function render() {
     element('feedback').appendChild(feedback);
     const explanation = document.createElement('p');
     explanation.textContent = question.explanation;
-    element('source').appendChild(explanation);
+    element('feedback').appendChild(explanation);
     const source = document.createElement('p');
     if (question.source.type === 'wiki') {
       source.append('Källa: ', detailLink({ type: question.source.entityType, id: question.source.entityId }, 'Harry Potter-wikin'));
@@ -156,6 +168,9 @@ element('quiz-settings').addEventListener('submit', event => {
   start();
 });
 element('quiz-settings').addEventListener('change', updateSettings);
+element('all-categories').addEventListener('change', event => {
+  for (const input of element('subject-options').querySelectorAll('input')) input.checked = event.target.checked;
+});
 element('practice').addEventListener('click', () => start(true));
 element('answer-options').addEventListener('click', event => {
   if (!session || session.cursor >= session.round.length || session.answers[session.cursor] !== null) return;
@@ -180,10 +195,14 @@ try {
   bank = await loadQuestionBank();
   byId = new Map(bank.map(question => [question.id, question]));
   for (const category of [...new Set(filterQuestions(bank).map(question => question.category))].sort()) {
-    const option = document.createElement('option');
-    option.value = category;
-    option.textContent = categoryNames[category] || category;
-    element('category').appendChild(option);
+    const label = document.createElement('label');
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.name = 'category';
+    input.value = category;
+    input.checked = true;
+    label.append(input, document.createTextNode(categoryNames[category] || category));
+    element('subject-options').appendChild(label);
   }
   if (entity) {
     element('entity-filter').hidden = false;

@@ -2,7 +2,7 @@
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 body { position: relative; isolation: isolate; min-height: 100svh; margin: 0; padding: 0 16px; color: var(--ink); background: #080e10; font-family: Georgia, serif; font-size: 16px; line-height: 1.5; letter-spacing: 0; }
-body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(125deg, #070c10 0%, #17382b 30%, #101e25 52%, #302130 74%, #08110e 100%); background-size: 300% 300%; background-position: 0% 20%; animation: mist-drift 52s ease-in-out infinite alternate; }
+body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(125deg, #050708 0%, #1d2928 30%, #121920 52%, #28353a 74%, #090c10 100%); background-size: 300% 300%; background-position: 0% 20%; animation: mist-drift 52s ease-in-out infinite alternate; }
 @keyframes mist-drift {
   0% { background-position: 0% 20%; }
   37% { background-position: 55% 80%; }

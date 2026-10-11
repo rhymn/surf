@@ -8,8 +8,8 @@ Minimal klientbaserad wiki/spel-start med:
 - Gemensamt, mobilanpassat mörkt tema med långsamt skiftande gradient och guldfärgade detaljer
 - Ingen backend
 
-Bakgrunden skiftar mellan smaragdgrönt, kolsvart och dämpad plommonfärg över
-52 sekunder. Vid inställningen reducerad rörelse visas en stilla gradient.
+Bakgrunden skiftar mellan kolsvart, dämpat grågrönt och kallt blågrått över
+52 sekunder, med en diskret dementorkänsla. Vid reducerad rörelse visas en stilla gradient.
 
 ## Struktur
 
@@ -58,6 +58,9 @@ den sparade omgången utan att ändra dess ordning.
 Felaktigt besvarade frågor kan övas igen inom de valda filtren.
 Svårighetsgrader väljs med kryssrutor och kan kombineras. Alla fyra nivåer är
 förvalda; utan valda nivåer kan ingen omgång startas.
+Ämnen kan också kombineras med kryssrutor i det utfällbara ämnesvalet.
+Alla ämnen är förvalda; kryssrutan Alla ämnen väljer eller avmarkerar hela listan.
+Utan valda ämnen kan ingen omgång startas.
 Ämnet Objects (`objects`) samlar frågor om magiska föremål, bland annat
 horrokruxer, Gryffindors svärd, dödsreliker och trollstavar.
 
@@ -70,15 +73,18 @@ mot befintliga lokala wikiuppgifter, samt 158 svenska bokfrågor i
 
 Svårighetsnivån `extreme` (Extrem) är för små, svårmemorerade bokdetaljer.
 Nio sådana frågor finns som utkast bland bokfrågorna. Nivån följer samma
-granskning och spoilerfilter som övriga frågor; inga extrema frågor är ännu
-godkända för spel.
+spoilerfilter som övriga frågor och är spelbar även före faktagranskning.
 
 Fem bokfrågor är granskade mot Harry Potter Lexicon;
-referenslänkarna finns i `source.verificationUrl`. Totalt är 18 frågor spelbara.
+referenslänkarna finns i `source.verificationUrl`. Alla 171 frågor är spelbara,
+oavsett om deras granskningsstatus är `draft` eller `reviewed`.
 De övriga 153 bokfrågorna är utkast med kapitelhänvisningar, egna förklaringar
 och varierade svarspositioner. Svar, svenska namn, kapitelhänvisningar och spoilergränser
 behöver kontrolleras mot böckerna innan `reviewStatus` ändras från `draft`
 till `reviewed`.
+Granskningsstatusen är endast metadata och påverkar inte urval eller sparade
+omgångar. Utkast kan innehålla faktafel; ämne, svårighet och spoilergräns
+filtrerar fortfarande vilka frågor som ingår i en omgång.
 Fortsätt lägga till frågor i respektive bokfil med nya stabila ID:n; ingen
 kodändring behövs. Detta är en första utökning mot 1 000+ frågor, inte en
 komplett bank eller en fullständig extern kanongranskning.
@@ -98,7 +104,7 @@ Varje fråga har följande fält:
 	wikireferens med `type`, `entityType`, `entityId` och `field`.
 - `entities`: wikianknytningar med `type` och `id`.
 - `reviewStatus`: `draft` tills svar, källa, formulering och spoilergräns
-	kontrollerats; endast `reviewed` används i quiz.
+	kontrollerats; både `draft` och `reviewed` används i quiz.
 
 Kör validering och tester från repots rot:
 
