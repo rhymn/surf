@@ -15,6 +15,7 @@ function save() {
     localStorage.setItem(storageKey, JSON.stringify({ version: 1, progress, session }));
   } catch {
     element('quiz-status').textContent = 'Framsteg kan inte sparas i den här webbläsaren.';
+    element('quiz-status').dataset.warning = 'true';
   }
 }
 
@@ -58,6 +59,7 @@ function updateSettings() {
   element('practice').disabled = !questions.some(question => progress[question.id] === false);
   const values = Object.values(progress);
   element('progress').textContent = `${values.filter(Boolean).length} rätt av ${values.length} besvarade frågor i frågebanken`;
+  element('progress').hidden = values.length === 0;
 }
 
 function start(practice = false) {
@@ -123,8 +125,11 @@ function render() {
   element('answer-details').open = false;
   if (answered) {
     const feedback = document.createElement('p');
-    feedback.textContent = `${checkAnswer(question, selected) ? 'Rätt!' : `Fel. Rätt svar: ${question.options[question.correctOptionIndex]}.`} ${question.explanation}`;
+    feedback.textContent = checkAnswer(question, selected) ? 'Rätt!' : `Fel. Rätt svar: ${question.options[question.correctOptionIndex]}.`;
     element('feedback').appendChild(feedback);
+    const explanation = document.createElement('p');
+    explanation.textContent = question.explanation;
+    element('source').appendChild(explanation);
     const source = document.createElement('p');
     if (question.source.type === 'wiki') {
       source.append('Källa: ', detailLink({ type: question.source.entityType, id: question.source.entityId }, 'Harry Potter-wikin'));

@@ -5,13 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Harry Potter-quiz</title>
     <style>
-      :root { color-scheme: light; --ink: #222b27; --muted: #59665e; --line: #cbd5ce; --accent: #246342; --surface: #f3f7f4; }
+      :root { color-scheme: light; --ink: #29262b; --muted: #625b63; --line: #d6cfd3; --accent: #762c40; --gold: #9b7538; --surface: #f8f5f6; }
       * { box-sizing: border-box; }
       [hidden] { display: none !important; }
       body { margin: 0; padding: 0 16px; color: var(--ink); background: #fff; font-family: Georgia, serif; font-size: 16px; line-height: 1.5; letter-spacing: 0; }
       header, main { width: 100%; max-width: 640px; margin: auto; }
-      header { padding: 20px 0 12px; border-bottom: 1px solid var(--line); }
-      h1 { margin: 0 0 8px; font-size: 26px; line-height: 1.2; }
+      header { padding: 20px 0 12px; border-bottom: 1px solid var(--line); box-shadow: inset 0 -1px 0 var(--gold); }
+      h1 { position: relative; margin: 0 0 8px; font-size: 26px; line-height: 1.2; color: var(--accent); }
+      h1::before { content: "\03df"; position: absolute; left: -12px; top: 0; color: var(--gold); font-size: 18px; font-weight: normal; }
       nav { display: flex; flex-wrap: wrap; gap: 0 12px; }
       nav a { display: inline-flex; align-items: center; min-height: 44px; }
       a { color: var(--accent); text-underline-offset: 3px; overflow-wrap: anywhere; }
@@ -32,9 +33,10 @@
       button:not(:disabled):hover { border-color: var(--accent); background: var(--surface); }
       :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
       #start, #practice { width: 100%; margin-top: 8px; }
-      #start, #next { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: bold; }
+      #start, #next { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: bold; box-shadow: inset 0 -2px 0 var(--gold); }
       #start:disabled { background: var(--surface); color: var(--muted); border-color: var(--line); }
-      #start:not(:disabled):hover, #next:hover { background: #18492f; color: #fff; }
+      #start:disabled { box-shadow: none; }
+      #start:not(:disabled):hover, #next:hover { background: #582033; color: #fff; }
       #round { scroll-margin-top: 16px; }
       #round-progress { margin: 0; color: var(--muted); font-size: 14px; }
       #answer-options legend { color: var(--muted); font-size: 14px; font-weight: normal; }
@@ -45,7 +47,7 @@
       #feedback p { margin: 16px 0; }
       #related { padding-left: 20px; }
       #related a { display: inline-block; padding: 10px 0; min-height: 44px; }
-      #next { position: sticky; bottom: max(12px, env(safe-area-inset-bottom)); width: 100%; min-height: 52px; margin: 12px 0; box-shadow: 0 0 0 8px #fff; }
+      #next { position: sticky; bottom: max(12px, env(safe-area-inset-bottom)); width: 100%; min-height: 52px; margin: 12px 0; box-shadow: inset 0 -2px 0 var(--gold), 0 0 0 8px #fff; }
       @media (min-width: 540px) {
         body { padding: 0 24px; }
         #settings-fields > p { grid-template-columns: 1fr 1fr; align-items: center; gap: 16px; }
@@ -56,13 +58,15 @@
       details { margin: 8px 0; }
       summary { min-height: 44px; padding: 10px 0; }
       #settings-panel > p { margin: 4px 0; color: var(--muted); font-size: 14px; }
-      #settings-fields { padding: 4px 0 8px; }
-      #settings-fields > p { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); align-items: center; gap: 8px; margin: 6px 0; }
-      #settings-fields > #available { display: block; margin: 4px 0; font-size: 14px; }
+      #settings-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 4px 0; }
+      #settings-fields legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+      #settings-fields > p { grid-template-columns: minmax(0, 1fr); align-content: end; gap: 4px; margin: 0; }
+      #settings-fields > #available { display: block; grid-column: 1 / -1; margin: 0; font-size: 14px; }
       #start, #practice { margin-top: 4px; }
       body[data-playing="true"] header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
       body[data-playing="true"] nav a:not(:first-child) { display: none; }
       body[data-playing="true"] h1 { font-size: 18px; }
+      body[data-playing="true"] #quiz-status:not([data-warning]) { display: none; }
       #question-title { font-size: 22px; line-height: 1.25; margin: 8px 0; }
       #answer-options p { margin: 4px 0; }
       #answer-options button { min-height: 48px; padding: 10px 12px; }
@@ -71,6 +75,14 @@
       #answer-details { border: 0; margin: 4px 0; }
       #answer-details summary { font-size: 14px; font-weight: normal; color: var(--accent); }
       #next { min-height: 48px; margin: 4px 0; bottom: max(4px, env(safe-area-inset-bottom)); }
+      @media (max-height: 650px) {
+        body[data-playing="true"] header { padding: 0; }
+        body[data-playing="true"] main { padding-top: 4px; padding-bottom: max(4px, env(safe-area-inset-bottom)); }
+        body[data-playing="true"] #settings-panel { margin: 4px 0; }
+        #question-title { font-size: 20px; line-height: 1.2; margin: 6px 0; }
+        #answer-options legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+        #next { padding: 10px 12px; }
+      }
     </style>
   </head>
   <body>
@@ -93,7 +105,7 @@
         <fieldset id="settings-fields" disabled>
           <legend>Inställningar</legend>
           <p><label for="canon">Källa</label>
-            <select id="canon"><option value="all">Böcker och filmer</option><option value="book">Böcker</option><option value="film">Filmer</option></select>
+            <select id="canon"><option value="all">Alla</option><option value="book">Böcker</option><option value="film">Filmer</option></select>
           </p>
           <p><label for="category">Ämne</label>
             <select id="category"><option value="all">Alla ämnen</option></select>
@@ -109,7 +121,7 @@
           </p>
           <p id="available"></p>
           <button type="submit" id="start">Starta quiz</button>
-          <button type="button" id="practice">Öva på felaktiga svar</button>
+          <button type="button" id="practice" aria-label="Öva på felaktiga svar">Öva fel svar</button>
         </fieldset>
         </form>
       </details>
@@ -119,7 +131,7 @@
         <fieldset id="answer-options"><legend>Välj ett svar</legend></fieldset>
         <div id="feedback" role="status" aria-live="polite"></div>
         <details id="answer-details" hidden>
-          <summary>Källa och länkar</summary>
+          <summary>Förklaring och källa</summary>
           <div id="source"></div>
           <ul id="related"></ul>
         </details>
