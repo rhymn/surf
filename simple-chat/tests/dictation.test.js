@@ -6,15 +6,18 @@ const { runInNewContext } = require('node:vm');
 
 const source = readFileSync(join(__dirname, '../public/dictation.js'), 'utf8');
 
-const setup = ({ supported = true, secure = true, prefixed = false, startError = false } = {}) => {
+const setup = ({ supported = true, secure = true, prefixed = false, startError = false,
+    savedLanguage, browserLanguage = 'sv-SE', displayNames = true } = {}) => {
     const elements = new Map();
     const events = new Map();
     const sessions = [];
+    const storage = new Map(savedLanguage ? [['dictationLanguage', savedLanguage]] : []);
     const element = id => {
         if (!elements.has(id)) {
             const attributes = new Map();
             elements.set(id, {
                 value: '', hidden: false, disabled: false,
+                options: ['', 'sv-SE', 'en-US', 'en-GB'].map(value => ({ value })),
                 setAttribute: (key, value) => attributes.set(key, value),
                 getAttribute: key => attributes.get(key),
                 addEventListener: (event, handler) => { elements.get(id)[event] = handler; }
@@ -34,7 +37,13 @@ const setup = ({ supported = true, secure = true, prefixed = false, startError =
             [prefixed ? 'webkitSpeechRecognition' : 'SpeechRecognition']: supported ? Recognition : undefined,
             addEventListener: (event, handler) => events.set(event, handler)
         },
-        navigator: { language: 'sv-SE' },
+        navigator: { language: browserLanguage },
+        Intl: displayNames ? Intl : {},
+        localStorage: {
+            getItem: key => storage.get(key),
+            setItem: (key, value) => storage.set(key, value),
+            removeItem: key => storage.delete(key)
+        },
         document: { getElementById: element, addEventListener: (event, handler) => events.set(event, handler) },
         lucide: { createIcons() {} }
     };
@@ -44,7 +53,7 @@ const setup = ({ supported = true, secure = true, prefixed = false, startError =
         results: texts.map(text => Object.assign([{ transcript: typeof text === 'string' ? text : text.text }],
             { isFinal: typeof text === 'string' || text.final === true }))
     });
-    return { element, sessions, controller, result, event: (name, payload) => events.get(name)(payload) };
+    return { element, sessions, controller, result, storage, event: (name, payload) => events.get(name)(payload) };
 };
 
 test('dictation starts only on click, preserves drafts and appends final text once', () => {
@@ -173,4 +182,37 @@ test('manual editing aborts dictation and preserves the visible text against lat
         assert.equal(session.aborted, true);
         assert.equal(state.element('message-input').value, 'Manually corrected');
     }
+});
+
+test('saved Swedish selection overrides an English browser language', () => {
+    const state = setup({ savedLanguage: 'sv-SE', browserLanguage: 'en-US' });
+    assert.equal(state.element('dictation-language').value, 'sv-SE');
+    state.element('dictate-message').click();
+    assert.equal(state.sessions[0].lang, 'sv-SE');
+    assert.equal(state.element('dictation-language').options[1].textContent, 'Swedish (Sweden)');
+});
+
+test('changing language saves the choice and stops active dictation without clearing the draft', () => {
+    const state = setup({ browserLanguage: 'en-US' });
+    state.element('message-input').value = 'Keep draft';
+    state.element('dictate-message').click();
+    state.element('dictation-language').value = 'sv-SE';
+    state.element('dictation-language').change();
+    assert.equal(state.storage.get('dictationLanguage'), 'sv-SE');
+    assert.equal(state.sessions[0].aborted, true);
+    assert.equal(state.element('message-input').value, 'Keep draft');
+    state.element('dictate-message').click();
+    assert.equal(state.sessions[1].lang, 'sv-SE');
+    state.element('dictation-language').value = '';
+    state.element('dictation-language').change();
+    assert.equal(state.storage.has('dictationLanguage'), false);
+    state.element('dictate-message').click();
+    assert.equal(state.sessions[2].lang, 'en-US');
+});
+
+test('invalid saved languages fall back to the browser and labels work without DisplayNames', () => {
+    const state = setup({ savedLanguage: 'invalid', displayNames: false });
+    assert.equal(state.element('dictation-language').value, '');
+    state.element('dictate-message').click();
+    assert.equal(state.sessions[0].lang, 'sv-SE');
 });

@@ -194,6 +194,23 @@
                 font-size: 30px;
                 cursor: pointer;
             }
+            .language-setting {
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 8px;
+                margin-top: 16px;
+                text-align: left;
+            }
+            #dictation-language {
+                padding: 8px;
+                max-width: 100%;
+                min-width: 0;
+                border: 1px solid #888;
+                border-radius: 4px;
+                background: white;
+                color: #111;
+            }
         </style>
     </head>
     <body>
@@ -232,6 +249,29 @@
             <a href id="copy-url">Copy URL</a>
             <a href id="set-username">Set username</a>
             <a href id="invite-friends">Invite friends</a>
+            <div class="language-setting">
+                <label for="dictation-language">Dictation language</label>
+                <select id="dictation-language">
+                    <option value="">Browser default</option>
+                    <option value="sv-SE">Swedish (Sweden)</option>
+                    <option value="en-US">English (United States)</option>
+                    <option value="en-GB">English (United Kingdom)</option>
+                    <option value="da-DK">Danish</option>
+                    <option value="nb-NO">Norwegian Bokmal</option>
+                    <option value="fi-FI">Finnish</option>
+                    <option value="de-DE">German</option>
+                    <option value="fr-FR">French</option>
+                    <option value="es-ES">Spanish</option>
+                    <option value="it-IT">Italian</option>
+                    <option value="nl-NL">Dutch</option>
+                    <option value="pt-BR">Portuguese (Brazil)</option>
+                    <option value="pl-PL">Polish</option>
+                    <option value="ar-SA">Arabic (Saudi Arabia)</option>
+                    <option value="hi-IN">Hindi</option>
+                    <option value="ja-JP">Japanese</option>
+                    <option value="zh-CN">Chinese (China)</option>
+                </select>
+            </div>
         </dialog>
 
         <script>

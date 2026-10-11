@@ -2,6 +2,16 @@ const initializeDictation = () => {
     const button = document.getElementById('dictate-message');
     const input = document.getElementById('message-input');
     const status = document.getElementById('dictation-status');
+    const languageSelect = document.getElementById('dictation-language');
+    const savedLanguage = localStorage.getItem('dictationLanguage');
+    languageSelect.value = Array.from(languageSelect.options).some(option => option.value === savedLanguage)
+        ? savedLanguage : '';
+    if (typeof Intl.DisplayNames === 'function') {
+        const names = new Intl.DisplayNames([navigator.language || 'en-US'], { type: 'language' });
+        for (const option of languageSelect.options) {
+            if (option.value) option.textContent = names.of(option.value);
+        }
+    }
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     const supported = window.isSecureContext && Boolean(SpeechRecognition);
     let recognition = null;
@@ -46,7 +56,7 @@ const initializeDictation = () => {
             recognition = current;
             const draft = input.value;
             let displayed = draft;
-            current.lang = navigator.language || 'en-US';
+            current.lang = languageSelect.value || navigator.language || 'en-US';
             current.continuous = true;
             current.interimResults = true;
             current.onstart = () => {
@@ -78,7 +88,7 @@ const initializeDictation = () => {
                     'audio-capture': 'Microphone is unavailable.',
                     'network': 'Speech recognition could not connect. Try again.',
                     'no-speech': 'No speech detected. Try again.',
-                    'language-not-supported': 'Your browser language is not supported for dictation.'
+                    'language-not-supported': 'The selected language is not supported for dictation.'
                 };
                 if (error !== 'aborted') render(errors[error] || 'Dictation failed. Try again.');
             };
@@ -94,6 +104,11 @@ const initializeDictation = () => {
         callActive = detail.active;
         if (callActive) stop();
         else render();
+    });
+    languageSelect.addEventListener('change', () => {
+        stop();
+        if (languageSelect.value) localStorage.setItem('dictationLanguage', languageSelect.value);
+        else localStorage.removeItem('dictationLanguage');
     });
     input.addEventListener('input', () => {
         if (recognition) stop();
