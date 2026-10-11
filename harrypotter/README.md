@@ -62,18 +62,18 @@ förvalda; utan valda nivåer kan ingen omgång startas.
 ### Frågebanken
 
 `data/quiz/manifest.json` listar JSON-filerna som ska laddas. Banken innehåller
-122 frågor: 13 startfrågor i `films.json` och `cross-series.json`, kontrollerade
-mot befintliga lokala wikiuppgifter, samt 109 svenska bokfrågor i
-`book-1.json` till `book-7.json` (15–17 per bok).
+171 frågor: 13 startfrågor i `films.json` och `cross-series.json`, kontrollerade
+mot befintliga lokala wikiuppgifter, samt 158 svenska bokfrågor i
+`book-1.json` till `book-7.json` (22–24 per bok).
 
 Svårighetsnivån `extreme` (Extrem) är för små, svårmemorerade bokdetaljer.
-Fyra sådana frågor finns som utkast i bok 2 och bok 5. Nivån följer samma
+Nio sådana frågor finns som utkast bland bokfrågorna. Nivån följer samma
 granskning och spoilerfilter som övriga frågor; inga extrema frågor är ännu
 godkända för spel.
 
 Tre hårda bokfrågor är granskade mot Harry Potter Lexicons kapitelreferenser;
 referenslänkarna finns i `source.verificationUrl`. Totalt är 16 frågor spelbara.
-De övriga 106 bokfrågorna är utkast med kapitelhänvisningar, egna förklaringar
+De övriga 155 bokfrågorna är utkast med kapitelhänvisningar, egna förklaringar
 och varierade svarspositioner. Svar, svenska namn, kapitelhänvisningar och spoilergränser
 behöver kontrolleras mot böckerna innan `reviewStatus` ändras från `draft`
 till `reviewed`.

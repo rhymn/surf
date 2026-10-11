@@ -196,7 +196,9 @@ try {
   restore();
   if (entity && session && !session.round.every(item => byId.get(item.id).entities.some(reference => reference.type === entity.type && reference.id === entity.id))) session = null;
   element('settings-fields').disabled = false;
-  element('quiz-status').textContent = `${bank.filter(question => question.reviewStatus === 'reviewed' && question.language === 'sv').length} frågor i frågebanken`;
+  const playableCount = filterQuestions(bank).length;
+  const draftCount = bank.filter(question => question.reviewStatus === 'draft' && question.language === 'sv').length;
+  element('quiz-status').textContent = `${playableCount + draftCount} frågor: ${playableCount} spelbara, ${draftCount} utkast`;
   render();
 } catch {
   element('quiz-status').textContent = 'Kunde inte ladda frågebanken. Försök ladda om sidan.';
