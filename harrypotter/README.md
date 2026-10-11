@@ -5,8 +5,11 @@ Minimal klientbaserad wiki/spel-start med:
 - HTML5 (semantisk markup)
 - JSON-datafiler
 - Liten renderer i vanilla JavaScript
-- Gemensamt, mobilanpassat tema med diskreta vinröda och guldfärgade detaljer
+- Gemensamt, mobilanpassat mörkt tema med långsamt skiftande gradient och guldfärgade detaljer
 - Ingen backend
+
+Bakgrunden skiftar mellan smaragdgrönt, kolsvart och dämpad plommonfärg över
+52 sekunder. Vid inställningen reducerad rörelse visas en stilla gradient.
 
 ## Struktur
 
@@ -49,6 +52,9 @@ npx serve .
 spoilergräns och 5–50 frågor per omgång. Om färre frågor matchar används alla
 matchande frågor. Wikiartiklar länkar till quiz om respektive entitet.
 Senaste omgången och senaste resultatet per fråga sparas lokalt i webbläsaren.
+Nya omgångar blandar frågorna och prioriterar sådana som inte visades i den
+föregående omgången. Svarsalternativen blandas också; en omladdning återupptar
+den sparade omgången utan att ändra dess ordning.
 Felaktigt besvarade frågor kan övas igen inom de valda filtren.
 Svårighetsgrader väljs med kryssrutor och kan kombineras. Alla fyra nivåer är
 förvalda; utan valda nivåer kan ingen omgång startas.
@@ -65,13 +71,15 @@ Fyra sådana frågor finns som utkast i bok 2 och bok 5. Nivån följer samma
 granskning och spoilerfilter som övriga frågor; inga extrema frågor är ännu
 godkända för spel.
 
-Bokfrågorna är utkast med kapitelhänvisningar, egna förklaringar och varierade
-svarspositioner. Svar, svenska namn, kapitelhänvisningar och spoilergränser
+Tre hårda bokfrågor är granskade mot Harry Potter Lexicons kapitelreferenser;
+referenslänkarna finns i `source.verificationUrl`. Totalt är 16 frågor spelbara.
+De övriga 106 bokfrågorna är utkast med kapitelhänvisningar, egna förklaringar
+och varierade svarspositioner. Svar, svenska namn, kapitelhänvisningar och spoilergränser
 behöver kontrolleras mot böckerna innan `reviewStatus` ändras från `draft`
-till `reviewed`. Därför är fortfarande bara de 13 startfrågorna spelbara.
+till `reviewed`.
 Fortsätt lägga till frågor i respektive bokfil med nya stabila ID:n; ingen
 kodändring behövs. Detta är en första utökning mot 1 000+ frågor, inte en
-komplett bank eller en extern kanongranskning.
+komplett bank eller en fullständig extern kanongranskning.
 
 Varje fråga har följande fält:
 

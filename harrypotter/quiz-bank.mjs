@@ -72,9 +72,18 @@ export function shuffle(items, random = Math.random) {
   return shuffled;
 }
 
-export function createRound(questions, count = 10, random = Math.random) {
+export function createRound(questions, count = 10, random = Math.random, previousQuestionIds = []) {
   if (!Number.isInteger(count) || count < 1) throw new Error('Invalid round length.');
-  return shuffle(questions, random).slice(0, count).map(question => ({
+  const previous = new Set(previousQuestionIds);
+  const fresh = shuffle(questions.filter(question => !previous.has(question.id)), random);
+  const recent = shuffle(questions.filter(question => previous.has(question.id)), random);
+  const ordered = [...fresh, ...recent];
+  const previousLast = previousQuestionIds.at(-1);
+  if (ordered.length > 1 && ordered[0].id === previousLast) {
+    const otherIndex = 1 + Math.floor(random() * (ordered.length - 1));
+    [ordered[0], ordered[otherIndex]] = [ordered[otherIndex], ordered[0]];
+  }
+  return ordered.slice(0, count).map(question => ({
     question,
     options: shuffle(question.options.map((text, index) => ({ text, index })), random)
   }));

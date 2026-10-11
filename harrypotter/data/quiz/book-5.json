@@ -101,8 +101,8 @@
     "id": "book5-015", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "objects", "difficulty": "hard",
     "question": "Vilken oanvänd gåva från Sirius hittar Harry efter Sirius död?",
     "options": ["En tidvändare", "En tvåvägsspegel", "En förtrollad dagbok", "En silverkompass"], "correctOptionIndex": 1,
-    "explanation": "Harry upptäcker att gåvan var en tvåvägsspegel som kunde ha låtit honom tala med Sirius.", "source": {"type": "book", "book": 5, "chapter": 38},
-    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+    "explanation": "Harry upptäcker att gåvan var en tvåvägsspegel som kunde ha låtit honom tala med Sirius.", "source": {"type": "book", "book": 5, "chapter": 38, "verificationUrl": "https://www.hp-lexicon.org/source/the-harry-potter-novels/op/op38/"},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "reviewed"
   },
   {
     "id": "book5-016", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "places", "difficulty": "extreme",

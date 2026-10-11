@@ -11,10 +11,10 @@
       #settings-fields { padding: 8px 0 20px; }
       #settings-fields > p { display: grid; gap: 6px; margin: 12px 0; }
       #start, #practice { width: 100%; margin-top: 8px; }
-      #start, #next { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: bold; box-shadow: inset 0 -2px 0 var(--gold); }
+      #start, #next { background: var(--action); border-color: var(--action); color: #fff; font-weight: bold; box-shadow: inset 0 -2px 0 var(--gold); }
       #start:disabled { background: var(--surface); color: var(--muted); border-color: var(--line); }
       #start:disabled { box-shadow: none; }
-      #start:not(:disabled):hover, #next:hover { background: #582033; color: #fff; }
+      #start:not(:disabled):hover, #next:hover { background: var(--action-hover); color: #fff; }
       #round { scroll-margin-top: 16px; }
       #round-progress { margin: 0; color: var(--muted); font-size: 14px; }
       #answer-options legend { color: var(--muted); font-size: 14px; font-weight: normal; }
@@ -25,7 +25,7 @@
       #feedback p { margin: 16px 0; }
       #related { padding-left: 20px; }
       #related a { display: inline-block; padding: 10px 0; min-height: 44px; }
-      #next { position: sticky; bottom: max(12px, env(safe-area-inset-bottom)); width: 100%; min-height: 52px; margin: 12px 0; box-shadow: inset 0 -2px 0 var(--gold), 0 0 0 8px #fff; }
+      #next { position: sticky; bottom: max(12px, env(safe-area-inset-bottom)); width: 100%; min-height: 52px; margin: 12px 0; box-shadow: inset 0 -2px 0 var(--gold), 0 4px 16px #0005; }
       details { margin: 8px 0; }
       summary { min-height: 44px; padding: 10px 0; }
       #settings-panel > p { margin: 4px 0; color: var(--muted); font-size: 14px; }

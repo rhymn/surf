@@ -43,10 +43,10 @@
   },
   {
     "id": "book2-007", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "hogwarts", "difficulty": "hard",
-    "question": "Hur många år har gått sedan Nästan huvudlösa Nicks död när han håller sin dödsdagsfest?",
+    "question": "Hur länge har Nästan huvudlösa Nick varit död i bok 2?",
     "options": ["100 år", "250 år", "1 000 år", "500 år"], "correctOptionIndex": 3,
-    "explanation": "Nick firar sin femhundrade dödsdag under Harrys andra skolår.", "source": {"type": "book", "book": 2, "chapter": 8},
-    "entities": [], "reviewStatus": "draft"
+    "explanation": "Nick firar sin femhundrade dödsdag under Harrys andra skolår.", "source": {"type": "book", "book": 2, "chapter": 8, "verificationUrl": "https://www.hp-lexicon.org/source/the-harry-potter-novels/cs/cs8/"},
+    "entities": [], "reviewStatus": "reviewed"
   },
   {
     "id": "book2-008", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "history", "difficulty": "medium",

@@ -101,7 +101,7 @@
     "id": "book4-015", "language": "sv", "canon": "book", "spoilerThroughBook": 4, "category": "characters", "difficulty": "hard",
     "question": "Vem har utgett sig för att vara Alastor Moody under skolåret?",
     "options": ["Igor Karkaroff", "Ludo Bagman", "Barty Crouch junior", "Lucius Malfoy"], "correctOptionIndex": 2,
-    "explanation": "Barty Crouch junior har hållit Moody fången och använt polyjuice-elixir för att ta hans plats.", "source": {"type": "book", "book": 4, "chapter": 35},
-    "entities": [], "reviewStatus": "draft"
+    "explanation": "Barty Crouch junior har hållit Moody fången och använt polyjuice-elixir för att ta hans plats.", "source": {"type": "book", "book": 4, "chapter": 35, "verificationUrl": "https://www.hp-lexicon.org/source/the-harry-potter-novels/gf/gf35/"},
+    "entities": [], "reviewStatus": "reviewed"
   }
 ]

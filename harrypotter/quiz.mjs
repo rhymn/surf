@@ -54,7 +54,7 @@ function eligible() {
 
 function updateSettings() {
   const questions = eligible();
-  element('available').textContent = `${questions.length} frågor tillgängliga`;
+  element('available').textContent = questions.length === 0 ? 'Inga granskade frågor matchar dina val.' : `${questions.length} frågor tillgängliga`;
   element('start').disabled = questions.length === 0;
   element('practice').disabled = !questions.some(question => progress[question.id] === false);
   const values = Object.values(progress);
@@ -66,7 +66,8 @@ function start(practice = false) {
   let questions = eligible();
   if (practice) questions = questions.filter(question => progress[question.id] === false);
   if (!questions.length) return;
-  const round = createRound(questions, Number(element('count').value));
+  const previousQuestionIds = session ? session.round.slice(0, session.cursor + 1).map(item => item.id) : [];
+  const round = createRound(questions, Number(element('count').value), Math.random, previousQuestionIds);
   session = { round: round.map(item => ({ id: item.question.id, order: item.options.map(option => option.index) })), cursor: 0, answers: round.map(() => null) };
   save();
   render();

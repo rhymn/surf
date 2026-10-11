@@ -63,6 +63,19 @@ test('difficulty selections combine levels and preserve single-level callers', (
   assert.deepEqual(filterQuestions(questions, { difficulty: 'all' }), questions);
 });
 
+test('hard difficulty has verified playable questions and still respects spoiler limits', () => {
+  const hard = filterQuestions(bank, { difficulty: ['hard'] });
+  const verifiedIds = ['book2-007', 'book4-015', 'book5-015'];
+  const verified = verifiedIds.map(id => hard.find(question => question.id === id));
+  assert.ok(verified.every(Boolean));
+  assert.ok(hard.every(question => question.reviewStatus === 'reviewed'));
+  for (const question of verified) {
+    assert.equal(new URL(question.source.verificationUrl).hostname, 'www.hp-lexicon.org');
+  }
+  assert.deepEqual(filterQuestions(verified, { difficulty: 'hard', spoilerThroughBook: 1 }), []);
+  assert.deepEqual(filterQuestions(verified, { difficulty: 'hard', spoilerThroughBook: 2 }).map(question => question.id), ['book2-007']);
+});
+
 test('rounds are capped, do not mutate the bank, and retain answer indices', () => {
   const original = JSON.stringify(bank);
   const round = createRound(bank, bank.length + 1, () => 0);
@@ -75,6 +88,30 @@ test('rounds are capped, do not mutate the bank, and retain answer indices', () 
   assert.equal(createRound([], 10).length, 0);
   assert.throws(() => createRound(bank, 0));
   assert.equal(checkAnswer(bank[0], '0'), false);
+});
+
+test('new rounds prioritize questions not recently shown and shuffle both groups', () => {
+  const questions = bank.slice(0, 6);
+  const previous = questions.slice(0, 3).map(question => question.id);
+  const original = JSON.stringify(questions);
+  const round = createRound(questions, 3, () => 0, previous);
+  assert.deepEqual(round.map(item => item.question.id), [questions[4].id, questions[5].id, questions[3].id]);
+  const longer = createRound(questions, 5, () => 0, previous);
+  assert.equal(longer.filter(item => previous.includes(item.question.id)).length, 2);
+  assert.equal(new Set(longer.map(item => item.question.id)).size, 5);
+  assert.equal(JSON.stringify(questions), original);
+  assert.deepEqual(previous, questions.slice(0, 3).map(question => question.id));
+});
+
+test('small pools avoid immediately repeating the last shown question when possible', () => {
+  const questions = bank.slice(0, 3);
+  const previous = [questions[0].id, questions[2].id, questions[1].id];
+  const round = createRound(questions, 1, () => 0, previous);
+  assert.notEqual(round[0].question.id, previous.at(-1));
+  assert.equal(createRound([questions[0]], 10, () => 0, [questions[0].id]).length, 1);
+  assert.equal(createRound([], 10, () => 0, previous).length, 0);
+  const changedFilter = createRound(questions.slice(1), 2, () => 0, [questions[0].id]);
+  assert.ok(changedFilter.every(item => item.question.id !== questions[0].id));
 });
 
 test('multiplayer projection withholds answers, explanations, and source metadata', () => {
