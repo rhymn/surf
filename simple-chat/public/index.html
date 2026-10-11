@@ -61,15 +61,51 @@
             .audio-bar svg { width: 20px; height: 20px; }
             .audio-bar [hidden] { display: none !important; }
             #leave-call { background: #b42332; }
-            #mute-call[aria-pressed="true"] { background: #333; }
-            #call-notifications[aria-pressed="true"] { background: #267347; }
+            #mute-call, #call-notifications {
+                border: 1px solid #267347;
+                background: #267347;
+                color: white;
+            }
+            #mute-call[aria-pressed="true"] {
+                border-color: #a85b00;
+                background: #fff0d6;
+                color: #824600;
+            }
+            #call-notifications[aria-pressed="false"] {
+                border-color: #888;
+                background: white;
+                color: #555;
+            }
+            .audio-bar button:disabled {
+                border: 1px dashed #aaa;
+                background: #e5e5e5;
+                color: #777;
+                cursor: not-allowed;
+            }
+            .audio-bar button:not(:disabled):hover { filter: brightness(0.9); }
             button:focus-visible { outline: 3px solid #111; outline-offset: 2px; }
             .message {
                 padding: 10px;
                 margin: 5px 0;
                 border-radius: 10px;
                 max-width: 60%;
+                overflow-wrap: anywhere;
             }
+            .delete-message, .edit-message {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                vertical-align: middle;
+                width: 36px;
+                height: 36px;
+                padding: 6px;
+                margin-left: 8px;
+                background: transparent;
+                color: inherit;
+                border: 1px solid currentColor;
+            }
+            .delete-message svg, .edit-message svg { width: 18px; height: 18px; }
+            .delete-message:disabled, .edit-message:disabled { opacity: 0.5; cursor: not-allowed; }
             .message.user {
                 background-color: #007bff;
                 color: white;

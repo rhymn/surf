@@ -29,7 +29,15 @@ db.none(`
 
 
 function saveMessage(room, username, userId, message) {
-    return db.none('INSERT INTO messages(room, username, userid, message) VALUES($1, $2, $3, $4)', [room, username, userId, message]);
+    return db.one('INSERT INTO messages(room, username, userid, message) VALUES($1, $2, $3, $4) RETURNING *', [room, username, userId, message]);
+}
+
+function deleteMessage(room, userId, messageId) {
+    return db.oneOrNone('DELETE FROM messages WHERE id = $1 AND room = $2 AND userid = $3 RETURNING id', [messageId, room, userId]);
+}
+
+function editMessage(room, userId, messageId, message) {
+    return db.oneOrNone('UPDATE messages SET message = $4 WHERE id = $1 AND room = $2 AND userid = $3 RETURNING *', [messageId, room, userId, message]);
 }
 
 function getMessages(room) {
@@ -38,5 +46,7 @@ function getMessages(room) {
 
 module.exports = {
     saveMessage,
+    deleteMessage,
+    editMessage,
     getMessages
 };

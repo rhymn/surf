@@ -141,10 +141,10 @@ appendGroupIdToLocalStorage();
 document.addEventListener('DOMContentLoaded', () => {
     buttonListeners();
 
-    const socket = io({ auth: { room: group() } });
-
     initUsername();
     initUserId();
+
+    const socket = io({ auth: { room: group(), userId: getUserId() } });
 
     socket.on('connect', () => socket.emit('newUser', getUsername()));
     document.addEventListener('username-changed', () => socket.emit('newUser', getUsername()));
@@ -168,6 +168,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.appendChild(newMessageIndicator);
 
     let userScrolled = false;
+    const messageElements = new Map();
+    const deletedMessageIds = new Set();
+    const editedMessages = new Map();
 
     messagesDiv.addEventListener('scroll', () => {
         if (messagesDiv.scrollTop + messagesDiv.clientHeight < messagesDiv.scrollHeight) {
@@ -193,18 +196,62 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     const appendMessage = (msg) => {
-        const {username:sender, userid, message} = msg;
+        const {id, username:sender, userid} = msg;
+        const message = editedMessages.get(id)?.message ?? msg.message;
+        if (deletedMessageIds.has(id) || messageElements.has(id)) return;
         const messageElement = document.createElement('div');
+        const messageText = document.createElement('span');
+        messageText.className = 'message-text';
+        messageElement.appendChild(messageText);
 
         console.log(userid, getUserId())
         if (userid === getUserId()) {
-            messageElement.textContent = message;
+            messageText.textContent = message;
             messageElement.classList.add('message', 'user');
+            if (Number.isSafeInteger(id)) {
+                const editButton = document.createElement('button');
+                editButton.type = 'button';
+                editButton.className = 'edit-message';
+                editButton.title = 'Edit message';
+                editButton.setAttribute('aria-label', 'Edit message');
+                editButton.innerHTML = '<i data-lucide="pencil" aria-hidden="true"></i>';
+                editButton.addEventListener('click', () => {
+                    const updated = prompt('Edit message', messageText.textContent);
+                    if (updated === null || updated === messageText.textContent) return;
+                    if (!updated.trim()) {
+                        alert('Message cannot be empty.');
+                        return;
+                    }
+                    editButton.disabled = true;
+                    socket.timeout(5000).emit('editMessage', { id, message: updated }, (error, result) => {
+                        editButton.disabled = false;
+                        if (error || result?.error) alert(result?.error || 'Unable to edit. Check your connection and try again.');
+                    });
+                });
+                messageElement.appendChild(editButton);
+                const deleteButton = document.createElement('button');
+                deleteButton.type = 'button';
+                deleteButton.className = 'delete-message';
+                deleteButton.title = 'Delete message';
+                deleteButton.setAttribute('aria-label', 'Delete message');
+                deleteButton.innerHTML = '<i data-lucide="trash-2" aria-hidden="true"></i>';
+                deleteButton.addEventListener('click', () => {
+                    if (!confirm('Delete this message for everyone?')) return;
+                    deleteButton.disabled = true;
+                    socket.timeout(5000).emit('deleteMessage', id, (error, result) => {
+                        deleteButton.disabled = false;
+                        if (error || result?.error) alert(result?.error || 'Unable to delete. Check your connection and try again.');
+                    });
+                });
+                messageElement.appendChild(deleteButton);
+            }
         } else {
-            messageElement.textContent = `${sender}: ${message}`;
+            messageText.textContent = `${sender}: ${message}`;
             messageElement.classList.add('message', 'other');
         }
+        if (Number.isSafeInteger(id)) messageElements.set(id, messageElement);
         messagesDiv.appendChild(messageElement);
+        lucide.createIcons();
         if (!userScrolled) {
             messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to the newest message
         } else {
@@ -222,12 +269,34 @@ document.addEventListener('DOMContentLoaded', () => {
         !isFromMe(msg) && notify(msg);
     });
 
+    socket.on('messageDeleted', ({ id }) => {
+        deletedMessageIds.add(id);
+        editedMessages.delete(id);
+        messageElements.get(id)?.remove();
+        messageElements.delete(id);
+    });
+
+    socket.on('messageEdited', (msg) => {
+        if (deletedMessageIds.has(msg.id)) return;
+        editedMessages.set(msg.id, msg);
+        const messageText = messageElements.get(msg.id)?.querySelector('.message-text');
+        if (messageText) {
+            messageText.textContent = isFromMe(msg) ? msg.message : `${msg.username}: ${msg.message}`;
+        }
+    });
+
     // Send a message to the server
     function sendMessage(message) {
-        socket.emit('message', {
+        socket.timeout(5000).emit('message', {
             username: getUsername(),
             userid: getUserId(),
             message,
+        }, (error, result) => {
+            if (error || result?.error) {
+                const messageInput = document.getElementById('message-input');
+                if (!messageInput.value) messageInput.value = message;
+                alert(result?.error || 'Unable to send. Check your connection and try again.');
+            }
         });
     }
 

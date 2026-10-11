@@ -1,7 +1,7 @@
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
-const { saveMessage, getMessages } = require('./db');
+const { saveMessage, getMessages, deleteMessage, editMessage } = require('./db');
 const { registerAudioSignaling } = require('./audio-signaling');
 const bodyParser = require('body-parser')
 
@@ -71,6 +71,7 @@ io.on('connection', (socket) => {
         return;
     }
     const room = `chat:${groupName}`;
+    const userId = socket.handshake.auth?.userId;
     socket.join(room);
     console.log(`User joined room: ${room}`);
 
@@ -88,13 +89,62 @@ io.on('connection', (socket) => {
     });
 
     // Handle chat messages
-    socket.on('message', (msg) => {
-        const {username, userid, message} = msg;
-        console.log(`Message received from ${username}: ${message}`);
-        io.to(room).emit('message', msg);
-        saveMessage(groupName, username, userid, message).catch(error => {
+    socket.on('message', async (msg, reply) => {
+        if (!msg || typeof msg.message !== 'string' || !msg.message.trim() ||
+            typeof msg.username !== 'string' || typeof userId !== 'string' || !userId) {
+            if (typeof reply === 'function') reply({ error: 'Unable to send this message. Reload and try again.' });
+            return;
+        }
+        try {
+            const saved = await saveMessage(groupName, msg.username, userId, msg.message);
+            io.to(room).emit('message', saved);
+            if (typeof reply === 'function') reply({});
+        } catch (error) {
             console.error('Error saving message:', error);
-        });
+            if (typeof reply === 'function') reply({ error: 'Message could not be saved. Try again.' });
+        }
+    });
+
+    socket.on('deleteMessage', async (messageId, reply) => {
+        if (typeof reply !== 'function') return;
+        if (!Number.isSafeInteger(messageId) || messageId <= 0 || typeof userId !== 'string' || !userId) {
+            reply({ error: 'Unable to delete this message.' });
+            return;
+        }
+        try {
+            const deleted = await deleteMessage(groupName, userId, messageId);
+            if (!deleted) {
+                reply({ error: 'Message not found or not yours.' });
+                return;
+            }
+            io.to(room).emit('messageDeleted', { id: deleted.id });
+            reply({});
+        } catch (error) {
+            console.error('Error deleting message:', error);
+            reply({ error: 'Message could not be deleted. Try again.' });
+        }
+    });
+
+    socket.on('editMessage', async (payload, reply) => {
+        if (typeof reply !== 'function') return;
+        const { id, message } = payload || {};
+        if (!Number.isSafeInteger(id) || id <= 0 || typeof userId !== 'string' || !userId ||
+            typeof message !== 'string' || !message.trim()) {
+            reply({ error: 'Unable to edit this message. Text cannot be empty.' });
+            return;
+        }
+        try {
+            const edited = await editMessage(groupName, userId, id, message);
+            if (!edited) {
+                reply({ error: 'Message not found or not yours.' });
+                return;
+            }
+            io.to(room).emit('messageEdited', edited);
+            reply({});
+        } catch (error) {
+            console.error('Error editing message:', error);
+            reply({ error: 'Message could not be edited. Try again.' });
+        }
     });
 
     registerAudioSignaling(io, socket, room, users);

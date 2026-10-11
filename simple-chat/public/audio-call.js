@@ -27,14 +27,26 @@ const initializeAudioCall = (socket) => {
     let notificationVersion = 0;
     let notificationOperation = Promise.resolve();
 
+    const setControlIcon = (button, icon) => {
+        if (button.getAttribute('data-icon') === icon) return;
+        button.setAttribute('data-icon', icon);
+        button.innerHTML = `<i data-lucide="${icon}" aria-hidden="true"></i>`;
+        lucide.createIcons();
+    };
+
     const render = (message) => {
         notificationButton.hidden = !notificationSupported;
         notificationButton.disabled = enablingNotifications || (notificationSupported && window.Notification.permission === 'denied');
         notificationButton.setAttribute('aria-pressed', String(Boolean(notificationsEnabled)));
         notificationButton.title = notificationSupported && window.Notification.permission === 'denied'
             ? 'Call notifications blocked in browser settings'
-            : notificationsEnabled ? 'Disable call notifications' : 'Enable call notifications';
+            : notificationsEnabled ? 'Notifications on: click to disable' : 'Notifications off: click to enable';
         notificationButton.setAttribute('aria-label', notificationButton.title);
+        setControlIcon(notificationButton, notificationsEnabled && window.Notification?.permission !== 'denied' ? 'bell-ring' : 'bell-off');
+        const muted = muteButton.getAttribute('aria-pressed') === 'true';
+        setControlIcon(muteButton, muted ? 'mic-off' : 'mic');
+        muteButton.title = muted ? 'Microphone muted: click to unmute' : 'Microphone on: click to mute';
+        muteButton.setAttribute('aria-label', muteButton.title);
         joinButton.hidden = joined || joining;
         joinButton.disabled = !supported || !socket.connected;
         controls.hidden = !joined && !joining;
@@ -281,8 +293,7 @@ const initializeAudioCall = (socket) => {
         const muted = muteButton.getAttribute('aria-pressed') !== 'true';
         localStream.getAudioTracks().forEach(track => { track.enabled = !muted; });
         muteButton.setAttribute('aria-pressed', String(muted));
-        muteButton.title = muted ? 'Unmute microphone' : 'Mute microphone';
-        muteButton.setAttribute('aria-label', muteButton.title);
+        render();
     });
     playButton.addEventListener('click', () => {
         playButton.hidden = true;
