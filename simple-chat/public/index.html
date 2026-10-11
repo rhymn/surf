@@ -20,8 +20,9 @@
                 margin: 0;
                 font-family: Arial, sans-serif;
             }
-            .emoji { display: inline-block; width: 24px; font-size: 20px; line-height: 24px; text-align: center; flex-shrink: 0; }
-            #send-message, #menu-button { width: 44px; height: 44px; padding: 10px; flex-shrink: 0; }
+            #send-message { min-height: 44px; flex-shrink: 0; }
+            #menu-button { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 10px; flex-shrink: 0; }
+            #menu-button svg { width: 20px; height: 20px; }
             .chat-container {
                 display: flex;
                 flex-direction: column;
@@ -261,28 +262,28 @@
     <body>
         <div class="chat-container">
             <header class="room-header">
-                <a class="back-to-chats" href="/" title="My chats" aria-label="My chats"><span class="emoji" aria-hidden="true">⬅️</span></a>
+                <a class="back-to-chats" href="/" title="My chats" aria-label="My chats"><i data-lucide="arrow-left" aria-hidden="true"></i></a>
                 <h1 id="room-title">Group chat</h1>
-                <button type="button" id="edit-room-title" title="Edit group title" aria-label="Edit group title" disabled><span class="emoji" aria-hidden="true">✏️</span></button>
+                <button type="button" id="edit-room-title" title="Edit group title" aria-label="Edit group title" disabled><i data-lucide="pencil" aria-hidden="true"></i></button>
             </header>
             <div class="audio-bar" aria-label="Audio call">
                 <span id="audio-status" role="status" aria-live="polite">Audio call</span>
-                <button type="button" id="call-notifications" title="Enable call notifications" aria-label="Enable call notifications" aria-pressed="false" hidden><span class="emoji" aria-hidden="true">🔕</span></button>
-                <button type="button" id="join-call" disabled><span class="emoji" aria-hidden="true">📞</span>Join call</button>
+                <button type="button" id="call-notifications" title="Enable call notifications" aria-label="Enable call notifications" aria-pressed="false" hidden><i data-lucide="bell-off" aria-hidden="true"></i></button>
+                <button type="button" id="join-call" disabled><i data-lucide="phone" aria-hidden="true"></i>Join call</button>
                 <div id="audio-controls" hidden>
-                    <button type="button" id="play-call" title="Play call audio" aria-label="Play call audio" hidden><span class="emoji" aria-hidden="true">🔊</span></button>
-                    <button type="button" id="mute-call" title="Mute microphone" aria-label="Mute microphone" aria-pressed="false"><span class="emoji" aria-hidden="true">🎙️</span></button>
-                    <button type="button" id="leave-call" title="Hang up" aria-label="Hang up"><span class="emoji" aria-hidden="true">📵</span></button>
+                    <button type="button" id="play-call" title="Play call audio" aria-label="Play call audio" hidden><i data-lucide="volume-2" aria-hidden="true"></i></button>
+                    <button type="button" id="mute-call" title="Mute microphone" aria-label="Mute microphone" aria-pressed="false"><i data-lucide="mic" aria-hidden="true"></i></button>
+                    <button type="button" id="leave-call" title="Hang up" aria-label="Hang up"><i data-lucide="phone-off" aria-hidden="true"></i></button>
                 </div>
             </div>
             <div id="remote-audio" hidden></div>
             <div class="messages" id="messages"></div>
             <form id="chat-form">
                 <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off" required />
-                <button type="button" id="dictate-message" title="Dictate message" aria-label="Dictate message" aria-pressed="false" hidden><span class="emoji" aria-hidden="true">🗣️</span></button>
-                <button type="submit" id="send-message" title="Send message" aria-label="Send message"><span class="emoji" aria-hidden="true">📨</span></button>
+                <button type="button" id="dictate-message" title="Dictate message" aria-label="Dictate message" aria-pressed="false" hidden><i data-lucide="speech" aria-hidden="true"></i></button>
+                <button type="submit" id="send-message" title="Send message" aria-label="Send message">Send</button>
                 <button type="button" id="menu-button" title="Settings" aria-label="Settings">
-                    <span class="emoji" aria-hidden="true">⚙️</span>
+                    <i data-lucide="menu" aria-hidden="true"></i>
                 </button>
                 <span id="dictation-status" role="status" aria-live="polite" hidden></span>
             </form>
@@ -294,14 +295,14 @@
             
             <p>Simple chat is a URL based chat application for anyone and any device, no signup needed. Simply share the URL with those you wish to chat with.</p>
 
-            <a href="mailto:simple-chat.extinct538@passinbox.com"><span aria-hidden="true">✉️</span> Contact</a>
-            <a href="/"><span aria-hidden="true">💬</span> My chats</a>
-            <a href="/random" id="create-room"><span aria-hidden="true">➕</span> New chat</a>
-            <a href id="copy-url"><span aria-hidden="true">🔗</span> Copy URL</a>
-            <a href id="set-username"><span aria-hidden="true">👤</span> Set username</a>
-            <a href id="invite-friends"><span aria-hidden="true">📩</span> Invite friends</a>
+            <a href="mailto:simple-chat.extinct538@passinbox.com">Contact</a>
+            <a href="/">My chats</a>
+            <a href="/random" id="create-room">New chat</a>
+            <a href id="copy-url">Copy URL</a>
+            <a href id="set-username">Set username</a>
+            <a href id="invite-friends">Invite friends</a>
             <div class="language-setting">
-                <label for="dictation-language"><span aria-hidden="true">🌐</span> Dictation language</label>
+                <label for="dictation-language">Dictation language</label>
                 <select id="dictation-language">
                     <option value="">Browser default</option>
                     <option value="sv-SE">Swedish (Sweden)</option>

@@ -98,7 +98,7 @@ test('microphone is opt-in; muting and hanging up release local audio', async ()
     assert.equal(state.track.enabled, false);
     assert.equal(state.element('mute-call').getAttribute('aria-pressed'), 'true');
     assert.equal(state.element('mute-call').getAttribute('data-icon'), 'mic-off');
-    assert.match(state.element('mute-call').innerHTML, /🔇/);
+    assert.match(state.element('mute-call').innerHTML, /data-lucide="mic-off"/);
     assert.match(state.element('mute-call').title, /Microphone muted/);
     state.element('mute-call').click();
     assert.equal(state.track.enabled, true);
@@ -177,7 +177,7 @@ test('call notifications require explicit opt-in and do not activate the microph
     assert.equal(state.notifications[0].options.data.url, 'https://chat.example/room');
     assert.equal(state.element('call-notifications').getAttribute('aria-pressed'), 'true');
     assert.equal(state.element('call-notifications').getAttribute('data-icon'), 'bell-ring');
-    assert.match(state.element('call-notifications').innerHTML, /🔔/);
+    assert.match(state.element('call-notifications').innerHTML, /data-lucide="bell-ring"/);
 });
 
 test('participant updates do not repeat alerts; ending and restarting a call does', async () => {

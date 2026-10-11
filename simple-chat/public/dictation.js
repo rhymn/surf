@@ -28,7 +28,8 @@ const initializeDictation = () => {
         const icon = recognition ? 'square' : 'speech';
         if (button.getAttribute('data-icon') !== icon) {
             button.setAttribute('data-icon', icon);
-            button.innerHTML = `<span class="emoji" aria-hidden="true">${recognition ? '⏹️' : '🗣️'}</span>`;
+            button.innerHTML = `<i data-lucide="${icon}" aria-hidden="true"></i>`;
+            lucide.createIcons();
         }
         status.textContent = message;
         status.hidden = !message;

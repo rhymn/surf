@@ -65,7 +65,7 @@ test('dictation starts only on click, preserves drafts and appends final text on
     assert.equal(session.lang, 'sv-SE');
     assert.equal(session.interimResults, true);
     assert.equal(state.element('dictate-message').getAttribute('aria-pressed'), 'true');
-    assert.match(state.element('dictate-message').innerHTML, /⏹️/);
+    assert.match(state.element('dictate-message').innerHTML, /data-lucide="square"/);
     state.result(session, ['Hej']);
     state.result(session, ['Hej', 'igen']);
     assert.equal(state.element('message-input').value, 'Draft Hej igen');

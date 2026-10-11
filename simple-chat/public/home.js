@@ -47,7 +47,7 @@ const renderChats = (chats) => {
         remove.className = 'remove-chat';
         remove.title = 'Remove from my chats';
         remove.setAttribute('aria-label', `Remove ${chat.title || chat.room} from my chats`);
-        remove.innerHTML = '<span class="emoji" aria-hidden="true">❌</span>';
+        remove.innerHTML = '<i data-lucide="x" aria-hidden="true"></i>';
         remove.addEventListener('click', () => {
             if (!confirm('Remove this chat from your list?')) return;
             localStorage.setItem('groups', getRememberedChats().reverse().filter(room => room !== chat.room).join(','));

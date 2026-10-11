@@ -258,7 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 editButton.className = 'edit-message';
                 editButton.title = 'Edit message';
                 editButton.setAttribute('aria-label', 'Edit message');
-                editButton.innerHTML = '<span class="emoji" aria-hidden="true">✏️</span>';
+                editButton.innerHTML = '<i data-lucide="pencil" aria-hidden="true"></i>';
                 editButton.addEventListener('click', () => {
                     const updated = prompt('Edit message', messageText.textContent);
                     if (updated === null || updated === messageText.textContent) return;
@@ -278,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 deleteButton.className = 'delete-message';
                 deleteButton.title = 'Delete message';
                 deleteButton.setAttribute('aria-label', 'Delete message');
-                deleteButton.innerHTML = '<span class="emoji" aria-hidden="true">🗑️</span>';
+                deleteButton.innerHTML = '<i data-lucide="trash-2" aria-hidden="true"></i>';
                 deleteButton.addEventListener('click', () => {
                     if (!confirm('Delete this message for everyone?')) return;
                     deleteButton.disabled = true;
