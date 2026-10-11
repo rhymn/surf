@@ -77,6 +77,20 @@ const buttonListeners = () => {
     }
 
     {
+        document.getElementById('set-username').addEventListener('click', (event) => {
+            event.preventDefault();
+            chatProfile.open();
+        });
+    }
+
+    {
+        document.getElementById('manage-account').addEventListener('click', (event) => {
+            event.preventDefault();
+            chatProfile.open('register');
+        });
+    }
+
+    {
         document.getElementById('copy-url').addEventListener('click', (event) => {
             event.preventDefault();
             navigator.clipboard.writeText(window.location.href).then(() => {
@@ -132,8 +146,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     buttonListeners();
     const profileButton = document.getElementById('room-profile');
     const usernameLabel = document.getElementById('room-username');
-    const updateProfileLabel = () => { usernameLabel.textContent = chatProfile.getUsername(); };
-    profileButton.addEventListener('click', () => chatProfile.open());
+    const accountActionLabel = document.getElementById('account-action-label');
+    const updateProfileLabel = () => {
+        const username = chatProfile.getUsername();
+        usernameLabel.textContent = username;
+        profileButton.setAttribute('aria-label', `Settings and profile for ${username}`);
+        accountActionLabel.textContent = chatProfile.isLoggedIn() ? 'Your account' : 'Set password / log in';
+    };
     updateProfileLabel();
     document.addEventListener('profile-changed', updateProfileLabel);
 

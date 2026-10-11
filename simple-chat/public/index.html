@@ -26,8 +26,6 @@
             }
             #send-message { display: inline-flex; align-items: center; justify-content: center; width: 44px; min-height: 44px; flex-shrink: 0; }
             #send-message svg { width: 20px; height: 20px; }
-            #menu-button { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 10px; flex-shrink: 0; }
-            #menu-button svg { width: 20px; height: 20px; }
             .chat-container {
                 display: flex;
                 flex-direction: column;
@@ -339,12 +337,13 @@
             .settings-action:hover { background: #eef4ef; }
             .settings-action.primary { background: #267347; border-color: #267347; color: white; }
             .settings-action.primary:hover { background: #205d39; }
+            #set-username, #manage-account { width: 100%; }
             .typing-setting { display: flex; align-items: center; gap: 10px; min-height: 44px; margin-top: 16px; cursor: pointer; }
             #show-typing { flex: 0 0 20px; width: 20px; height: 20px; margin: 0; accent-color: #267347; cursor: pointer; }
             .typing-setting span { min-width: 0; overflow-wrap: anywhere; }
             .language-setting { margin-top: 18px; }
             .language-setting label { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 14px; }
-            .settings-footer { margin-top: 24px; padding-top: 16px; border-top: 1px solid #d9dfdb; }
+            .settings-footer { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 24px; padding-top: 16px; border-top: 1px solid #d9dfdb; }
             .settings-footer a { display: inline-flex; align-items: center; gap: 8px; color: #59645e; font-size: 14px; text-decoration: none; }
             .settings-footer a:hover { text-decoration: underline; }
             @media (max-width: 360px) {
@@ -380,7 +379,7 @@
                         <button type="button" id="leave-call" title="Hang up" aria-label="Hang up"><i data-lucide="phone-off" aria-hidden="true"></i></button>
                     </div>
                 </div>
-                <button type="button" id="room-profile" title="Your profile" aria-label="Your profile"><i data-lucide="user-round" aria-hidden="true"></i><span id="room-username">Your profile</span></button>
+                <button type="button" id="room-profile" title="Settings and profile" aria-label="Settings and profile"><i data-lucide="user-round" aria-hidden="true"></i><span id="room-username">Your profile</span></button>
             </header>
             <div id="remote-audio" hidden></div>
             <div class="messages" id="messages"></div>
@@ -390,9 +389,6 @@
                     <button type="button" id="dictate-message" title="Dictate message" aria-label="Dictate message" aria-pressed="false" hidden><i data-lucide="speech" aria-hidden="true"></i></button>
                 </div>
                 <button type="submit" id="send-message" title="Send message" aria-label="Send message"><i data-lucide="send" aria-hidden="true"></i></button>
-                <button type="button" id="menu-button" title="Settings" aria-label="Settings">
-                    <i data-lucide="menu" aria-hidden="true"></i>
-                </button>
                 <div class="composer-statuses">
                     <span id="dictation-status" role="status" aria-live="polite" hidden></span>
                     <span id="typing-status" role="status" aria-live="polite" hidden></span>
@@ -405,6 +401,13 @@
                 <div><h2 id="settings-title">Settings</h2><p>Simple Chat</p></div>
                 <button type="button" id="close-btn" title="Close settings" aria-label="Close settings"><i data-lucide="x" aria-hidden="true"></i></button>
             </div>
+            <section class="settings-section" aria-label="Profile">
+                <h3>Profile</h3>
+                <div class="settings-actions">
+                    <button class="settings-action" type="button" id="set-username"><i data-lucide="user-round" aria-hidden="true"></i>Edit profile</button>
+                    <button class="settings-action" type="button" id="manage-account"><i data-lucide="key-round" aria-hidden="true"></i><span id="account-action-label">Set password / log in</span></button>
+                </div>
+            </section>
             <section class="settings-section" aria-label="Chats">
                 <h3>Chats</h3>
                 <div class="settings-actions">
@@ -445,12 +448,13 @@
             </div>
             </section>
             <footer class="settings-footer">
+                <a href="https://community-b1al.onrender.com"><i data-lucide="compass" aria-hidden="true"></i>Community portal</a>
                 <a href="mailto:simple-chat.extinct538@passinbox.com"><i data-lucide="mail" aria-hidden="true"></i>Contact</a>
             </footer>
         </dialog>
 
         <script>
-            const menuButton = document.getElementById('menu-button');
+            const menuButton = document.getElementById('room-profile');
             const menuModal = document.getElementById('menu-modal');
             const closeButton = document.getElementById('close-btn');
 
