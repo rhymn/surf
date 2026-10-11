@@ -24,7 +24,8 @@
                 margin: 0;
                 font-family: Arial, sans-serif;
             }
-            #send-message { min-height: 44px; flex-shrink: 0; }
+            #send-message { display: inline-flex; align-items: center; justify-content: center; width: 44px; min-height: 44px; flex-shrink: 0; }
+            #send-message svg { width: 20px; height: 20px; }
             #menu-button { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 10px; flex-shrink: 0; }
             #menu-button svg { width: 20px; height: 20px; }
             .chat-container {
@@ -46,14 +47,14 @@
                 padding: 8px 10px;
                 border-bottom: 1px solid #ddd;
             }
-            #room-title {
+            .room-title-heading {
                 flex: 1;
                 min-width: 0;
                 margin: 0;
                 font-size: 18px;
                 overflow-wrap: anywhere;
             }
-            #edit-room-title, .back-to-chats {
+            .back-to-chats {
                 box-sizing: border-box;
                 min-width: 0;
                 display: inline-flex;
@@ -68,9 +69,21 @@
                 border: 1px solid #aaa;
                 border-radius: 4px;
             }
-            #edit-room-title { border: none; color: #69766d; }
+            #edit-room-title {
+                display: block;
+                width: 100%;
+                min-height: 44px;
+                margin: 0;
+                padding: 8px;
+                border: none;
+                background: transparent;
+                color: inherit;
+                font: inherit;
+                text-align: left;
+                overflow-wrap: anywhere;
+            }
+            #room-title { font: inherit; }
             #edit-room-title:hover:not(:disabled) { background: #f1f4f2; color: #253e30; }
-            #edit-room-title svg { width: 16px; height: 16px; }
             .back-to-chats svg { width: 20px; height: 20px; }
             .back-to-chats { text-decoration: none; }
             #edit-room-title:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -184,29 +197,43 @@
                 width: 100%;
                 box-sizing: border-box;
             }
-            #message-input {
+            .message-entry {
+                position: relative;
                 flex: 1;
+                min-width: 0;
+            }
+            #message-input {
+                width: 100%;
                 min-width: 0;
                 padding: 10px;
                 border: 1px solid #ccc;
                 border-radius: 4px;
             }
-            #chat-form > input, #chat-form > button {
+            .message-entry:has(#dictate-message:not([hidden])) #message-input { padding-right: 48px; }
+            .message-entry > input, #chat-form > button {
                 box-sizing: border-box;
                 height: 44px;
                 min-height: 44px;
             }
             #dictate-message {
+                position: absolute;
+                top: 1px;
+                right: 1px;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                flex: 0 0 44px;
-                height: 44px;
+                width: 42px;
+                height: 42px;
+                margin: 0;
                 padding: 8px;
+                border-radius: 3px;
+                background: transparent;
+                color: #0056b3;
             }
+            #dictate-message:hover:not(:disabled) { background: #eef4fa; }
             #dictate-message svg { width: 20px; height: 20px; }
-            #dictate-message[aria-pressed="true"] { background: #b42332; }
-            #dictate-message:disabled { background: #ddd; color: #666; cursor: not-allowed; }
+            #dictate-message[aria-pressed="true"], #dictate-message[aria-pressed="true"]:hover { background: #b42332; color: white; }
+            #dictate-message:disabled { color: #888; cursor: not-allowed; }
             .composer-statuses {
                 position: absolute;
                 bottom: calc(100% + 8px);
@@ -328,8 +355,7 @@
         <div class="chat-container">
             <header class="room-header">
                 <a class="back-to-chats" href="/" title="My chats" aria-label="My chats"><i data-lucide="arrow-left" aria-hidden="true"></i></a>
-                <h1 id="room-title">Group chat</h1>
-                <button type="button" id="edit-room-title" title="Edit group title" aria-label="Edit group title" disabled><i data-lucide="pencil" aria-hidden="true"></i></button>
+                <h1 class="room-title-heading"><button type="button" id="edit-room-title" title="Edit group title" disabled><span id="room-title">Group chat</span></button></h1>
             </header>
             <div class="audio-bar" aria-label="Audio call">
                 <span id="audio-status" role="status" aria-live="polite">Audio call</span>
@@ -344,9 +370,11 @@
             <div id="remote-audio" hidden></div>
             <div class="messages" id="messages"></div>
             <form id="chat-form">
-                <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off" required />
-                <button type="button" id="dictate-message" title="Dictate message" aria-label="Dictate message" aria-pressed="false" hidden><i data-lucide="speech" aria-hidden="true"></i></button>
-                <button type="submit" id="send-message" title="Send message" aria-label="Send message">Send</button>
+                <div class="message-entry">
+                    <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off" required autofocus />
+                    <button type="button" id="dictate-message" title="Dictate message" aria-label="Dictate message" aria-pressed="false" hidden><i data-lucide="speech" aria-hidden="true"></i></button>
+                </div>
+                <button type="submit" id="send-message" title="Send message" aria-label="Send message"><i data-lucide="send" aria-hidden="true"></i></button>
                 <button type="button" id="menu-button" title="Settings" aria-label="Settings">
                     <i data-lucide="menu" aria-hidden="true"></i>
                 </button>

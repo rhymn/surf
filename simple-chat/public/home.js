@@ -28,7 +28,12 @@ const renderChats = (chats) => {
         if (chat.unreadCount > 0) {
             const unread = document.createElement('span');
             unread.className = 'unread-count';
-            unread.textContent = `${chat.unreadCount} unread`;
+            unread.textContent = String(chat.unreadCount);
+            unread.title = `${chat.unreadCount} unread ${chat.unreadCount === 1 ? 'message' : 'messages'}`;
+            const description = document.createElement('span');
+            description.className = 'sr-only';
+            description.textContent = ` unread ${chat.unreadCount === 1 ? 'message' : 'messages'}`;
+            unread.appendChild(description);
             heading.appendChild(unread);
         }
         const people = document.createElement('div');
@@ -42,14 +47,32 @@ const renderChats = (chats) => {
             dot.setAttribute('aria-hidden', 'true');
             const name = document.createElement('span');
             name.className = 'participant-name';
-            name.textContent = `${person.username}${person.userId === chatProfile.getUserId() ? ' (you)' : ''}${person.online ? ' - online' : ''}`;
-            participant.append(dot, name);
+            name.textContent = `${person.username}${person.userId === chatProfile.getUserId() ? ' (you)' : ''}`;
+            const presenceLabel = document.createElement('span');
+            presenceLabel.className = 'sr-only';
+            presenceLabel.textContent = person.online ? ', online' : ', offline';
+            participant.append(dot, name, presenceLabel);
             people.appendChild(participant);
         }
         const count = document.createElement('p');
         count.className = 'participant-count';
         const messageCount = chat.messageCount ?? 0;
-        count.textContent = `${chat.participants.length} ${chat.participants.length === 1 ? 'participant' : 'participants'} · ${messageCount} ${messageCount === 1 ? 'message' : 'messages'}`;
+        for (const { icon, value, label } of [
+            { icon: 'users', value: chat.participants.length, label: chat.participants.length === 1 ? 'participant' : 'participants' },
+            { icon: 'message-square', value: messageCount, label: messageCount === 1 ? 'message' : 'messages' }
+        ]) {
+            const metric = document.createElement('span');
+            metric.className = 'chat-metric';
+            metric.title = `${value} ${label}`;
+            metric.innerHTML = `<i data-lucide="${icon}" aria-hidden="true"></i>`;
+            const number = document.createElement('span');
+            number.textContent = String(value);
+            const description = document.createElement('span');
+            description.className = 'sr-only';
+            description.textContent = ` ${label}`;
+            metric.append(number, description);
+            count.appendChild(metric);
+        }
         link.append(heading, people, count);
         const remove = document.createElement('button');
         remove.type = 'button';
