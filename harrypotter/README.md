@@ -5,7 +5,7 @@ Minimal klientbaserad wiki/spel-start med:
 - HTML5 (semantisk markup)
 - JSON-datafiler
 - Liten renderer i vanilla JavaScript
-- Ingen CSS
+- Gemensamt, mobilanpassat tema med diskreta vinröda och guldfärgade detaljer
 - Ingen backend
 
 ## Struktur
@@ -14,6 +14,7 @@ Minimal klientbaserad wiki/spel-start med:
 - `characters.html`, `actors.html`, `pets.html`, `years.html`, `relationships.html` — listsidor
 - `detail.html` — gemensam detaljsida (`?type=...&id=...`)
 - `app.js` — rendering av listor + detalj från JSON
+- `styles.css` — gemensam typografi, färger, navigering och kontroller för wiki och quiz
 - `data/*.json` — källdata
 
 ## Kör lokalt
