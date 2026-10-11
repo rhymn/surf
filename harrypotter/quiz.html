@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Harry Potter-quiz</title>
+  </head>
+  <body>
+    <header>
+      <h1>Harry Potter-quiz</h1>
+      <nav aria-label="Huvudnavigering">
+        <a href="index.html">Hem</a>
+        <a href="characters.html">Karaktärer</a>
+        <a href="actors.html">Skådespelare</a>
+        <a href="pets.html">Husdjur</a>
+      </nav>
+    </header>
+    <main>
+      <p id="quiz-status" role="status" aria-live="polite">Laddar frågor...</p>
+      <p id="progress"></p>
+      <p id="entity-filter" hidden></p>
+      <form id="quiz-settings">
+        <fieldset id="settings-fields" disabled>
+          <legend>Ny omgång</legend>
+          <p><label for="canon">Källa</label>
+            <select id="canon"><option value="all">Böcker och filmer</option><option value="book">Böcker</option><option value="film">Filmer</option></select>
+          </p>
+          <p><label for="category">Ämne</label>
+            <select id="category"><option value="all">Alla ämnen</option></select>
+          </p>
+          <p><label for="difficulty">Svårighetsgrad</label>
+            <select id="difficulty"><option value="all">Alla nivåer</option><option value="easy">Lätt</option><option value="medium">Medel</option><option value="hard">Svår</option></select>
+          </p>
+          <p><label for="spoilers">Spoilers till och med bok</label>
+            <select id="spoilers"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7" selected>7</option></select>
+          </p>
+          <p><label for="count">Antal frågor</label>
+            <select id="count"><option value="5">5</option><option value="10" selected>10</option><option value="20">20</option><option value="50">50</option></select>
+          </p>
+          <p id="available"></p>
+          <button type="submit" id="start">Starta quiz</button>
+          <button type="button" id="practice">Öva på felaktiga svar</button>
+        </fieldset>
+      </form>
+      <section id="round" aria-labelledby="question-title" hidden>
+        <p id="round-progress"></p>
+        <h2 id="question-title" tabindex="-1"></h2>
+        <form id="answer-form">
+          <fieldset id="answer-options"><legend>Välj ett svar</legend></fieldset>
+          <p><button id="answer" type="submit">Svara</button></p>
+        </form>
+        <div id="feedback" role="status" aria-live="polite"></div>
+        <ul id="related"></ul>
+        <button id="next" type="button" hidden>Nästa fråga</button>
+      </section>
+      <section id="result" aria-labelledby="result-title" hidden>
+        <h2 id="result-title" tabindex="-1">Resultat</h2>
+        <p id="score"></p>
+      </section>
+    </main>
+    <script type="module" src="quiz.mjs"></script>
+  </body>
+</html>

@@ -1,0 +1,107 @@
+[
+  {
+    "id": "book2-001", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "characters", "difficulty": "easy",
+    "question": "Vem besöker Harry hemma hos Dursleys för att varna honom för att återvända till Hogwarts?",
+    "options": ["Kreacher", "Dobby", "Winky", "Hagrid"], "correctOptionIndex": 1,
+    "explanation": "Husalven Dobby försöker hindra Harry från att återvända till Hogwarts.", "source": {"type": "book", "book": 2, "chapter": 2},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book2-002", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "objects", "difficulty": "easy",
+    "question": "Vilket fordon använder Ron och hans tvillingbröder för att hämta Harry från Dursleys?",
+    "options": ["En motorcykel", "En buss", "En flygande Ford Anglia", "En hästdroska"], "correctOptionIndex": 2,
+    "explanation": "Ron, Fred och George hämtar Harry i familjens förtrollade Ford Anglia.", "source": {"type": "book", "book": 2, "chapter": 3},
+    "entities": [{"type": "characters", "id": "ron"}, {"type": "characters", "id": "fred"}, {"type": "characters", "id": "george"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book2-003", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "characters", "difficulty": "easy",
+    "question": "Vilken känd författare möter Harry vid en boksignering före sitt andra skolår?",
+    "options": ["Rita Skeeter", "Bathilda Bagshot", "Nicolas Flamel", "Gilderoy Lockhart"], "correctOptionIndex": 3,
+    "explanation": "Lockhart signerar böcker och avslöjar att han ska undervisa på Hogwarts.", "source": {"type": "book", "book": 2, "chapter": 4},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book2-004", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "hogwarts", "difficulty": "easy",
+    "question": "Vilket träd krockar Harry och Ron med när de anländer i den flygande bilen?",
+    "options": ["Det piskande pilträdet", "En vanlig ek", "Ett äppelträd", "En förbjuden gran"], "correctOptionIndex": 0,
+    "explanation": "Bilen kraschar in i det piskande pilträdet, som slår tillbaka med sina grenar.", "source": {"type": "book", "book": 2, "chapter": 5},
+    "entities": [{"type": "characters", "id": "harry"}, {"type": "characters", "id": "ron"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book2-005", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "herbology", "difficulty": "medium",
+    "question": "Varför måste eleverna bära hörselskydd när de planterar om alrunor?",
+    "options": ["Deras blad visslar", "Deras skrik är farliga", "Jorden exploderar", "Krukan förstärker alla röster"], "correctOptionIndex": 1,
+    "explanation": "Alrunornas skrik är farliga; ett vuxet exemplars skrik kan döda den som hör det.", "source": {"type": "book", "book": 2, "chapter": 6},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book2-006", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "quidditch", "difficulty": "medium",
+    "question": "Vilken kvastmodell har Slytherins lag fått av Lucius Malfoy?",
+    "options": ["Nimbus 2000", "Komet 260", "Nimbus 2001", "Åskviggen"], "correctOptionIndex": 2,
+    "explanation": "Lucius Malfoy har köpt Nimbus 2001-kvastar till laget där Draco har blivit sökare.", "source": {"type": "book", "book": 2, "chapter": 7},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book2-007", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "hogwarts", "difficulty": "hard",
+    "question": "Hur många år har gått sedan Nästan huvudlösa Nicks död när han håller sin dödsdagsfest?",
+    "options": ["100 år", "250 år", "1 000 år", "500 år"], "correctOptionIndex": 3,
+    "explanation": "Nick firar sin femhundrade dödsdag under Harrys andra skolår.", "source": {"type": "book", "book": 2, "chapter": 8},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book2-008", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "history", "difficulty": "medium",
+    "question": "Vilken av Hogwarts grundare sägs ha byggt Hemligheternas kammare?",
+    "options": ["Salazar Slytherin", "Godric Gryffindor", "Helga Hufflepuff", "Rowena Ravenclaw"], "correctOptionIndex": 0,
+    "explanation": "Enligt legenden byggde Salazar Slytherin en hemlig kammare i slottet.", "source": {"type": "book", "book": 2, "chapter": 9},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book2-009", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "plot", "difficulty": "medium",
+    "question": "Vad gör Lockharts misslyckade besvärjelse med Harrys skadade arm?",
+    "options": ["Den förvandlar armen till sten", "Den tar bort armens ben", "Den gör armen osynlig", "Den ger Harry en extra hand"], "correctOptionIndex": 1,
+    "explanation": "Lockhart tar av misstag bort benen i Harrys arm i stället för att laga dem.", "source": {"type": "book", "book": 2, "chapter": 10},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book2-010", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "spells", "difficulty": "easy",
+    "question": "Vilken besvärjelse använder Snape för att avväpna Lockhart på duellklubben?",
+    "options": ["Petrificus Totalus", "Obliviate", "Expelliarmus", "Accio"], "correctOptionIndex": 2,
+    "explanation": "Snape demonstrerar avväpningsbesvärjelsen Expelliarmus på Lockhart.", "source": {"type": "book", "book": 2, "chapter": 11},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book2-011", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "potions", "difficulty": "medium",
+    "question": "Vilka elever tar Harry och Ron formen av med polyjuice-elixiret?",
+    "options": ["Fred och George", "Draco och Neville", "Dean och Seamus", "Crabbe och Goyle"], "correctOptionIndex": 3,
+    "explanation": "Harry förvandlas till Goyle och Ron till Crabbe för att kunna prata med Draco.", "source": {"type": "book", "book": 2, "chapter": 12},
+    "entities": [{"type": "characters", "id": "harry"}, {"type": "characters", "id": "ron"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book2-012", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "objects", "difficulty": "medium",
+    "question": "Vems namn står i den gamla dagbok som Harry hittar?",
+    "options": ["Tom Riddle", "Albus Dumbledore", "Lucius Malfoy", "Percy Weasley"], "correctOptionIndex": 0,
+    "explanation": "Dagboken tillhörde Tom Riddle och kan svara på det Harry skriver.", "source": {"type": "book", "book": 2, "chapter": 13},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book2-013", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "creatures", "difficulty": "medium",
+    "question": "Vem är den stora spindel som Harry och Ron möter i Förbjudna skogen?",
+    "options": ["Fluffy", "Aragog", "Fawkes", "Norbert"], "correctOptionIndex": 1,
+    "explanation": "Aragog är spindeln som Hagrid tidigare hade tagit hand om på Hogwarts.", "source": {"type": "book", "book": 2, "chapter": 15},
+    "entities": [{"type": "characters", "id": "harry"}, {"type": "characters", "id": "ron"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book2-014", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "objects", "difficulty": "medium",
+    "question": "Vad använder Harry för att förstöra Riddles dagbok i kammaren?",
+    "options": ["En trollstav", "Ett svärdshandtag", "En basiliskhuggtand", "En fenixfjäder"], "correctOptionIndex": 2,
+    "explanation": "Harry sticker en basiliskhuggtand genom dagboken och förstör den.", "source": {"type": "book", "book": 2, "chapter": 17},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book2-015", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "objects", "difficulty": "easy",
+    "question": "Vilket klädesplagg får Dobby när han blir fri från familjen Malfoy?",
+    "options": ["En halsduk", "En hatt", "En handske", "En strumpa"], "correctOptionIndex": 3,
+    "explanation": "Harry gömmer en strumpa i dagboken; Lucius lämnar den vidare till Dobby, som blir fri.", "source": {"type": "book", "book": 2, "chapter": 18},
+    "entities": [], "reviewStatus": "draft"
+  }
+]

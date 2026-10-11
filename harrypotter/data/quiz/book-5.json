@@ -1,0 +1,107 @@
+[
+  {
+    "id": "book5-001", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "plot", "difficulty": "easy",
+    "question": "Vem skyddar Harry tillsammans med sig själv mot dementorerna i Little Whinging?",
+    "options": ["Ron", "Hermione", "Vernon", "Dudley"], "correctOptionIndex": 3,
+    "explanation": "Harry använder sin patronus för att skydda sig själv och Dudley.", "source": {"type": "book", "book": 5, "chapter": 1},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book5-002", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "places", "difficulty": "medium",
+    "question": "Vilken adress använder Fenixorden som högkvarter?",
+    "options": ["Grimmauld Place 12", "Privet Drive 4", "Grimmauld Place 4", "Spinner's End 12"], "correctOptionIndex": 0,
+    "explanation": "Orden använder familjen Blacks hus på Grimmauld Place 12.", "source": {"type": "book", "book": 5, "chapter": 4},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book5-003", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "objects", "difficulty": "medium",
+    "question": "Vad händer när Harry skriver med Umbridges särskilda fjäderpenna under kvarsittningen?",
+    "options": ["Orden försvinner från papperet", "Orden skärs in i hans hand", "Bläcket blir osynligt", "Papperet börjar brinna"], "correctOptionIndex": 1,
+    "explanation": "Pennan använder Harrys eget blod och ristar orden i hans hand.", "source": {"type": "book", "book": 5, "chapter": 13},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book5-004", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "characters", "difficulty": "medium",
+    "question": "Vilket djur finns på de dekorativa tallrikarna i Umbridges kontor?",
+    "options": ["Ugglor", "Drakar", "Kattungar", "Paddor"], "correctOptionIndex": 2,
+    "explanation": "Umbridges kontor är utsmyckat med tallrikar föreställande kattungar.", "source": {"type": "book", "book": 5, "chapter": 13},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book5-005", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "places", "difficulty": "medium",
+    "question": "På vilken pub håller eleverna sitt första möte om en försvarsgrupp?",
+    "options": ["Tre kvastar", "Den läckande kitteln", "Den gyllene kvicken", "Svinhuvudet"], "correctOptionIndex": 3,
+    "explanation": "Det första mötet som leder till Dumbledores armé hålls på Svinhuvudet i Hogsmeade.", "source": {"type": "book", "book": 5, "chapter": 16},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book5-006", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "places", "difficulty": "easy",
+    "question": "I vilket rum tränar Dumbledores armé på Hogwarts?",
+    "options": ["Vid-behov-rummet", "Stora salen", "Hemligheternas kammare", "Rektorns kontor"], "correctOptionIndex": 0,
+    "explanation": "Vid-behov-rummet erbjuder gruppen en dold plats som passar deras träning.", "source": {"type": "book", "book": 5, "chapter": 18},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book5-007", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "characters", "difficulty": "easy",
+    "question": "Vem undervisar de andra eleverna i praktiskt försvar inom Dumbledores armé?",
+    "options": ["Neville Longbottom", "Harry Potter", "Draco Malfoy", "Percy Weasley"], "correctOptionIndex": 1,
+    "explanation": "Harry leder elevernas praktiska träning i försvarsbesvärjelser.", "source": {"type": "book", "book": 5, "chapter": 18},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book5-008", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "creatures", "difficulty": "medium",
+    "question": "Vad måste en person ha upplevt för att kunna se thestraler?",
+    "options": ["En resa till Azkaban", "En egen flygtur", "Sett och förstått döden", "En lektion i spådomskonst"], "correctOptionIndex": 2,
+    "explanation": "Thestraler är synliga för personer som har sett döden och förstått dess innebörd.", "source": {"type": "book", "book": 5, "chapter": 21},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book5-009", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "magic", "difficulty": "medium",
+    "question": "Vad är syftet med Harrys lektioner i ocklumens?",
+    "options": ["Att tala med ormar", "Att flyga utan kvast", "Att brygga sanningsserum", "Att skydda hans sinne mot intrång"], "correctOptionIndex": 3,
+    "explanation": "Ocklumens ska hjälpa Harry att stänga sitt sinne för Voldemorts påverkan.", "source": {"type": "book", "book": 5, "chapter": 24},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book5-010", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "characters", "difficulty": "medium",
+    "question": "Vem håller Harrys enskilda lektioner i ocklumens?",
+    "options": ["Severus Snape", "Sirius Black", "Minerva McGonagall", "Remus Lupin"], "correctOptionIndex": 0,
+    "explanation": "Dumbledore ordnar så att Snape undervisar Harry i ocklumens.", "source": {"type": "book", "book": 5, "chapter": 24},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book5-011", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "spells", "difficulty": "hard",
+    "question": "Vilket djur tar Hermiones patronus formen av under försvarsträningen?",
+    "options": ["En katt", "En utter", "En svan", "En hare"], "correctOptionIndex": 1,
+    "explanation": "Hermiones kroppsliga patronus har formen av en utter.", "source": {"type": "book", "book": 5, "chapter": 27},
+    "entities": [{"type": "characters", "id": "hermione"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book5-012", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "characters", "difficulty": "medium",
+    "question": "Vilken släkting till Hagrid är jätten Grawp?",
+    "options": ["Hans far", "Hans kusin", "Hans halvbror", "Hans farbror"], "correctOptionIndex": 2,
+    "explanation": "Grawp är Hagrids halvbror, som Hagrid har tagit med till Förbjudna skogen.", "source": {"type": "book", "book": 5, "chapter": 30},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book5-013", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "objects", "difficulty": "medium",
+    "question": "Vad förvaras i glaskulorna i salen där Harrys grupp möter dödsätarna?",
+    "options": ["Fenixägg", "Trolldrycker", "Stulna trollstavar", "Profetior"], "correctOptionIndex": 3,
+    "explanation": "Salen på Mysterieavdelningen innehåller inspelningar av profetior i glaskulor.", "source": {"type": "book", "book": 5, "chapter": 34},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book5-014", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "characters", "difficulty": "medium",
+    "question": "Vem duellerar med Voldemort i ministeriets atrium?",
+    "options": ["Albus Dumbledore", "Arthur Weasley", "Cornelius Fudge", "Severus Snape"], "correctOptionIndex": 0,
+    "explanation": "Dumbledore möter Voldemort i en duell medan Harry befinner sig i atriet.", "source": {"type": "book", "book": 5, "chapter": 36},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book5-015", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "objects", "difficulty": "hard",
+    "question": "Vilken oanvänd gåva från Sirius hittar Harry efter Sirius död?",
+    "options": ["En tidvändare", "En tvåvägsspegel", "En förtrollad dagbok", "En silverkompass"], "correctOptionIndex": 1,
+    "explanation": "Harry upptäcker att gåvan var en tvåvägsspegel som kunde ha låtit honom tala med Sirius.", "source": {"type": "book", "book": 5, "chapter": 38},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  }
+]

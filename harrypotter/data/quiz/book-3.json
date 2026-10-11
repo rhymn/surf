@@ -1,0 +1,107 @@
+[
+  {
+    "id": "book3-001", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "plot", "difficulty": "easy",
+    "question": "Vad händer med faster Marge när Harry tappar humöret under sommarlovet?",
+    "options": ["Hon blir osynlig", "Hon förvandlas till en katt", "Hon blåses upp som en ballong", "Hon somnar i en vecka"], "correctOptionIndex": 2,
+    "explanation": "Harrys okontrollerade magi får Marge att svälla upp och sväva iväg.", "source": {"type": "book", "book": 3, "chapter": 2},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book3-002", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "transport", "difficulty": "easy",
+    "question": "Hur många våningar har Nattbussen som plockar upp Harry?",
+    "options": ["En", "Två", "Fyra", "Tre"], "correctOptionIndex": 3,
+    "explanation": "Nattbussen är en lila buss med tre våningar.", "source": {"type": "book", "book": 3, "chapter": 3},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book3-003", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "creatures", "difficulty": "easy",
+    "question": "Vilka vakter söker igenom Hogwarts Express efter Sirius Black?",
+    "options": ["Dementorer", "Husalver", "Kentaurer", "Jättar"], "correctOptionIndex": 0,
+    "explanation": "Dementorerna söker efter Sirius Black och får Harry att svimma på tåget.", "source": {"type": "book", "book": 3, "chapter": 5},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book3-004", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "characters", "difficulty": "easy",
+    "question": "Vad ger Remus Lupin Harry att äta efter mötet med dementorn på tåget?",
+    "options": ["Lakrits", "Choklad", "Bröd", "Ett äpple"], "correctOptionIndex": 1,
+    "explanation": "Lupin ger Harry choklad för att hjälpa honom att återhämta sig.", "source": {"type": "book", "book": 3, "chapter": 5},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book3-005", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "hogwarts", "difficulty": "easy",
+    "question": "Vilket ämne börjar Hagrid undervisa i under Harrys tredje år?",
+    "options": ["Trolldryckskonst", "Spådomskonst", "Skötsel och vård av magiska djur", "Astronomi"], "correctOptionIndex": 2,
+    "explanation": "Hagrid blir lärare i skötsel och vård av magiska djur.", "source": {"type": "book", "book": 3, "chapter": 6},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book3-006", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "creatures", "difficulty": "medium",
+    "question": "Vad ska Harry först göra för att hälsa artigt på hippogriffen Vingfåle?",
+    "options": ["Klappa dess näbb", "Vända ryggen till", "Ropa dess namn", "Buga och invänta en bugning tillbaka"], "correctOptionIndex": 3,
+    "explanation": "Hippogriffer kräver respekt; Harry bugar och väntar tills Vingfåle besvarar bugningen.", "source": {"type": "book", "book": 3, "chapter": 6},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book3-007", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "spells", "difficulty": "medium",
+    "question": "Vilken besvärjelse lär Lupin eleverna att använda mot en boggart?",
+    "options": ["Riddikulus", "Expecto Patronum", "Protego", "Stupefy"], "correctOptionIndex": 0,
+    "explanation": "Riddikulus förändrar boggartens skrämmande form till något komiskt.", "source": {"type": "book", "book": 3, "chapter": 7},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book3-008", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "creatures", "difficulty": "medium",
+    "question": "Vilken form antar boggarten när Neville står framför den?",
+    "options": ["En dementor", "Professor Snape", "En jättespindel", "Lord Voldemort"], "correctOptionIndex": 1,
+    "explanation": "Neville är rädd för Snape, så boggarten tar lärarens form.", "source": {"type": "book", "book": 3, "chapter": 7},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book3-009", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "objects", "difficulty": "easy",
+    "question": "Vem ger Harry Marodörkartan?",
+    "options": ["Lupin och Snape", "Ron och Hermione", "Fred och George", "Dumbledore och Hagrid"], "correctOptionIndex": 2,
+    "explanation": "Fred och George ger Harry kartan som de tidigare har tagit från Filchs kontor.", "source": {"type": "book", "book": 3, "chapter": 10},
+    "entities": [{"type": "characters", "id": "fred"}, {"type": "characters", "id": "george"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book3-010", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "places", "difficulty": "hard",
+    "question": "Vart leder tunneln bakom statyn av den enögda häxan?",
+    "options": ["Till Gringotts", "Till Hagrids stuga", "Till Azkaban", "Till godisbutiken i Hogsmeade"], "correctOptionIndex": 3,
+    "explanation": "Passagen leder till källaren i Hogsmeades godisbutik.", "source": {"type": "book", "book": 3, "chapter": 10},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book3-011", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "objects", "difficulty": "easy",
+    "question": "Vad gör Hermiones tidvändare möjligt?",
+    "options": ["Att resa några timmar tillbaka i tiden", "Att stanna tiden för alltid", "Att se alla framtida provfrågor", "Att ändra en persons ålder"], "correctOptionIndex": 0,
+    "explanation": "Hermione använder tidvändaren för att delta i lektioner som hålls samtidigt.", "source": {"type": "book", "book": 3, "chapter": 21},
+    "entities": [{"type": "characters", "id": "hermione"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book3-012", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "characters", "difficulty": "medium",
+    "question": "Vem visar sig Rons råtta Skabbis egentligen vara?",
+    "options": ["Sirius Black", "Peter Pettigrew", "Remus Lupin", "James Potter"], "correctOptionIndex": 1,
+    "explanation": "Skabbis är Peter Pettigrew, som har gömt sig i sin animagusform.", "source": {"type": "book", "book": 3, "chapter": 19},
+    "entities": [{"type": "pets", "id": "scabbers"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book3-013", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "characters", "difficulty": "medium",
+    "question": "Vilket djur kan Sirius Black förvandla sig till?",
+    "options": ["En hjort", "En råtta", "En stor svart hund", "En varg"], "correctOptionIndex": 2,
+    "explanation": "Sirius är en animagus som kan anta formen av en stor svart hund.", "source": {"type": "book", "book": 3, "chapter": 17},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book3-014", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "creatures", "difficulty": "medium",
+    "question": "Vad utlöser Lupins förvandling till varulv?",
+    "options": ["Ett åskväder", "En solförmörkelse", "Ljudet av en uggla", "Fullmånen"], "correctOptionIndex": 3,
+    "explanation": "Lupin förvandlas när fullmånen visar sig och han inte har tagit sin trolldryck.", "source": {"type": "book", "book": 3, "chapter": 20},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book3-015", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "spells", "difficulty": "medium",
+    "question": "Vilken djurform har Harrys fullt utvecklade patronus vid sjön?",
+    "options": ["En hjort", "En utter", "En hund", "En häst"], "correctOptionIndex": 0,
+    "explanation": "Harrys kroppsliga patronus tar formen av en hjort.", "source": {"type": "book", "book": 3, "chapter": 21},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  }
+]

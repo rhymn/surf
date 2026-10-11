@@ -24,6 +24,14 @@ const PAGE_TO_BACKGROUND = {
 
 const page = document.body.dataset.page;
 
+const navigation = document.querySelector('nav');
+if (navigation && page && page !== 'home') {
+  const quizLink = document.createElement('a');
+  quizLink.href = 'quiz.html';
+  quizLink.textContent = 'Quiz';
+  navigation.append(' ', quizLink);
+}
+
 async function loadAll() {
   const entries = await Promise.all(
     Object.entries(TYPE_TO_FILE).map(async ([type, file]) => {
@@ -151,6 +159,13 @@ function renderDetail(type, id, db) {
   const description = document.createElement('p');
   description.textContent = item.description || 'Ingen beskrivning tillgänglig.';
   detail.appendChild(description);
+
+  const quizLine = document.createElement('p');
+  const quizLink = document.createElement('a');
+  quizLink.href = `quiz.html?type=${encodeURIComponent(type)}&id=${encodeURIComponent(id)}`;
+  quizLink.textContent = `Quiz: ${entityName(type, item, db)}`;
+  quizLine.appendChild(quizLink);
+  detail.appendChild(quizLine);
 
   if (type === 'characters') {
     const houseLine = document.createElement('p');

@@ -1,0 +1,4 @@
+{
+  "version": 1,
+  "files": ["films.json", "cross-series.json", "book-1.json", "book-2.json", "book-3.json", "book-4.json", "book-5.json", "book-6.json", "book-7.json"]
+}

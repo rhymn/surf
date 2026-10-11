@@ -1,0 +1,107 @@
+[
+  {
+    "id": "book4-001", "language": "sv", "canon": "book", "spoilerThroughBook": 4, "category": "transport", "difficulty": "medium",
+    "question": "Vilket föremål används som flyttnyckel till quidditch-VM av Harrys sällskap?",
+    "options": ["En gammal stövel", "En tekanna", "En trasig klocka", "En kvast"], "correctOptionIndex": 0,
+    "explanation": "Sällskapet samlas kring en gammal stövel som fungerar som flyttnyckel.", "source": {"type": "book", "book": 4, "chapter": 6},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book4-002", "language": "sv", "canon": "book", "spoilerThroughBook": 4, "category": "quidditch", "difficulty": "medium",
+    "question": "Vilket landslag spelar Viktor Krum för i quidditch-VM?",
+    "options": ["Irland", "Bulgarien", "Frankrike", "Rumänien"], "correctOptionIndex": 1,
+    "explanation": "Krum spelar sökare för Bulgariens landslag.", "source": {"type": "book", "book": 4, "chapter": 8},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book4-003", "language": "sv", "canon": "book", "spoilerThroughBook": 4, "category": "quidditch", "difficulty": "medium",
+    "question": "Vilket land vinner VM-finalen trots att Krum fångar kvicken?",
+    "options": ["Bulgarien", "England", "Irland", "Sverige"], "correctOptionIndex": 2,
+    "explanation": "Irland har gjort så många mål att laget vinner även efter Krums fångst.", "source": {"type": "book", "book": 4, "chapter": 8},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book4-004", "language": "sv", "canon": "book", "spoilerThroughBook": 4, "category": "spells", "difficulty": "medium",
+    "question": "Vilken bild framträder på himlen som Mörkrets märke efter VM-finalen?",
+    "options": ["En svart drake", "Två korsade trollstavar", "Ett öga i en triangel", "En dödskalle med en orm ur munnen"], "correctOptionIndex": 3,
+    "explanation": "Mörkrets märke avbildar en dödskalle med en orm som kommer ut ur munnen.", "source": {"type": "book", "book": 4, "chapter": 9},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book4-005", "language": "sv", "canon": "book", "spoilerThroughBook": 4, "category": "objects", "difficulty": "easy",
+    "question": "Vilket föremål väljer deltagarna i den magiska trekampen?",
+    "options": ["Den flammande bägaren", "Sorteringshatten", "Marodörkartan", "En tidvändare"], "correctOptionIndex": 0,
+    "explanation": "Den flammande bägaren väljer vilka namn som ska representera skolorna.", "source": {"type": "book", "book": 4, "chapter": 16},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book4-006", "language": "sv", "canon": "book", "spoilerThroughBook": 4, "category": "hogwarts", "difficulty": "easy",
+    "question": "Hur gammal måste en elev minst vara för att själv anmäla sig till trekampen?",
+    "options": ["16 år", "17 år", "18 år", "15 år"], "correctOptionIndex": 1,
+    "explanation": "Dumbledore använder en ålderslinje för att stoppa elever som är yngre än sjutton.", "source": {"type": "book", "book": 4, "chapter": 16},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book4-007", "language": "sv", "canon": "book", "spoilerThroughBook": 4, "category": "characters", "difficulty": "easy",
+    "question": "Vem väljs till Beauxbatons förkämpe i trekampen?",
+    "options": ["Cho Chang", "Hermione Granger", "Fleur Delacour", "Angelina Johnson"], "correctOptionIndex": 2,
+    "explanation": "Fleur Delacour väljs att representera Beauxbatons.", "source": {"type": "book", "book": 4, "chapter": 16},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book4-008", "language": "sv", "canon": "book", "spoilerThroughBook": 4, "category": "characters", "difficulty": "medium",
+    "question": "Vilket elevhem tillhör Cedric Diggory?",
+    "options": ["Gryffindor", "Ravenclaw", "Slytherin", "Hufflepuff"], "correctOptionIndex": 3,
+    "explanation": "Cedric är Hufflepuffelev och blir en av Hogwarts förkämpar.", "source": {"type": "book", "book": 4, "chapter": 16},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book4-009", "language": "sv", "canon": "book", "spoilerThroughBook": 4, "category": "creatures", "difficulty": "medium",
+    "question": "Vilken drake måste Harry ta sig förbi i trekampens första uppgift?",
+    "options": ["En ungersk taggsvans", "En norsk ryggdrake", "En kinesisk eldboll", "En svensk kortnosing"], "correctOptionIndex": 0,
+    "explanation": "Harry måste hämta det gyllene ägget från en ungersk taggsvans.", "source": {"type": "book", "book": 4, "chapter": 20},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book4-010", "language": "sv", "canon": "book", "spoilerThroughBook": 4, "category": "characters", "difficulty": "medium",
+    "question": "Vem går Harry tillsammans med på julbalen?",
+    "options": ["Cho Chang", "Parvati Patil", "Ginny Weasley", "Padma Patil"], "correctOptionIndex": 1,
+    "explanation": "Harry går med Parvati Patil, medan Ron går med hennes tvillingsyster Padma.", "source": {"type": "book", "book": 4, "chapter": 23},
+    "entities": [{"type": "characters", "id": "harry"}, {"type": "characters", "id": "ron"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book4-011", "language": "sv", "canon": "book", "spoilerThroughBook": 4, "category": "characters", "difficulty": "easy",
+    "question": "Vem är Hermiones partner på julbalen?",
+    "options": ["Cedric Diggory", "Neville Longbottom", "Viktor Krum", "Ron Weasley"], "correctOptionIndex": 2,
+    "explanation": "Hermione går på julbalen med Viktor Krum.", "source": {"type": "book", "book": 4, "chapter": 23},
+    "entities": [{"type": "characters", "id": "hermione"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book4-012", "language": "sv", "canon": "book", "spoilerThroughBook": 4, "category": "characters", "difficulty": "hard",
+    "question": "Vem ger Harry gälgräs inför den andra uppgiften i boken?",
+    "options": ["Neville Longbottom", "Cedric Diggory", "Hermione Granger", "Dobby"], "correctOptionIndex": 3,
+    "explanation": "I boken ger Dobby Harry gälgräset; detta skiljer sig från filmversionen.", "source": {"type": "book", "book": 4, "chapter": 26},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book4-013", "language": "sv", "canon": "book", "spoilerThroughBook": 4, "category": "plot", "difficulty": "medium",
+    "question": "Vem är den person Harry ska rädda från sjön i trekampens andra uppgift?",
+    "options": ["Ron Weasley", "Hermione Granger", "Cho Chang", "Gabrielle Delacour"], "correctOptionIndex": 0,
+    "explanation": "Ron är den person som väntar under vattnet som Harrys uppdrag att rädda.", "source": {"type": "book", "book": 4, "chapter": 26},
+    "entities": [{"type": "characters", "id": "harry"}, {"type": "characters", "id": "ron"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book4-014", "language": "sv", "canon": "book", "spoilerThroughBook": 4, "category": "objects", "difficulty": "medium",
+    "question": "Vad visar sig trekampspokalen vara när Harry och Cedric rör den?",
+    "options": ["En kristallkula", "En flyttnyckel", "En tidvändare", "En förtrollad spegel"], "correctOptionIndex": 1,
+    "explanation": "Pokalen fungerar som en flyttnyckel och för dem till en kyrkogård.", "source": {"type": "book", "book": 4, "chapter": 32},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book4-015", "language": "sv", "canon": "book", "spoilerThroughBook": 4, "category": "characters", "difficulty": "hard",
+    "question": "Vem har utgett sig för att vara Alastor Moody under skolåret?",
+    "options": ["Igor Karkaroff", "Ludo Bagman", "Barty Crouch junior", "Lucius Malfoy"], "correctOptionIndex": 2,
+    "explanation": "Barty Crouch junior har hållit Moody fången och använt polyjuice-elixir för att ta hans plats.", "source": {"type": "book", "book": 4, "chapter": 35},
+    "entities": [], "reviewStatus": "draft"
+  }
+]

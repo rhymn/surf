@@ -1,0 +1,50 @@
+[
+  {
+    "id": "world-001", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "characters", "difficulty": "easy",
+    "question": "Vilket elevhem tillhör Harry Potter?", "options": ["Gryffindor", "Slytherin", "Ravenclaw", "Hufflepuff"], "correctOptionIndex": 0,
+    "explanation": "Harry blir placerad i Gryffindor.", "source": {"type": "wiki", "entityType": "characters", "entityId": "harry", "field": "house"},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "reviewed"
+  },
+  {
+    "id": "world-002", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "pets", "difficulty": "easy",
+    "question": "Vad heter Harrys uggla?", "options": ["Hedwig", "Krummben", "Skabbis", "Piggelin"], "correctOptionIndex": 0,
+    "explanation": "Harrys uggla heter Hedwig.", "source": {"type": "wiki", "entityType": "pets", "entityId": "hedwig", "field": "name"},
+    "entities": [{"type": "characters", "id": "harry"}, {"type": "pets", "id": "hedwig"}], "reviewStatus": "reviewed"
+  },
+  {
+    "id": "world-003", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "pets", "difficulty": "easy",
+    "question": "Vilken sorts uggla är Hedwig?", "options": ["Snöuggla", "Berguv", "Kattuggla", "Hornuggla"], "correctOptionIndex": 0,
+    "explanation": "Hedwig är en vit snöuggla.", "source": {"type": "wiki", "entityType": "pets", "entityId": "hedwig", "field": "species"},
+    "entities": [{"type": "pets", "id": "hedwig"}], "reviewStatus": "reviewed"
+  },
+  {
+    "id": "world-004", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "pets", "difficulty": "easy",
+    "question": "Vad heter Hermiones katt i den svenska översättningen?", "options": ["Krummben", "Hedwig", "Skabbis", "Piggelin"], "correctOptionIndex": 0,
+    "explanation": "Hermiones katt heter Krummben, eller Crookshanks på engelska.", "source": {"type": "wiki", "entityType": "pets", "entityId": "crookshanks", "field": "name"},
+    "entities": [{"type": "characters", "id": "hermione"}, {"type": "pets", "id": "crookshanks"}], "reviewStatus": "reviewed"
+  },
+  {
+    "id": "world-005", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "pets", "difficulty": "easy",
+    "question": "Vad heter Rons tamråtta i den svenska översättningen?", "options": ["Skabbis", "Krummben", "Piggelin", "Hedwig"], "correctOptionIndex": 0,
+    "explanation": "Rons tamråtta heter Skabbis, eller Scabbers på engelska.", "source": {"type": "wiki", "entityType": "pets", "entityId": "scabbers", "field": "name"},
+    "entities": [{"type": "characters", "id": "ron"}, {"type": "pets", "id": "scabbers"}], "reviewStatus": "reviewed"
+  },
+  {
+    "id": "world-006", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "pets", "difficulty": "medium",
+    "question": "Vad heter Rons lilla uggla i den svenska översättningen?", "options": ["Piggelin", "Hedwig", "Krummben", "Skabbis"], "correctOptionIndex": 0,
+    "explanation": "Rons lilla uggla heter Piggelin, eller Pigwidgeon på engelska.", "source": {"type": "wiki", "entityType": "pets", "entityId": "pigwidgeon", "field": "name"},
+    "entities": [{"type": "characters", "id": "ron"}, {"type": "pets", "id": "pigwidgeon"}], "reviewStatus": "reviewed"
+  },
+  {
+    "id": "world-007", "language": "sv", "canon": "book", "spoilerThroughBook": 3, "category": "characters", "difficulty": "medium",
+    "question": "Vilken vän till Harry är mugglarfödd?", "options": ["Hermione Granger", "Ron Weasley", "Fred Weasley", "George Weasley"], "correctOptionIndex": 0,
+    "explanation": "Hermione Granger är mugglarfödd.", "source": {"type": "wiki", "entityType": "characters", "entityId": "hermione", "field": "name"},
+    "entities": [{"type": "characters", "id": "hermione"}], "reviewStatus": "reviewed"
+  },
+  {
+    "id": "world-008", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "characters", "difficulty": "easy",
+    "question": "Vilken av Harrys vänner är känd för sitt schackspel?", "options": ["Ron Weasley", "Hermione Granger", "Fred Weasley", "George Weasley"], "correctOptionIndex": 0,
+    "explanation": "Ron Weasley är en skicklig schackspelare.", "source": {"type": "wiki", "entityType": "characters", "entityId": "ron", "field": "name"},
+    "entities": [{"type": "characters", "id": "ron"}], "reviewStatus": "reviewed"
+  }
+]

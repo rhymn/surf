@@ -1,0 +1,42 @@
+[
+  {
+    "id": "film-001", "language": "sv", "canon": "film", "spoilerThroughBook": 1, "category": "actors", "difficulty": "easy",
+    "question": "Vem spelar Harry Potter i filmerna?",
+    "options": ["Daniel Radcliffe", "Rupert Grint", "James Phelps", "Oliver Phelps"], "correctOptionIndex": 0,
+    "explanation": "Daniel Radcliffe gestaltar Harry Potter i filmerna.",
+    "source": {"type": "wiki", "entityType": "actors", "entityId": "daniel-radcliffe", "field": "name"},
+    "entities": [{"type": "characters", "id": "harry"}, {"type": "actors", "id": "daniel-radcliffe"}], "reviewStatus": "reviewed"
+  },
+  {
+    "id": "film-002", "language": "sv", "canon": "film", "spoilerThroughBook": 1, "category": "actors", "difficulty": "easy",
+    "question": "Vem spelar Hermione Granger i filmerna?",
+    "options": ["Emma Watson", "Daniel Radcliffe", "Rupert Grint", "James Phelps"], "correctOptionIndex": 0,
+    "explanation": "Emma Watson gestaltar Hermione Granger.",
+    "source": {"type": "wiki", "entityType": "actors", "entityId": "emma-watson", "field": "name"},
+    "entities": [{"type": "characters", "id": "hermione"}, {"type": "actors", "id": "emma-watson"}], "reviewStatus": "reviewed"
+  },
+  {
+    "id": "film-003", "language": "sv", "canon": "film", "spoilerThroughBook": 1, "category": "actors", "difficulty": "easy",
+    "question": "Vem spelar Ron Weasley i filmerna?",
+    "options": ["Rupert Grint", "Daniel Radcliffe", "James Phelps", "Oliver Phelps"], "correctOptionIndex": 0,
+    "explanation": "Rupert Grint gestaltar Ron Weasley.",
+    "source": {"type": "wiki", "entityType": "actors", "entityId": "rupert-grint", "field": "name"},
+    "entities": [{"type": "characters", "id": "ron"}, {"type": "actors", "id": "rupert-grint"}], "reviewStatus": "reviewed"
+  },
+  {
+    "id": "film-004", "language": "sv", "canon": "film", "spoilerThroughBook": 1, "category": "actors", "difficulty": "medium",
+    "question": "Vilken av tvillingarna Phelps spelar Fred Weasley?",
+    "options": ["James Phelps", "Oliver Phelps", "Rupert Grint", "Daniel Radcliffe"], "correctOptionIndex": 0,
+    "explanation": "James Phelps spelar Fred, medan Oliver Phelps spelar George.",
+    "source": {"type": "wiki", "entityType": "actors", "entityId": "james-phelps", "field": "name"},
+    "entities": [{"type": "characters", "id": "fred"}, {"type": "actors", "id": "james-phelps"}], "reviewStatus": "reviewed"
+  },
+  {
+    "id": "film-005", "language": "sv", "canon": "film", "spoilerThroughBook": 1, "category": "actors", "difficulty": "medium",
+    "question": "Vilken av tvillingarna Phelps spelar George Weasley?",
+    "options": ["Oliver Phelps", "James Phelps", "Rupert Grint", "Daniel Radcliffe"], "correctOptionIndex": 0,
+    "explanation": "Oliver Phelps gestaltar George Weasley.",
+    "source": {"type": "wiki", "entityType": "actors", "entityId": "oliver-phelps", "field": "name"},
+    "entities": [{"type": "characters", "id": "george"}, {"type": "actors", "id": "oliver-phelps"}], "reviewStatus": "reviewed"
+  }
+]

@@ -1,0 +1,107 @@
+[
+  {
+    "id": "book6-001", "language": "sv", "canon": "book", "spoilerThroughBook": 6, "category": "characters", "difficulty": "medium",
+    "question": "Vem ber Snape att avlägga en obrytbar ed för att skydda Draco?",
+    "options": ["Bellatrix Lestrange", "Narcissa Malfoy", "Dolores Umbridge", "Molly Weasley"], "correctOptionIndex": 1,
+    "explanation": "Dracos mamma Narcissa ber Snape skydda sonen och hjälpa honom med hans uppdrag.", "source": {"type": "book", "book": 6, "chapter": 2},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book6-002", "language": "sv", "canon": "book", "spoilerThroughBook": 6, "category": "hogwarts", "difficulty": "easy",
+    "question": "Vem undervisar Harry i trolldryckskonst under det sjätte skolåret?",
+    "options": ["Severus Snape", "Pomona Sprout", "Horace Slughorn", "Filius Flitwick"], "correctOptionIndex": 2,
+    "explanation": "Slughorn tar över trolldryckskonsten när Snape får undervisa i försvar mot svartkonster.", "source": {"type": "book", "book": 6, "chapter": 9},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book6-003", "language": "sv", "canon": "book", "spoilerThroughBook": 6, "category": "objects", "difficulty": "easy",
+    "question": "Var hittar Harry de instruktioner som hjälper honom att lyckas på Slughorns lektioner?",
+    "options": ["På Marodörkartan", "I en dagstidning", "På ett chokladgrodekort", "I marginalerna i en gammal lärobok"], "correctOptionIndex": 3,
+    "explanation": "Den gamla trolldrycksboken innehåller handskrivna förbättringar av recepten.", "source": {"type": "book", "book": 6, "chapter": 9},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book6-004", "language": "sv", "canon": "book", "spoilerThroughBook": 6, "category": "potions", "difficulty": "easy",
+    "question": "Vilken effekt har trolldrycken Felix Felicis?",
+    "options": ["Den ger tillfällig tur", "Den tvingar fram sanningen", "Den förändrar utseendet", "Den raderar minnen"], "correctOptionIndex": 0,
+    "explanation": "Felix Felicis kallas flytande tur och gör att saker tillfälligt går användarens väg.", "source": {"type": "book", "book": 6, "chapter": 9},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book6-005", "language": "sv", "canon": "book", "spoilerThroughBook": 6, "category": "potions", "difficulty": "medium",
+    "question": "Vad är Amortentia för sorts trolldryck?",
+    "options": ["Ett sanningsserum", "En kärleksdryck", "Ett motgift", "En sömndryck"], "correctOptionIndex": 1,
+    "explanation": "Amortentia är en mycket stark kärleksdryck som skapar besatthet, inte äkta kärlek.", "source": {"type": "book", "book": 6, "chapter": 9},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book6-006", "language": "sv", "canon": "book", "spoilerThroughBook": 6, "category": "quidditch", "difficulty": "easy",
+    "question": "Vilken position får Ron efter Harrys uttagning till Gryffindors lag?",
+    "options": ["Sökare", "Slagman", "Vaktare", "Jagare"], "correctOptionIndex": 2,
+    "explanation": "Ron vinner uttagningen till positionen som vaktare.", "source": {"type": "book", "book": 6, "chapter": 11},
+    "entities": [{"type": "characters", "id": "ron"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book6-007", "language": "sv", "canon": "book", "spoilerThroughBook": 6, "category": "objects", "difficulty": "medium",
+    "question": "Vilket förbannat föremål skadar Katie Bell efter besöket i Hogsmeade?",
+    "options": ["En silverring", "En förtrollad spegel", "En gammal fjäderpenna", "Ett opalhalsband"], "correctOptionIndex": 3,
+    "explanation": "Katie kommer i kontakt med ett förbannat opalhalsband som hon bär i ett paket.", "source": {"type": "book", "book": 6, "chapter": 12},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book6-008", "language": "sv", "canon": "book", "spoilerThroughBook": 6, "category": "characters", "difficulty": "easy",
+    "question": "Vilken elev blir Rons flickvän under hans sjätte år?",
+    "options": ["Lavender Brown", "Cho Chang", "Luna Lovegood", "Pansy Parkinson"], "correctOptionIndex": 0,
+    "explanation": "Ron och Lavender Brown blir tillsammans under skolåret.", "source": {"type": "book", "book": 6, "chapter": 14},
+    "entities": [{"type": "characters", "id": "ron"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book6-009", "language": "sv", "canon": "book", "spoilerThroughBook": 6, "category": "potions", "difficulty": "medium",
+    "question": "Vad stoppar Harry i Rons mun när Ron har druckit förgiftat mjöd?",
+    "options": ["En chokladgroda", "En bezoar", "Ett alruneblad", "En basiliskhuggtand"], "correctOptionIndex": 1,
+    "explanation": "Harry använder en bezoar som motgift och räddar Ron.", "source": {"type": "book", "book": 6, "chapter": 18},
+    "entities": [{"type": "characters", "id": "harry"}, {"type": "characters", "id": "ron"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book6-010", "language": "sv", "canon": "book", "spoilerThroughBook": 6, "category": "magic", "difficulty": "medium",
+    "question": "Vad innehåller en horrokrux?",
+    "options": ["En persons samtliga minnen", "En lånad trollstavskärna", "En avskild del av en själ", "En inspelad profetia"], "correctOptionIndex": 2,
+    "explanation": "En horrokrux innehåller en del av skaparens själ som har skilts från resten.", "source": {"type": "book", "book": 6, "chapter": 23},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book6-011", "language": "sv", "canon": "book", "spoilerThroughBook": 6, "category": "characters", "difficulty": "medium",
+    "question": "Vems äkta minne får Harry fram för att klarlägga Riddles frågor om horrokruxer?",
+    "options": ["Hagrids", "McGonagalls", "Snapes", "Slughorns"], "correctOptionIndex": 3,
+    "explanation": "Slughorn lämnar till slut det oförändrade minnet av sitt samtal med Tom Riddle.", "source": {"type": "book", "book": 6, "chapter": 23},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book6-012", "language": "sv", "canon": "book", "spoilerThroughBook": 6, "category": "spells", "difficulty": "medium",
+    "question": "Vilken besvärjelse från prinsens bok använder Harry mot Draco på toaletten?",
+    "options": ["Sectumsempra", "Levicorpus", "Muffliato", "Langlock"], "correctOptionIndex": 0,
+    "explanation": "Harry använder Sectumsempra utan att förstå dess farliga effekt.", "source": {"type": "book", "book": 6, "chapter": 24},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book6-013", "language": "sv", "canon": "book", "spoilerThroughBook": 6, "category": "creatures", "difficulty": "hard",
+    "question": "Vad är inferierna som finns i vattnet i grottan?",
+    "options": ["Vattenlevande dementorer", "Döda kroppar som styrs med svart magi", "Förvandlade sjöjungfrur", "Osynliga drakar"], "correctOptionIndex": 1,
+    "explanation": "Inferier är döda kroppar som en mörk trollkarl har förtrollat för att göra hans vilja.", "source": {"type": "book", "book": 6, "chapter": 26},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book6-014", "language": "sv", "canon": "book", "spoilerThroughBook": 6, "category": "characters", "difficulty": "medium",
+    "question": "Vem utför dödsförbannelsen mot Dumbledore på astronomitornet?",
+    "options": ["Draco Malfoy", "Fenrir Greyback", "Severus Snape", "Lucius Malfoy"], "correctOptionIndex": 2,
+    "explanation": "Snape dödar Dumbledore på astronomitornet efter att Draco har tvekat.", "source": {"type": "book", "book": 6, "chapter": 27},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book6-015", "language": "sv", "canon": "book", "spoilerThroughBook": 6, "category": "characters", "difficulty": "medium",
+    "question": "Vem avslöjar att han är Halvblodsprinsen?",
+    "options": ["Tom Riddle", "Horace Slughorn", "Sirius Black", "Severus Snape"], "correctOptionIndex": 3,
+    "explanation": "Snape avslöjar att läroboken och dess anteckningar var hans.", "source": {"type": "book", "book": 6, "chapter": 28},
+    "entities": [], "reviewStatus": "draft"
+  }
+]

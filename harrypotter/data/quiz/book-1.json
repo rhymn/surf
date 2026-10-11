@@ -1,0 +1,107 @@
+[
+  {
+    "id": "book1-001", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "places", "difficulty": "easy",
+    "question": "På vilken adress bor familjen Dursley när den första boken börjar?",
+    "options": ["Privet Drive 4", "Grimmauld Place 12", "Spinner's End 2", "Privet Drive 12"], "correctOptionIndex": 0,
+    "explanation": "Familjen Dursley bor på nummer 4 på Privet Drive.", "source": {"type": "book", "book": 1, "chapter": 1},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book1-002", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "characters", "difficulty": "easy",
+    "question": "Vilken släkting till Harry är Petunia Dursley?",
+    "options": ["Hans faster", "Hans moster", "Hans kusin", "Hans farmor"], "correctOptionIndex": 1,
+    "explanation": "Petunia är syster till Harrys mamma Lily och därmed Harrys moster.", "source": {"type": "book", "book": 1, "chapter": 1},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book1-003", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "creatures", "difficulty": "easy",
+    "question": "Vilket djur talar Harry med under besöket på djurparken?",
+    "options": ["En tiger", "En uggla", "En boaorm", "En krokodil"], "correctOptionIndex": 2,
+    "explanation": "Harry talar med en boaorm innan glaset framför ormens terrarium försvinner.", "source": {"type": "book", "book": 1, "chapter": 2},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book1-004", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "characters", "difficulty": "easy",
+    "question": "Vem berättar personligen för Harry att han är en trollkarl på hans elvaårsdag?",
+    "options": ["Severus Snape", "Minerva McGonagall", "Arthur Weasley", "Rubeus Hagrid"], "correctOptionIndex": 3,
+    "explanation": "Hagrid söker upp Harry i stugan på klippan och berättar om hans magiska bakgrund.", "source": {"type": "book", "book": 1, "chapter": 4},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book1-005", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "objects", "difficulty": "medium",
+    "question": "Vilken kärna finns i den trollstav Harry köper hos Ollivander?",
+    "options": ["En fenixfjäder", "Ett enhörningshår", "En drakhjärtesträng", "Ett thestralhår"], "correctOptionIndex": 0,
+    "explanation": "Harrys trollstav har en kärna av fenixfjäder.", "source": {"type": "book", "book": 1, "chapter": 5},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book1-006", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "places", "difficulty": "easy",
+    "question": "Från vilken perrong avgår Hogwarts Express?",
+    "options": ["Perrong 7 och en halv", "Perrong 9 och tre fjärdedelar", "Perrong 10 och en fjärdedel", "Perrong 11"], "correctOptionIndex": 1,
+    "explanation": "Hogwarts Express avgår från den dolda perrongen 9 och tre fjärdedelar.", "source": {"type": "book", "book": 1, "chapter": 6},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book1-007", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "hogwarts", "difficulty": "easy",
+    "question": "Vilket föremål avgör vilket elevhem en ny elev placeras i?",
+    "options": ["En kristallkula", "En förtrollad bägare", "Sorteringshatten", "En magisk kompass"], "correctOptionIndex": 2,
+    "explanation": "Sorteringshatten placeras på elevens huvud och väljer ett elevhem.", "source": {"type": "book", "book": 1, "chapter": 7},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book1-008", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "quidditch", "difficulty": "easy",
+    "question": "Vilken position får Harry i Gryffindors quidditchlag under sitt första år?",
+    "options": ["Vaktare", "Slagman", "Jagare", "Sökare"], "correctOptionIndex": 3,
+    "explanation": "McGonagall upptäcker Harrys flygtalang och ordnar så att han blir sökare.", "source": {"type": "book", "book": 1, "chapter": 9},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book1-009", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "spells", "difficulty": "easy",
+    "question": "Vilken besvärjelse övar eleverna med en fjäder på lektionen före halloweenfesten?",
+    "options": ["Wingardium Leviosa", "Expelliarmus", "Lumos", "Alohomora"], "correctOptionIndex": 0,
+    "explanation": "Eleverna övar på att få en fjäder att sväva med Wingardium Leviosa.", "source": {"type": "book", "book": 1, "chapter": 10},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book1-010", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "creatures", "difficulty": "easy",
+    "question": "Vilken varelse angriper Hermione på en toalett under halloween?",
+    "options": ["En varulv", "Ett bergstroll", "En basilisk", "En dementor"], "correctOptionIndex": 1,
+    "explanation": "Harry och Ron hjälper Hermione när ett bergstroll kommer in på toaletten.", "source": {"type": "book", "book": 1, "chapter": 10},
+    "entities": [{"type": "characters", "id": "hermione"}, {"type": "characters", "id": "ron"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book1-011", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "objects", "difficulty": "medium",
+    "question": "Vad ser Harry i spegeln han upptäcker under jullovet?",
+    "options": ["Sig själv som rektor", "Nästa quidditchmatch", "Sina föräldrar och sin familj", "Voldemorts gömställe"], "correctOptionIndex": 2,
+    "explanation": "Spegeln visar Harry hans familj, vilket motsvarar hans djupaste önskan.", "source": {"type": "book", "book": 1, "chapter": 12},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book1-012", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "characters", "difficulty": "medium",
+    "question": "Vem är alkemisten som har framställt de vises sten?",
+    "options": ["Gellert Grindelwald", "Garrick Ollivander", "Horace Slughorn", "Nicolas Flamel"], "correctOptionIndex": 3,
+    "explanation": "Nicolas Flamel är alkemisten bakom de vises sten.", "source": {"type": "book", "book": 1, "chapter": 13},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book1-013", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "creatures", "difficulty": "medium",
+    "question": "Vilken drakart kläcks ur ägget som Hagrid skaffar?",
+    "options": ["Norsk ryggdrake", "Ungersk taggsvans", "Svensk kortnosing", "Kinesisk eldboll"], "correctOptionIndex": 0,
+    "explanation": "Hagrids drake Norbert är en norsk ryggdrake.", "source": {"type": "book", "book": 1, "chapter": 14},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book1-014", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "plot", "difficulty": "medium",
+    "question": "Vilket spel måste Harry, Ron och Hermione spela på ett förtrollat bräde för att nå stenen?",
+    "options": ["Dam", "Schack", "Backgammon", "Domino"], "correctOptionIndex": 1,
+    "explanation": "Ron leder gruppen genom ett parti trollkarlsschack med stora levande pjäser.", "source": {"type": "book", "book": 1, "chapter": 16},
+    "entities": [{"type": "characters", "id": "ron"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book1-015", "language": "sv", "canon": "book", "spoilerThroughBook": 1, "category": "characters", "difficulty": "medium",
+    "question": "Vilken lärare möter Harry i den sista kammaren där de vises sten skyddas?",
+    "options": ["Severus Snape", "Filius Flitwick", "Quirinus Quirrell", "Pomona Sprout"], "correctOptionIndex": 2,
+    "explanation": "Det är Quirrell, inte Snape, som försöker få tag på stenen åt Voldemort.", "source": {"type": "book", "book": 1, "chapter": 17},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  }
+]

@@ -1,0 +1,107 @@
+[
+  {
+    "id": "book7-001", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "potions", "difficulty": "easy",
+    "question": "Vem tar sex av Harrys vänner formen av med polyjuice när han lämnar Privet Drive?",
+    "options": ["Alastor Moody", "Dudley Dursley", "Harry Potter", "Albus Dumbledore"], "correctOptionIndex": 2,
+    "explanation": "Sex personer tar Harrys utseende för att göra det svårt att identifiera den riktige Harry.", "source": {"type": "book", "book": 7, "chapter": 4},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book7-002", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "spells", "difficulty": "hard",
+    "question": "Vilken djurform har Kingsleys patronus som varnar bröllopsgästerna för ministeriets fall?",
+    "options": ["En hjort", "En utter", "En varg", "Ett lodjur"], "correctOptionIndex": 3,
+    "explanation": "Kingsleys lodjurspatronus kommer med varningen till Bill och Fleurs bröllop.", "source": {"type": "book", "book": 7, "chapter": 8},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book7-003", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "characters", "difficulty": "medium",
+    "question": "Vem döljer sig bakom initialerna R.A.B. i brevet till Voldemort?",
+    "options": ["Regulus Arcturus Black", "Rubeus Albus Black", "Remus Antonius Brown", "Rufus Archibald Bagman"], "correctOptionIndex": 0,
+    "explanation": "Initialerna tillhör Sirius yngre bror Regulus Arcturus Black.", "source": {"type": "book", "book": 7, "chapter": 10},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book7-004", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "objects", "difficulty": "medium",
+    "question": "Vem bär Slytherins medaljong när Harrys grupp tar sig in på ministeriet?",
+    "options": ["Bellatrix Lestrange", "Dolores Umbridge", "Narcissa Malfoy", "Pius Thicknesse"], "correctOptionIndex": 1,
+    "explanation": "Umbridge bär medaljongen runt halsen och ljuger om dess bakgrund.", "source": {"type": "book", "book": 7, "chapter": 13},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book7-005", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "characters", "difficulty": "medium",
+    "question": "Vem förstör medaljongens horrokrux med Gryffindors svärd?",
+    "options": ["Harry Potter", "Hermione Granger", "Ron Weasley", "Neville Longbottom"], "correctOptionIndex": 2,
+    "explanation": "Efter att ha räddat Harry ur vattnet förstör Ron medaljongen med svärdet.", "source": {"type": "book", "book": 7, "chapter": 19},
+    "entities": [{"type": "characters", "id": "ron"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book7-006", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "spells", "difficulty": "medium",
+    "question": "Vilken patronus leder Harry till dammen där Gryffindors svärd finns?",
+    "options": ["En hjort", "En hare", "En fenix", "En hind"], "correctOptionIndex": 3,
+    "explanation": "En silverfärgad hind visar Harry vägen till svärdet i det kalla vattnet.", "source": {"type": "book", "book": 7, "chapter": 19},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book7-007", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "objects", "difficulty": "medium",
+    "question": "Vilka tre föremål utgör dödsrelikerna?",
+    "options": ["Fläderstaven, uppståndelsestenen och osynlighetsmanteln", "Gryffindors svärd, Slytherins medaljong och Hufflepuffs bägare", "En tidvändare, en flyttnyckel och en minnessåll", "Sorteringshatten, Marodörkartan och den flammande bägaren"], "correctOptionIndex": 0,
+    "explanation": "Sagan om de tre bröderna handlar om en stav, en sten och en mantel.", "source": {"type": "book", "book": 7, "chapter": 21},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book7-008", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "characters", "difficulty": "medium",
+    "question": "Vem förklarar dödsrelikernas symbol för Harry, Ron och Hermione?",
+    "options": ["Aberforth Dumbledore", "Xenophilius Lovegood", "Kingsley Shacklebolt", "Arthur Weasley"], "correctOptionIndex": 1,
+    "explanation": "Lunas pappa Xenophilius berättar hur symbolen avbildar de tre relikerna.", "source": {"type": "book", "book": 7, "chapter": 21},
+    "entities": [{"type": "characters", "id": "harry"}, {"type": "characters", "id": "ron"}, {"type": "characters", "id": "hermione"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book7-009", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "places", "difficulty": "medium",
+    "question": "Var begraver Harry Dobby?",
+    "options": ["På Hogwarts kyrkogård", "Vid Hagrids stuga", "Vid Bill och Fleurs hem nära havet", "I trädgården på Privet Drive"], "correctOptionIndex": 2,
+    "explanation": "Harry gräver Dobbys grav för hand nära Bill och Fleurs hem.", "source": {"type": "book", "book": 7, "chapter": 24},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book7-010", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "creatures", "difficulty": "easy",
+    "question": "Vilken varelse använder Harry, Ron och Hermione för att fly från Gringotts?",
+    "options": ["En hippogriff", "En thestral", "En fenix", "En drake"], "correctOptionIndex": 3,
+    "explanation": "De klättrar upp på draken som bevakar valven och flyr på dess rygg.", "source": {"type": "book", "book": 7, "chapter": 26},
+    "entities": [{"type": "characters", "id": "harry"}, {"type": "characters", "id": "ron"}, {"type": "characters", "id": "hermione"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book7-011", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "objects", "difficulty": "medium",
+    "question": "Vilken horrokrux hämtar trion ur familjen Lestranges bankvalv?",
+    "options": ["Hufflepuffs bägare", "Ravenclaws diadem", "Slytherins medaljong", "Riddles dagbok"], "correctOptionIndex": 0,
+    "explanation": "Hufflepuffs bägare finns i valvet och är en av Voldemorts horrokruxer.", "source": {"type": "book", "book": 7, "chapter": 26},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book7-012", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "magic", "difficulty": "hard",
+    "question": "Vad förstör Ravenclaws diadem i boken?",
+    "options": ["En vanlig brasa", "Den förhäxade eld som Crabbe framkallar", "Ett slag med en kvast", "En avväpningsbesvärjelse"], "correctOptionIndex": 1,
+    "explanation": "Crabbes okontrollerbara magiska eld förstör diademet i Vid-behov-rummet.", "source": {"type": "book", "book": 7, "chapter": 31},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book7-013", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "objects", "difficulty": "medium",
+    "question": "I vilket föremål har Dumbledore gömt uppståndelsestenen åt Harry?",
+    "options": ["I Gryffindors svärd", "I en chokladgrodeask", "I den första kvick som Harry fångade", "I Harrys gamla trollstav"], "correctOptionIndex": 2,
+    "explanation": "Stenen ligger inuti den kvick som Dumbledore testamenterade till Harry.", "source": {"type": "book", "book": 7, "chapter": 34},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book7-014", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "characters", "difficulty": "easy",
+    "question": "Vem dödar Nagini under slutstriden på Hogwarts?",
+    "options": ["Ron Weasley", "Harry Potter", "Hermione Granger", "Neville Longbottom"], "correctOptionIndex": 3,
+    "explanation": "Neville använder Gryffindors svärd för att döda Nagini och förstöra horrokruxen.", "source": {"type": "book", "book": 7, "chapter": 36},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book7-015", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "magic", "difficulty": "hard",
+    "question": "Vem hade Harry övermannat för att få fläderstavens trohet före slutduellen?",
+    "options": ["Draco Malfoy", "Severus Snape", "Lucius Malfoy", "Albus Dumbledore"], "correctOptionIndex": 0,
+    "explanation": "Draco hade vunnit stavens trohet från Dumbledore; Harry vann den senare genom att övermanna Draco.", "source": {"type": "book", "book": 7, "chapter": 36},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  }
+]

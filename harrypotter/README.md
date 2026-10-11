@@ -41,3 +41,64 @@ npx serve .
 - Lägg till fler entiteter och länkar i `data/*.json`
 - Behåll stabila ID:n (`id`) så relationer fortsätter fungera
 - Migrera till backend senare utan att ändra datamodellens form
+
+## Quiz
+
+Öppna `quiz.html` för ett soloquiz med ämne, svårighetsgrad, bok/film,
+spoilergräns och 5–50 frågor per omgång. Om färre frågor matchar används alla
+matchande frågor. Wikiartiklar länkar till quiz om respektive entitet.
+Senaste omgången och senaste resultatet per fråga sparas lokalt i webbläsaren.
+Felaktigt besvarade frågor kan övas igen inom de valda filtren.
+
+### Frågebanken
+
+`data/quiz/manifest.json` listar JSON-filerna som ska laddas. Banken innehåller
+118 frågor: 13 startfrågor i `films.json` och `cross-series.json`, kontrollerade
+mot befintliga lokala wikiuppgifter, samt 105 svenska bokfrågor i
+`book-1.json` till `book-7.json` (15 per bok).
+
+Bokfrågorna är utkast med kapitelhänvisningar, egna förklaringar och varierade
+svarspositioner. Svar, svenska namn, kapitelhänvisningar och spoilergränser
+behöver kontrolleras mot böckerna innan `reviewStatus` ändras från `draft`
+till `reviewed`. Därför är fortfarande bara de 13 startfrågorna spelbara.
+Fortsätt lägga till frågor i respektive bokfil med nya stabila ID:n; ingen
+kodändring behövs. Detta är en första utökning mot 1 000+ frågor, inte en
+komplett bank eller en extern kanongranskning.
+
+Varje fråga har följande fält:
+
+- `id`: unikt, stabilt ID; återanvänd aldrig ett borttaget ID.
+- `language`: exempelvis `sv`.
+- `canon`: `book` eller `film`.
+- `spoilerThroughBook`: högsta boknummer som frågan, alternativen eller förklaringen avslöjar (1–7).
+- `category`: exempelvis `characters`, `pets`, `actors` eller `spells`.
+- `difficulty`: `easy`, `medium` eller `hard`.
+- `question`, fyra unika `options`, samt `correctOptionIndex` (0–3).
+- `explanation`: egen kort förklaring, inte kopierad boktext.
+- `source`: `{ "type": "book", "book": 1, "chapter": 6 }`,
+	`{ "type": "film", "title": "...", "scene": "..." }` eller en lokal
+	wikireferens med `type`, `entityType`, `entityId` och `field`.
+- `entities`: wikianknytningar med `type` och `id`.
+- `reviewStatus`: `draft` tills svar, källa, formulering och spoilergräns
+	kontrollerats; endast `reviewed` används i quiz.
+
+Kör validering och tester från repots rot:
+
+```bash
+node --test harrypotter/tests/quiz.test.mjs
+```
+
+### Simple Chat senare
+
+`quiz-bank.mjs` fungerar både i webbläsaren och som en dynamisk Node-import.
+Frågebanken är den enda redigerade källan. Kopiera banken och modulen till
+Simple Chats serverdel vid bygg/deploy, inte till dess publika katalog.
+Det kräver att deploysteget har tillgång till wiki-katalogen; de nuvarande
+apparna distribueras separat. Något sådant deploysteg är ännu inte tillagt.
+
+Servern kan läsa JSON-filer med `node:fs/promises`, köra `validateQuestions`
+och använda `filterQuestions`. `publicQuestion` ger endast ID, frågetext,
+alternativ, ämne och svårighetsgrad. Behåll rätt svar och förklaringar på
+servern tills omgångens svar avslöjas. Wikiquizet är lokalt och skyddar inte
+sina JSON-svar mot inspektion. Realtime-rundor, serverpoäng och chatpanelen
+är nästa integration, inte del av denna version.
