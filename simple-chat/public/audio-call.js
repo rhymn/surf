@@ -3,6 +3,7 @@ const initializeAudioCall = (socket) => {
     const leaveButton = document.getElementById('leave-call');
     const muteButton = document.getElementById('mute-call');
     const playButton = document.getElementById('play-call');
+    const notificationButton = document.getElementById('call-notifications');
     const controls = document.getElementById('audio-controls');
     const status = document.getElementById('audio-status');
     const audioContainer = document.getElementById('remote-audio');
@@ -17,8 +18,21 @@ const initializeAudioCall = (socket) => {
     lucide.createIcons();
 
     const supported = window.isSecureContext && navigator.mediaDevices?.getUserMedia && window.RTCPeerConnection;
+    const notificationSupported = window.isSecureContext && window.Notification && navigator.serviceWorker;
+    const notificationTag = `audio-call:${window.location?.pathname}`;
+    let notificationsEnabled = notificationSupported && window.Notification.permission === 'granted'
+        && localStorage.getItem('callNotifications') === 'true';
+    let enablingNotifications = false;
+    let notificationRegistration = null;
+    let notificationVersion = 0;
+    let notificationOperation = Promise.resolve();
 
     const render = (message) => {
+        notificationButton.hidden = !notificationSupported;
+        notificationButton.disabled = enablingNotifications || (notificationSupported && window.Notification.permission === 'denied');
+        notificationButton.setAttribute('aria-pressed', String(Boolean(notificationsEnabled)));
+        notificationButton.title = notificationsEnabled ? 'Disable call notifications' : 'Enable call notifications';
+        notificationButton.setAttribute('aria-label', notificationButton.title);
         joinButton.hidden = joined || joining;
         joinButton.disabled = !supported || !socket.connected;
         controls.hidden = !joined && !joining;
@@ -37,6 +51,80 @@ const initializeAudioCall = (socket) => {
         }
     };
 
+    const getNotificationRegistration = async () => {
+        if (!notificationRegistration) {
+            await navigator.serviceWorker.register('/service-worker.js');
+            notificationRegistration = await navigator.serviceWorker.ready;
+        }
+        return notificationRegistration;
+    };
+
+    const queueNotification = (operation) => {
+        notificationOperation = notificationOperation.then(operation).catch(() => {
+            render('Call notifications are unavailable.');
+        });
+    };
+
+    const dismissCallNotification = () => {
+        notificationVersion++;
+        if (!notificationSupported) return;
+        queueNotification(async () => {
+            if (!notificationRegistration) return;
+            const notifications = await notificationRegistration.getNotifications({ tag: notificationTag });
+            notifications.forEach(notification => notification.close());
+        });
+    };
+
+    const notifyIncomingCall = (caller) => {
+        if (!notificationsEnabled || window.Notification.permission !== 'granted') return;
+        const version = notificationVersion;
+        queueNotification(async () => {
+            const registration = await getNotificationRegistration();
+            if (version !== notificationVersion || !notificationsEnabled || joined || joining ||
+                !participants.some(peer => peer.peerId !== socket.id)) return;
+            const username = typeof caller.username === 'string' ? caller.username.slice(0, 100) : 'Someone';
+            await registration.showNotification('Incoming audio call', {
+                body: `${username} started a call.`,
+                tag: notificationTag,
+                renotify: true,
+                requireInteraction: true,
+                vibrate: [200, 100, 200],
+                data: { url: `${window.location.origin}${window.location.pathname}` }
+            });
+        });
+    };
+
+    notificationButton.addEventListener('click', async () => {
+        if (!notificationSupported || enablingNotifications) return;
+        if (notificationsEnabled) {
+            notificationsEnabled = false;
+            localStorage.removeItem('callNotifications');
+            dismissCallNotification();
+            render();
+            return;
+        }
+        enablingNotifications = true;
+        render();
+        try {
+            const permission = await window.Notification.requestPermission();
+            if (permission !== 'granted') {
+                render('Call notifications were not allowed.');
+                return;
+            }
+            await getNotificationRegistration();
+            notificationsEnabled = true;
+            localStorage.setItem('callNotifications', 'true');
+            const caller = participants.find(peer => peer.peerId !== socket.id);
+            if (caller && !joined && !joining) notifyIncomingCall(caller);
+            render();
+        } catch {
+            render('Call notifications are unavailable.');
+        } finally {
+            enablingNotifications = false;
+            notificationButton.disabled = window.Notification.permission === 'denied';
+        }
+    });
+
     const removePeer = (peerId) => {
         const peer = peers.get(peerId);
         if (!peer) return;
@@ -47,6 +135,7 @@ const initializeAudioCall = (socket) => {
     };
 
     const leave = (message) => {
+        dismissCallNotification();
         generation++;
         joining = false;
         joined = false;
@@ -98,10 +187,14 @@ const initializeAudioCall = (socket) => {
     };
 
     socket.on('audio:participants', (list) => {
+        const callStarted = participants.length === 0 && list.length > 0;
         participants = list;
         for (const peerId of peers.keys()) {
             if (!list.some(participant => participant.peerId === peerId)) removePeer(peerId);
         }
+        if (list.length === 0) dismissCallNotification();
+        const caller = list.find(peer => peer.peerId !== socket.id);
+        if (callStarted && caller && !joined && !joining) notifyIncomingCall(caller);
         render();
     });
 
@@ -135,6 +228,7 @@ const initializeAudioCall = (socket) => {
 
     joinButton.addEventListener('click', async () => {
         if (joining || joined || !socket.connected || !supported) return;
+        dismissCallNotification();
         const attempt = ++generation;
         joining = true;
         render();

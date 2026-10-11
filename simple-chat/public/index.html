@@ -62,6 +62,7 @@
             .audio-bar [hidden] { display: none !important; }
             #leave-call { background: #b42332; }
             #mute-call[aria-pressed="true"] { background: #333; }
+            #call-notifications[aria-pressed="true"] { background: #267347; }
             button:focus-visible { outline: 3px solid #111; outline-offset: 2px; }
             .message {
                 padding: 10px;
@@ -132,6 +133,7 @@
         <div class="chat-container">
             <div class="audio-bar" aria-label="Audio call">
                 <span id="audio-status" role="status" aria-live="polite">Audio call</span>
+                <button type="button" id="call-notifications" title="Enable call notifications" aria-label="Enable call notifications" aria-pressed="false" hidden><i data-lucide="bell" aria-hidden="true"></i></button>
                 <button type="button" id="join-call" disabled><i data-lucide="phone" aria-hidden="true"></i>Join call</button>
                 <div id="audio-controls" hidden>
                     <button type="button" id="play-call" title="Play call audio" aria-label="Play call audio" hidden><i data-lucide="volume-2" aria-hidden="true"></i></button>
