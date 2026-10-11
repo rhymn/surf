@@ -44,22 +44,24 @@ const initializeDictation = () => {
         try {
             const current = new SpeechRecognition();
             recognition = current;
-            const processed = new Set();
+            const draft = input.value;
+            let displayed = draft;
             current.lang = navigator.language || 'en-US';
             current.continuous = true;
-            current.interimResults = false;
+            current.interimResults = true;
             current.onstart = () => {
                 if (recognition === current) render('Listening...');
             };
             current.onresult = (event) => {
                 if (recognition !== current || callActive) return;
-                for (let index = event.resultIndex; index < event.results.length; index++) {
-                    const result = event.results[index];
-                    if (!result.isFinal || processed.has(index)) continue;
-                    processed.add(index);
-                    const text = result[0].transcript.trim();
-                    if (text) input.value += `${input.value && !/\s$/.test(input.value) ? ' ' : ''}${text}`;
+                if (input.value !== displayed) {
+                    stop();
+                    return;
                 }
+                const text = Array.from(event.results, result => result[0].transcript.trim())
+                    .filter(Boolean).join(' ');
+                displayed = draft + (text ? `${draft && !/\s$/.test(draft) ? ' ' : ''}${text}` : '');
+                input.value = displayed;
             };
             current.onend = () => {
                 if (recognition !== current) return;
@@ -92,6 +94,9 @@ const initializeDictation = () => {
         callActive = detail.active;
         if (callActive) stop();
         else render();
+    });
+    input.addEventListener('input', () => {
+        if (recognition) stop();
     });
     window.addEventListener('pagehide', stop);
     render();

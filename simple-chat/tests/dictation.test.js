@@ -41,7 +41,8 @@ const setup = ({ supported = true, secure = true, prefixed = false, startError =
     const controller = runInNewContext(`${source}\ninitializeDictation();`, context);
     const result = (session, texts, resultIndex = 0) => session.onresult({
         resultIndex,
-        results: texts.map(text => Object.assign([{ transcript: text }], { isFinal: true }))
+        results: texts.map(text => Object.assign([{ transcript: typeof text === 'string' ? text : text.text }],
+            { isFinal: typeof text === 'string' || text.final === true }))
     });
     return { element, sessions, controller, result, event: (name, payload) => events.get(name)(payload) };
 };
@@ -53,7 +54,7 @@ test('dictation starts only on click, preserves drafts and appends final text on
     state.element('dictate-message').click();
     const session = state.sessions[0];
     assert.equal(session.lang, 'sv-SE');
-    assert.equal(session.interimResults, false);
+    assert.equal(session.interimResults, true);
     assert.equal(state.element('dictate-message').getAttribute('aria-pressed'), 'true');
     state.result(session, ['Hej']);
     state.result(session, ['Hej', 'igen']);
@@ -129,4 +130,47 @@ test('pagehide aborts recording and synchronous start errors remain retryable', 
     failing.element('dictate-message').click();
     assert.match(failing.element('dictation-status').textContent, /unavailable/);
     assert.equal(failing.element('dictate-message').getAttribute('aria-pressed'), 'false');
+});
+
+test('interim text streams into the draft and is replaced rather than duplicated', () => {
+    const state = setup();
+    state.element('message-input').value = 'Draft';
+    state.element('dictate-message').click();
+    const session = state.sessions[0];
+    state.result(session, [{ text: 'He' }]);
+    assert.equal(state.element('message-input').value, 'Draft He');
+    state.result(session, [{ text: 'Hej igen' }]);
+    assert.equal(state.element('message-input').value, 'Draft Hej igen');
+    state.result(session, ['Hej', { text: 'hur ar' }]);
+    assert.equal(state.element('message-input').value, 'Draft Hej hur ar');
+    state.result(session, ['Hej', 'hur ar det'], 1);
+    state.result(session, ['Hej', 'hur ar det'], 1);
+    assert.equal(state.element('message-input').value, 'Draft Hej hur ar det');
+});
+
+test('retracted interim results disappear without removing final text or the original draft', () => {
+    const state = setup();
+    state.element('message-input').value = 'Draft ';
+    state.element('dictate-message').click();
+    const session = state.sessions[0];
+    state.result(session, ['Hej', { text: 'maybe' }]);
+    state.result(session, ['Hej'], 1);
+    assert.equal(state.element('message-input').value, 'Draft Hej');
+    state.controller.stop();
+    state.result(session, ['Late']);
+    assert.equal(state.element('message-input').value, 'Draft Hej');
+});
+
+test('manual editing aborts dictation and preserves the visible text against late results', () => {
+    for (const notifyInput of [true, false]) {
+        const state = setup();
+        state.element('dictate-message').click();
+        const session = state.sessions[0];
+        state.result(session, [{ text: 'Tentative' }]);
+        state.element('message-input').value = 'Manually corrected';
+        if (notifyInput) state.element('message-input').input();
+        state.result(session, ['Recognized']);
+        assert.equal(session.aborted, true);
+        assert.equal(state.element('message-input').value, 'Manually corrected');
+    }
 });
