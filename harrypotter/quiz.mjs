@@ -79,6 +79,7 @@ function detailLink(reference, text) {
 
 function render() {
   updateSettings();
+  document.body.dataset.playing = String(Boolean(session && session.cursor < session.round.length));
   element('settings-panel').open = !session || session.cursor === session.round.length;
   element('round').hidden = !session || session.cursor === session.round.length;
   element('result').hidden = !session || session.cursor !== session.round.length;
@@ -116,7 +117,10 @@ function render() {
   element('next').hidden = !answered;
   element('next').textContent = session.cursor === session.round.length - 1 ? 'Visa resultat' : 'Nästa fråga';
   element('feedback').replaceChildren();
+  element('source').replaceChildren();
   element('related').replaceChildren();
+  element('answer-details').hidden = !answered;
+  element('answer-details').open = false;
   if (answered) {
     const feedback = document.createElement('p');
     feedback.textContent = `${checkAnswer(question, selected) ? 'Rätt!' : `Fel. Rätt svar: ${question.options[question.correctOptionIndex]}.`} ${question.explanation}`;
@@ -127,7 +131,7 @@ function render() {
     } else {
       source.textContent = question.source.type === 'book' ? `Källa: bok ${question.source.book}, kapitel ${question.source.chapter}` : `Källa: ${question.source.title}, ${question.source.scene}`;
     }
-    element('feedback').appendChild(source);
+    element('source').appendChild(source);
     for (const reference of question.entities) {
       const entry = document.createElement('li');
       entry.appendChild(detailLink(reference, `${categoryNames[reference.type] || reference.type}: ${reference.id}`));
@@ -137,7 +141,7 @@ function render() {
     element('feedback').scrollIntoView({ block: 'nearest' });
   } else {
     element('question-title').focus({ preventScroll: true });
-    element('round').scrollIntoView({ block: 'start' });
+    window.scrollTo({ top: 0 });
   }
 }
 

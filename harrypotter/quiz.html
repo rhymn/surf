@@ -50,6 +50,27 @@
         body { padding: 0 24px; }
         #settings-fields > p { grid-template-columns: 1fr 1fr; align-items: center; gap: 16px; }
       }
+      header { padding: 8px 0; }
+      h1 { font-size: 22px; margin-bottom: 0; }
+      main { padding-top: 8px; padding-bottom: max(12px, env(safe-area-inset-bottom)); }
+      details { margin: 8px 0; }
+      summary { min-height: 44px; padding: 10px 0; }
+      #settings-panel > p { margin: 4px 0; color: var(--muted); font-size: 14px; }
+      #settings-fields { padding: 4px 0 8px; }
+      #settings-fields > p { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); align-items: center; gap: 8px; margin: 6px 0; }
+      #settings-fields > #available { display: block; margin: 4px 0; font-size: 14px; }
+      #start, #practice { margin-top: 4px; }
+      body[data-playing="true"] header { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+      body[data-playing="true"] nav a:not(:first-child) { display: none; }
+      body[data-playing="true"] h1 { font-size: 18px; }
+      #question-title { font-size: 22px; line-height: 1.25; margin: 8px 0; }
+      #answer-options p { margin: 4px 0; }
+      #answer-options button { min-height: 48px; padding: 10px 12px; }
+      #answer-options button[data-selected="true"] { padding: 9px 11px; }
+      #feedback p { margin: 8px 0; }
+      #answer-details { border: 0; margin: 4px 0; }
+      #answer-details summary { font-size: 14px; font-weight: normal; color: var(--accent); }
+      #next { min-height: 48px; margin: 4px 0; bottom: max(4px, env(safe-area-inset-bottom)); }
     </style>
   </head>
   <body>
@@ -64,10 +85,10 @@
     </header>
     <main>
       <p id="quiz-status" role="status" aria-live="polite">Laddar frågor...</p>
-      <p id="progress"></p>
-      <p id="entity-filter" hidden></p>
       <details id="settings-panel" open>
         <summary>Ny omgång</summary>
+        <p id="progress"></p>
+        <p id="entity-filter" hidden></p>
         <form id="quiz-settings">
         <fieldset id="settings-fields" disabled>
           <legend>Inställningar</legend>
@@ -80,7 +101,7 @@
           <p><label for="difficulty">Svårighetsgrad</label>
             <select id="difficulty"><option value="all">Alla nivåer</option><option value="easy">Lätt</option><option value="medium">Medel</option><option value="hard">Svår</option></select>
           </p>
-          <p><label for="spoilers">Spoilers till och med bok</label>
+          <p><label for="spoilers">Spoilers t.o.m. bok</label>
             <select id="spoilers"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7" selected>7</option></select>
           </p>
           <p><label for="count">Antal frågor</label>
@@ -97,7 +118,11 @@
         <h2 id="question-title" tabindex="-1"></h2>
         <fieldset id="answer-options"><legend>Välj ett svar</legend></fieldset>
         <div id="feedback" role="status" aria-live="polite"></div>
-        <ul id="related"></ul>
+        <details id="answer-details" hidden>
+          <summary>Källa och länkar</summary>
+          <div id="source"></div>
+          <ul id="related"></ul>
+        </details>
         <button id="next" type="button" hidden>Nästa fråga</button>
       </section>
       <section id="result" aria-labelledby="result-title" hidden>
