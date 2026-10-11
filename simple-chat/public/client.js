@@ -82,6 +82,7 @@ const buttonListeners = () => {
             const username = prompt('Enter your username', getUsername());
             if (username) {
                 localStorage.setItem('username', username);
+                document.dispatchEvent(new Event('username-changed'));
             }
         });    
     }
@@ -140,13 +141,14 @@ appendGroupIdToLocalStorage();
 document.addEventListener('DOMContentLoaded', () => {
     buttonListeners();
 
-    const socket = io();
+    const socket = io({ auth: { room: group() } });
 
     initUsername();
     initUserId();
 
-    // Notify the server of the new user
-    socket.emit('newUser', getUsername());
+    socket.on('connect', () => socket.emit('newUser', getUsername()));
+    document.addEventListener('username-changed', () => socket.emit('newUser', getUsername()));
+    initializeAudioCall(socket);
 
     const messagesDiv = document.getElementById('messages');
     const newMessageIndicator = document.createElement('div');
