@@ -196,20 +196,39 @@ document.addEventListener('DOMContentLoaded', () => {
         messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to the newest message
     });
 
+    const updateMessageState = (element, msg) => {
+        const removed = msg.removed || deletedMessageIds.has(msg.id);
+        const messageText = element.querySelector('.message-text');
+        messageText.textContent = removed ? 'removed'
+            : isFromMe(msg) ? msg.message : `${msg.username}: ${msg.message}`;
+        const label = element.querySelector('.message-state');
+        label.textContent = !removed && msg.edited ? 'edited' : '';
+        label.hidden = !label.textContent;
+        element.classList.toggle('removed', Boolean(removed));
+        if (removed) element.querySelectorAll('button').forEach(button => button.remove());
+    };
+
     const appendMessage = (msg) => {
+        msg = editedMessages.get(msg.id) || msg;
         const {id, username:sender, userid} = msg;
-        const message = editedMessages.get(id)?.message ?? msg.message;
-        if (deletedMessageIds.has(id) || messageElements.has(id)) return;
+        const message = msg.message;
+        if (messageElements.has(id)) {
+            updateMessageState(messageElements.get(id), msg);
+            return;
+        }
         const messageElement = document.createElement('div');
         const messageText = document.createElement('span');
         messageText.className = 'message-text';
         messageElement.appendChild(messageText);
+        const messageState = document.createElement('span');
+        messageState.className = 'message-state';
+        messageElement.appendChild(messageState);
 
         console.log(userid, getUserId())
         if (userid === getUserId()) {
             messageText.textContent = message;
             messageElement.classList.add('message', 'user');
-            if (Number.isSafeInteger(id)) {
+            if (Number.isSafeInteger(id) && !msg.removed && !deletedMessageIds.has(id)) {
                 const editButton = document.createElement('button');
                 editButton.type = 'button';
                 editButton.className = 'edit-message';
@@ -250,6 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
             messageText.textContent = `${sender}: ${message}`;
             messageElement.classList.add('message', 'other');
         }
+        updateMessageState(messageElement, msg);
         if (Number.isSafeInteger(id)) messageElements.set(id, messageElement);
         messagesDiv.appendChild(messageElement);
         lucide.createIcons();
@@ -273,17 +293,15 @@ document.addEventListener('DOMContentLoaded', () => {
     socket.on('messageDeleted', ({ id }) => {
         deletedMessageIds.add(id);
         editedMessages.delete(id);
-        messageElements.get(id)?.remove();
-        messageElements.delete(id);
+        const element = messageElements.get(id);
+        if (element) updateMessageState(element, { id, removed: true });
     });
 
     socket.on('messageEdited', (msg) => {
         if (deletedMessageIds.has(msg.id)) return;
         editedMessages.set(msg.id, msg);
-        const messageText = messageElements.get(msg.id)?.querySelector('.message-text');
-        if (messageText) {
-            messageText.textContent = isFromMe(msg) ? msg.message : `${msg.username}: ${msg.message}`;
-        }
+        const element = messageElements.get(msg.id);
+        if (element) updateMessageState(element, msg);
     });
 
     // Send a message to the server

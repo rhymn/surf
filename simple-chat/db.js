@@ -13,7 +13,7 @@ function dropTable() {
 // dropTable();
 
 // Create messages table if it doesn't exist
-db.none(`
+const ready = db.none(`
     CREATE TABLE IF NOT EXISTS messages (
         id SERIAL PRIMARY KEY,
         room TEXT NOT NULL,
@@ -21,26 +21,32 @@ db.none(`
         userid TEXT NOT NULL,
         message TEXT NOT NULL,
         timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-    )
-`).then(console.log('Messages table created'))
-.catch(error => {
+    );
+    ALTER TABLE messages ADD COLUMN IF NOT EXISTS edited BOOLEAN NOT NULL DEFAULT FALSE;
+    ALTER TABLE messages ADD COLUMN IF NOT EXISTS removed BOOLEAN NOT NULL DEFAULT FALSE;
+`);
+ready.catch(error => {
     console.error('Error creating messages table:', error);
 });
 
 
-function saveMessage(room, username, userId, message) {
+async function saveMessage(room, username, userId, message) {
+    await ready;
     return db.one('INSERT INTO messages(room, username, userid, message) VALUES($1, $2, $3, $4) RETURNING *', [room, username, userId, message]);
 }
 
-function deleteMessage(room, userId, messageId) {
-    return db.oneOrNone('DELETE FROM messages WHERE id = $1 AND room = $2 AND userid = $3 RETURNING id', [messageId, room, userId]);
+async function deleteMessage(room, userId, messageId) {
+    await ready;
+    return db.oneOrNone('UPDATE messages SET message = \'\', removed = TRUE WHERE id = $1 AND room = $2 AND userid = $3 AND removed = FALSE RETURNING id', [messageId, room, userId]);
 }
 
-function editMessage(room, userId, messageId, message) {
-    return db.oneOrNone('UPDATE messages SET message = $4 WHERE id = $1 AND room = $2 AND userid = $3 RETURNING *', [messageId, room, userId, message]);
+async function editMessage(room, userId, messageId, message) {
+    await ready;
+    return db.oneOrNone('UPDATE messages SET message = $4, edited = TRUE WHERE id = $1 AND room = $2 AND userid = $3 AND removed = FALSE RETURNING *', [messageId, room, userId, message]);
 }
 
-function getMessages(room) {
+async function getMessages(room) {
+    await ready;
     return db.any('SELECT * FROM messages WHERE room = $1 ORDER BY timestamp ASC', [room]);
 }
 

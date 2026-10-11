@@ -15,23 +15,23 @@ const setup = () => {
         getMessages: async room => Array.from(rows.values()).filter(row => row.room === room),
         saveMessage: async (room, username, userid, message) => {
             if (failing) throw new Error('Database unavailable');
-            const saved = { id: nextId++, room, username, userid, message };
+            const saved = { id: nextId++, room, username, userid, message, edited: false, removed: false };
             rows.set(saved.id, saved);
             return saved;
         },
         editMessage: async (room, userid, id, message) => {
             if (failing) throw new Error('Database unavailable');
             const row = rows.get(id);
-            if (!row || row.room !== room || row.userid !== userid) return null;
-            const edited = { ...row, message };
+            if (!row || row.removed || row.room !== room || row.userid !== userid) return null;
+            const edited = { ...row, message, edited: true };
             rows.set(id, edited);
             return edited;
         },
         deleteMessage: async (room, userid, id) => {
             if (failing) throw new Error('Database unavailable');
             const row = rows.get(id);
-            if (!row || row.room !== room || row.userid !== userid) return null;
-            rows.delete(id);
+            if (!row || row.removed || row.room !== room || row.userid !== userid) return null;
+            rows.set(id, { ...row, message: '', removed: true });
             return { id };
         }
     };
@@ -76,7 +76,9 @@ test('saved messages use socket identity and carry IDs; owners can delete after 
     assert.equal(event.target, 'chat:room');
     const result = await state.connect('owner')('deleteMessage', 1);
     assert.equal(result.error, undefined);
-    assert.equal(state.rows.size, 0);
+    assert.equal(state.rows.size, 1);
+    assert.equal(state.rows.get(1).removed, true);
+    assert.equal(state.rows.get(1).message, '');
     assert.equal(state.events.at(-1).event, 'messageDeleted');
     assert.equal(state.events.at(-1).payload.id, 1);
 });
@@ -109,10 +111,13 @@ test('database failures do not broadcast phantom messages or deletions', async (
     assert.equal(state.events.length, 0);
 });
 
-test('storage deletes with both room and ownership predicates and returns saved IDs', async () => {
+test('storage persists edited and removed states with room and ownership predicates', async () => {
     const calls = [];
     const database = {
-        none: async () => {},
+        none: async sql => {
+            assert.match(sql, /ADD COLUMN IF NOT EXISTS edited BOOLEAN NOT NULL DEFAULT FALSE/);
+            assert.match(sql, /ADD COLUMN IF NOT EXISTS removed BOOLEAN NOT NULL DEFAULT FALSE/);
+        },
         one: async (sql, values) => { calls.push({ sql, values }); return { id: 3 }; },
         oneOrNone: async (sql, values) => { calls.push({ sql, values }); return { id: 3 }; }
     };
@@ -126,10 +131,11 @@ test('storage deletes with both room and ownership predicates and returns saved 
     assert.equal((await storage.saveMessage('room', 'Alice', 'owner', 'Hello')).id, 3);
     assert.match(calls[0].sql, /RETURNING \*/);
     await storage.deleteMessage('room', 'owner', 3);
-    assert.match(calls[1].sql, /WHERE id = \$1 AND room = \$2 AND userid = \$3 RETURNING id/);
+    assert.match(calls[1].sql, /SET message = '', removed = TRUE/);
+    assert.match(calls[1].sql, /WHERE id = \$1 AND room = \$2 AND userid = \$3 AND removed = FALSE RETURNING id/);
     assert.deepEqual(Array.from(calls[1].values), [3, 'room', 'owner']);
     await storage.editMessage('room', 'owner', 3, 'Updated');
-    assert.match(calls[2].sql, /UPDATE messages SET message = \$4 WHERE id = \$1 AND room = \$2 AND userid = \$3 RETURNING \*/);
+    assert.match(calls[2].sql, /UPDATE messages SET message = \$4, edited = TRUE WHERE id = \$1 AND room = \$2 AND userid = \$3 AND removed = FALSE RETURNING \*/);
     assert.deepEqual(Array.from(calls[2].values), [3, 'room', 'owner', 'Updated']);
 });
 
@@ -139,11 +145,15 @@ test('owners can edit saved messages after reconnecting without changing identit
     const original = { ...state.rows.get(1) };
     const owner = state.connect('owner');
     assert.equal((await owner('editMessage', { id: 1, message: 'Updated' })).error, undefined);
-    assert.deepEqual(state.rows.get(1), { ...original, message: 'Updated' });
+    assert.deepEqual(state.rows.get(1), { ...original, message: 'Updated', edited: true });
     assert.equal(state.events.at(-1).event, 'messageEdited');
     assert.equal(state.events.at(-1).target, 'chat:room');
     assert.equal(state.events.at(-1).payload.message, 'Updated');
+    assert.equal(state.events.at(-1).payload.edited, true);
     await owner('deleteMessage', 1);
+    assert.equal(state.rows.get(1).removed, true);
+    assert.equal(state.rows.get(1).message, '');
+    assert.match((await owner('deleteMessage', 1)).error, /not found/);
     assert.match((await owner('editMessage', { id: 1, message: 'Too late' })).error, /not found/);
 });
 

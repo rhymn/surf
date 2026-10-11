@@ -106,6 +106,17 @@
                 border: 1px solid currentColor;
             }
             .delete-message svg, .edit-message svg { width: 18px; height: 18px; }
+            .message-state {
+                margin-left: 8px;
+                font-size: 12px;
+                font-style: italic;
+            }
+            .message.removed {
+                background: #f1f1f1;
+                color: #555;
+                font-style: italic;
+                border: 1px dashed #aaa;
+            }
             .delete-message:disabled, .edit-message:disabled { opacity: 0.5; cursor: not-allowed; }
             .message.user {
                 background-color: #007bff;
