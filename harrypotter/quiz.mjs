@@ -79,6 +79,7 @@ function detailLink(reference, text) {
 
 function render() {
   updateSettings();
+  element('settings-panel').open = !session || session.cursor === session.round.length;
   element('round').hidden = !session || session.cursor === session.round.length;
   element('result').hidden = !session || session.cursor !== session.round.length;
   if (!session) return;
@@ -105,7 +106,9 @@ function render() {
     button.type = 'button';
     button.name = 'option';
     button.value = String(index);
-    button.textContent = `${selected === index ? 'Ditt svar: ' : ''}${question.options[index]}`;
+    button.textContent = question.options[index];
+    button.dataset.selected = String(selected === index);
+    if (selected === index) button.setAttribute('aria-label', `Ditt svar: ${question.options[index]}`);
     paragraph.appendChild(button);
     options.appendChild(paragraph);
   }
@@ -130,9 +133,11 @@ function render() {
       entry.appendChild(detailLink(reference, `${categoryNames[reference.type] || reference.type}: ${reference.id}`));
       element('related').appendChild(entry);
     }
-    element('next').focus();
+    element('next').focus({ preventScroll: true });
+    element('feedback').scrollIntoView({ block: 'nearest' });
   } else {
-    element('question-title').focus();
+    element('question-title').focus({ preventScroll: true });
+    element('round').scrollIntoView({ block: 'start' });
   }
 }
 
