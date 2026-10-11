@@ -73,9 +73,9 @@ Nio sådana frågor finns som utkast bland bokfrågorna. Nivån följer samma
 granskning och spoilerfilter som övriga frågor; inga extrema frågor är ännu
 godkända för spel.
 
-Tre hårda bokfrågor är granskade mot Harry Potter Lexicons kapitelreferenser;
-referenslänkarna finns i `source.verificationUrl`. Totalt är 16 frågor spelbara.
-De övriga 155 bokfrågorna är utkast med kapitelhänvisningar, egna förklaringar
+Fem bokfrågor är granskade mot Harry Potter Lexicon;
+referenslänkarna finns i `source.verificationUrl`. Totalt är 18 frågor spelbara.
+De övriga 153 bokfrågorna är utkast med kapitelhänvisningar, egna förklaringar
 och varierade svarspositioner. Svar, svenska namn, kapitelhänvisningar och spoilergränser
 behöver kontrolleras mot böckerna innan `reviewStatus` ändras från `draft`
 till `reviewed`.

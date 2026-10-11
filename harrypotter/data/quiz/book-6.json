@@ -66,8 +66,8 @@
     "id": "book6-010", "language": "sv", "canon": "book", "spoilerThroughBook": 6, "category": "objects", "difficulty": "medium",
     "question": "Vad innehåller en horrokrux?",
     "options": ["En persons samtliga minnen", "En lånad trollstavskärna", "En avskild del av en själ", "En inspelad profetia"], "correctOptionIndex": 2,
-    "explanation": "En horrokrux innehåller en del av skaparens själ som har skilts från resten.", "source": {"type": "book", "book": 6, "chapter": 23},
-    "entities": [], "reviewStatus": "draft"
+    "explanation": "En horrokrux innehåller en del av skaparens själ som har skilts från resten.", "source": {"type": "book", "book": 6, "chapter": 23, "verificationUrl": "https://www.hp-lexicon.org/thing/horcrux/"},
+    "entities": [], "reviewStatus": "reviewed"
   },
   {
     "id": "book6-011", "language": "sv", "canon": "book", "spoilerThroughBook": 6, "category": "characters", "difficulty": "medium",

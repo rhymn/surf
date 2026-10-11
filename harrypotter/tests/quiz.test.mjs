@@ -24,8 +24,11 @@ test('objects includes horcruxes, Gryffindors sword, and the diadem without bypa
     assert.deepEqual(filterQuestions([question], { category: 'objects' }), question.reviewStatus === 'reviewed' ? [question] : []);
   }
   const playable = filterQuestions(bank, { category: 'objects' });
-  assert.ok(playable.some(question => question.id === 'book5-015'));
+  for (const id of ['book5-015', 'book6-010', 'book7-005']) {
+    assert.ok(playable.some(question => question.id === id), id);
+  }
   assert.ok(playable.every(question => question.category === 'objects'));
+  assert.ok(!filterQuestions(bank, { category: 'objects', spoilerThroughBook: 6 }).some(question => question.id === 'book7-005'));
 });
 
 test('bank has valid questions, existing wiki references, and answers matching local sources', async () => {
