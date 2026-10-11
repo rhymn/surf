@@ -42,6 +42,27 @@ test('filters drafts, canon, spoilers, topics, difficulty, language, and entitie
   assert.equal(filterQuestions(starter, { entity: { type: 'characters', id: 'harry' } }).length, 3);
 });
 
+test('extreme difficulty validates and filters without admitting drafts or unknown levels', () => {
+  const extreme = { ...starter[0], id: 'extreme-test', difficulty: 'extreme' };
+  assert.doesNotThrow(() => validateQuestions([extreme]));
+  assert.deepEqual(filterQuestions([starter[0], extreme], { difficulty: 'extreme' }), [extreme]);
+  assert.deepEqual(filterQuestions([extreme], { difficulty: 'hard' }), []);
+  assert.deepEqual(filterQuestions([{ ...extreme, reviewStatus: 'draft' }], { difficulty: 'extreme' }), []);
+  assert.deepEqual(filterQuestions([extreme], { difficulty: 'all' }), [extreme]);
+  assert.throws(() => validateQuestions([{ ...extreme, difficulty: 'unknown' }]));
+});
+
+test('difficulty selections combine levels and preserve single-level callers', () => {
+  const questions = ['easy', 'medium', 'hard', 'extreme'].map(difficulty => ({ ...starter[0], id: `selection-${difficulty}`, difficulty }));
+  const draft = { ...questions[3], id: 'selection-draft', reviewStatus: 'draft' };
+  assert.deepEqual(filterQuestions([...questions, draft], { difficulty: ['medium', 'extreme'] }), [questions[1], questions[3]]);
+  assert.deepEqual(filterQuestions(questions, { difficulty: [] }), []);
+  assert.deepEqual(filterQuestions(questions, { difficulty: ['hard'] }), [questions[2]]);
+  assert.deepEqual(filterQuestions(questions, { difficulty: ['hard', 'hard'] }), [questions[2]]);
+  assert.deepEqual(filterQuestions(questions, { difficulty: 'hard' }), [questions[2]]);
+  assert.deepEqual(filterQuestions(questions, { difficulty: 'all' }), questions);
+});
+
 test('rounds are capped, do not mutate the bank, and retain answer indices', () => {
   const original = JSON.stringify(bank);
   const round = createRound(bank, bank.length + 1, () => 0);

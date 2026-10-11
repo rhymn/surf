@@ -50,13 +50,20 @@ spoilergräns och 5–50 frågor per omgång. Om färre frågor matchar används
 matchande frågor. Wikiartiklar länkar till quiz om respektive entitet.
 Senaste omgången och senaste resultatet per fråga sparas lokalt i webbläsaren.
 Felaktigt besvarade frågor kan övas igen inom de valda filtren.
+Svårighetsgrader väljs med kryssrutor och kan kombineras. Alla fyra nivåer är
+förvalda; utan valda nivåer kan ingen omgång startas.
 
 ### Frågebanken
 
 `data/quiz/manifest.json` listar JSON-filerna som ska laddas. Banken innehåller
-118 frågor: 13 startfrågor i `films.json` och `cross-series.json`, kontrollerade
-mot befintliga lokala wikiuppgifter, samt 105 svenska bokfrågor i
-`book-1.json` till `book-7.json` (15 per bok).
+122 frågor: 13 startfrågor i `films.json` och `cross-series.json`, kontrollerade
+mot befintliga lokala wikiuppgifter, samt 109 svenska bokfrågor i
+`book-1.json` till `book-7.json` (15–17 per bok).
+
+Svårighetsnivån `extreme` (Extrem) är för små, svårmemorerade bokdetaljer.
+Fyra sådana frågor finns som utkast i bok 2 och bok 5. Nivån följer samma
+granskning och spoilerfilter som övriga frågor; inga extrema frågor är ännu
+godkända för spel.
 
 Bokfrågorna är utkast med kapitelhänvisningar, egna förklaringar och varierade
 svarspositioner. Svar, svenska namn, kapitelhänvisningar och spoilergränser
@@ -73,7 +80,7 @@ Varje fråga har följande fält:
 - `canon`: `book` eller `film`.
 - `spoilerThroughBook`: högsta boknummer som frågan, alternativen eller förklaringen avslöjar (1–7).
 - `category`: exempelvis `characters`, `pets`, `actors` eller `spells`.
-- `difficulty`: `easy`, `medium` eller `hard`.
+- `difficulty`: `easy`, `medium`, `hard` eller `extreme`.
 - `question`, fyra unika `options`, samt `correctOptionIndex` (0–3).
 - `explanation`: egen kort förklaring, inte kopierad boktext.
 - `source`: `{ "type": "book", "book": 1, "chapter": 6 }`,

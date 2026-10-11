@@ -103,5 +103,19 @@
     "options": ["En tidvändare", "En tvåvägsspegel", "En förtrollad dagbok", "En silverkompass"], "correctOptionIndex": 1,
     "explanation": "Harry upptäcker att gåvan var en tvåvägsspegel som kunde ha låtit honom tala med Sirius.", "source": {"type": "book", "book": 5, "chapter": 38},
     "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
+  },
+  {
+    "id": "book5-016", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "places", "difficulty": "extreme",
+    "question": "Vilken sifferkod öppnar ministeriets besöksentré i telefonkiosken?",
+    "options": ["64224", "62424", "62442", "62244"], "correctOptionIndex": 2,
+    "explanation": "Arthur slår 62442, vilket motsvarar bokstäverna i MAGIC på en telefonknappsats.", "source": {"type": "book", "book": 5, "chapter": 7},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book5-017", "language": "sv", "canon": "book", "spoilerThroughBook": 5, "category": "places", "difficulty": "extreme",
+    "question": "Vilken hyllrad innehåller profetian om Harry och Voldemort?",
+    "options": ["93", "95", "96", "97"], "correctOptionIndex": 3,
+    "explanation": "Profetian om Harry och Voldemort står på hyllrad 97 på Mysterieavdelningen.", "source": {"type": "book", "book": 5, "chapter": 34},
+    "entities": [{"type": "characters", "id": "harry"}], "reviewStatus": "draft"
   }
 ]

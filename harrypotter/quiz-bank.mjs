@@ -10,7 +10,7 @@ export function validateQuestions(questions) {
         !validText(question.question) || prompts.has(question.question.trim()) ||
         !validText(question.language) || !validText(question.category) ||
         !['book', 'film'].includes(question.canon) ||
-        !['easy', 'medium', 'hard'].includes(question.difficulty) ||
+        !['easy', 'medium', 'hard', 'extreme'].includes(question.difficulty) ||
         !['draft', 'reviewed'].includes(question.reviewStatus) ||
         !Number.isInteger(question.spoilerThroughBook) || question.spoilerThroughBook < 1 || question.spoilerThroughBook > 7 ||
         !Array.isArray(question.options) || question.options.length !== 4 ||
@@ -56,9 +56,10 @@ export async function loadQuestionBank(baseURL = './data/quiz/', fetcher = fetch
 }
 
 export function filterQuestions(questions, { category = 'all', canon = 'all', difficulty = 'all', spoilerThroughBook = 7, language = 'sv', entity = null } = {}) {
+  const difficulties = Array.isArray(difficulty) ? difficulty : difficulty === 'all' ? null : [difficulty];
   return questions.filter(question => question.reviewStatus === 'reviewed' && question.language === language &&
     (category === 'all' || question.category === category) && (canon === 'all' || question.canon === canon) &&
-    (difficulty === 'all' || question.difficulty === difficulty) && question.spoilerThroughBook <= spoilerThroughBook &&
+    (!difficulties || difficulties.includes(question.difficulty)) && question.spoilerThroughBook <= spoilerThroughBook &&
     (!entity || question.entities.some(reference => reference.type === entity.type && reference.id === entity.id)));
 }
 

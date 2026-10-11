@@ -46,7 +46,7 @@ function eligible() {
   return filterQuestions(bank, {
     canon: element('canon').value,
     category: element('category').value,
-    difficulty: element('difficulty').value,
+    difficulty: [...element('difficulty').querySelectorAll('input:checked')].map(input => input.value),
     spoilerThroughBook: Number(element('spoilers').value),
     entity
   });

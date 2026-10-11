@@ -103,5 +103,19 @@
     "options": ["En halsduk", "En hatt", "En handske", "En strumpa"], "correctOptionIndex": 3,
     "explanation": "Harry gömmer en strumpa i dagboken; Lucius lämnar den vidare till Dobby, som blir fri.", "source": {"type": "book", "book": 2, "chapter": 18},
     "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book2-016", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "characters", "difficulty": "extreme",
+    "question": "Vilken färg är Lockharts favorit enligt hans första prov?",
+    "options": ["Lila", "Smaragdgrön", "Mörkblå", "Röd"], "correctOptionIndex": 0,
+    "explanation": "Lockharts prov handlar om honom själv, bland annat att hans favoritfärg är lila.", "source": {"type": "book", "book": 2, "chapter": 6},
+    "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "book2-017", "language": "sv", "canon": "book", "spoilerThroughBook": 2, "category": "characters", "difficulty": "extreme",
+    "question": "Vilket datum fyller Gilderoy Lockhart år?",
+    "options": ["31 juli", "26 januari", "19 september", "1 mars"], "correctOptionIndex": 1,
+    "explanation": "Lockharts födelsedag, den 26 januari, är en av uppgifterna i hans självinriktade prov.", "source": {"type": "book", "book": 2, "chapter": 6},
+    "entities": [], "reviewStatus": "draft"
   }
 ]
