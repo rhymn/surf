@@ -20,6 +20,8 @@ const setup = ({ supported = true, secure = true, prefixed = false, startError =
                 options: ['', 'sv-SE', 'en-US', 'en-GB'].map(value => ({ value })),
                 setAttribute: (key, value) => attributes.set(key, value),
                 getAttribute: key => attributes.get(key),
+                focus: () => { document.activeElement = elements.get(id); },
+                closest: () => null,
                 addEventListener: (event, handler) => { elements.get(id)[event] = handler; },
                 dispatchEvent: event => elements.get(id)[event.type]?.()
             });
@@ -32,6 +34,8 @@ const setup = ({ supported = true, secure = true, prefixed = false, startError =
         stop() { this.stopped = true; }
         abort() { this.aborted = true; }
     }
+    const document = { activeElement: null, getElementById: element,
+        addEventListener: (event, handler) => events.set(event, handler) };
     const context = {
         window: {
             isSecureContext: secure,
@@ -46,7 +50,7 @@ const setup = ({ supported = true, secure = true, prefixed = false, startError =
             setItem: (key, value) => storage.set(key, value),
             removeItem: key => storage.delete(key)
         },
-        document: { getElementById: element, addEventListener: (event, handler) => events.set(event, handler) },
+        document,
         lucide: { createIcons() {} }
     };
     const controller = runInNewContext(`${source}\ninitializeDictation();`, context);
@@ -55,7 +59,7 @@ const setup = ({ supported = true, secure = true, prefixed = false, startError =
         results: texts.map(text => Object.assign([{ transcript: typeof text === 'string' ? text : text.text }],
             { isFinal: typeof text === 'string' || text.final === true }))
     });
-    return { element, sessions, controller, result, storage, event: (name, payload) => events.get(name)(payload) };
+    return { element, sessions, controller, result, storage, document, event: (name, payload) => events.get(name)(payload) };
 };
 
 test('dictation starts only on click, preserves drafts and appends final text once', () => {
@@ -218,4 +222,40 @@ test('invalid saved languages fall back to the browser and labels work without D
     assert.equal(state.element('dictation-language').value, '');
     state.element('dictate-message').click();
     assert.equal(state.sessions[0].lang, 'sv-SE');
+});
+
+test('Enter while dictating focuses the draft without stopping or sending', () => {
+    const state = setup();
+    const button = state.element('dictate-message');
+    button.click();
+    button.focus();
+    let prevented = false;
+    state.event('keydown', { key: 'Enter', target: button, preventDefault: () => { prevented = true; } });
+    assert.equal(prevented, true);
+    assert.equal(state.document.activeElement, state.element('message-input'));
+    assert.equal(state.sessions[0].stopped, undefined);
+    assert.equal(state.sessions[0].aborted, undefined);
+    state.result(state.sessions[0], [{ text: 'Still listening' }]);
+    assert.equal(state.element('message-input').value, 'Still listening');
+    state.event('keydown', { key: 'Enter', target: state.element('message-input'),
+        preventDefault: () => assert.fail('Input Enter must use the existing send handler') });
+});
+
+test('Enter shortcuts preserve settings, interactive controls, modifiers, composition, and idle behavior', () => {
+    const state = setup();
+    const target = { closest: () => null };
+    const ignored = payload => state.event('keydown', { key: 'Enter', target,
+        preventDefault: () => assert.fail('This key should retain normal behavior'), ...payload });
+    ignored({});
+    state.element('dictate-message').click();
+    for (const payload of [{ isComposing: true }, { keyCode: 229 }, { ctrlKey: true },
+        { altKey: true }, { metaKey: true }, { shiftKey: true }, { defaultPrevented: true }]) ignored(payload);
+    state.element('menu-modal').open = true;
+    ignored({});
+    state.element('menu-modal').open = false;
+    ignored({ target: { closest: () => ({}) } });
+    state.event('keydown', { key: 'Enter', repeat: true, target, preventDefault() {} });
+    assert.equal(state.document.activeElement, null);
+    state.event('keydown', { key: 'Enter', target, preventDefault() {} });
+    assert.equal(state.document.activeElement, state.element('message-input'));
 });
