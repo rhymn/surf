@@ -77,13 +77,6 @@ const buttonListeners = () => {
     }
 
     {
-        document.getElementById('set-username').addEventListener('click', (event) => {
-            event.preventDefault();
-            chatProfile.open();
-        });    
-    }
-
-    {
         document.getElementById('copy-url').addEventListener('click', (event) => {
             event.preventDefault();
             navigator.clipboard.writeText(window.location.href).then(() => {
@@ -137,8 +130,12 @@ appendGroupIdToLocalStorage();
 document.addEventListener('DOMContentLoaded', async () => {
     await chatProfile.ready;
     buttonListeners();
-    document.getElementById('account-action-label').textContent = chatProfile.isLoggedIn() ? 'Your account' : 'Set password / log in';
-    document.getElementById('manage-account').addEventListener('click', () => chatProfile.open('register'));
+    const profileButton = document.getElementById('room-profile');
+    const usernameLabel = document.getElementById('room-username');
+    const updateProfileLabel = () => { usernameLabel.textContent = chatProfile.getUsername(); };
+    profileButton.addEventListener('click', () => chatProfile.open());
+    updateProfileLabel();
+    document.addEventListener('profile-changed', updateProfileLabel);
 
     initUsername();
     initUserId();

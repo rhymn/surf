@@ -1,6 +1,5 @@
 const list = document.getElementById('chat-list');
 const status = document.getElementById('list-status');
-const refresh = document.getElementById('refresh-chats');
 let request = null;
 
 const getRememberedChats = () => [...new Set((localStorage.getItem('groups') || '').split(','))]
@@ -110,7 +109,6 @@ const loadChats = async () => {
     const current = new AbortController();
     request = current;
     const rooms = getRememberedChats();
-    refresh.disabled = true;
     try {
         if (!rooms.length) {
             renderChats([]);
@@ -121,15 +119,13 @@ const loadChats = async () => {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ rooms, userId: chatProfile.getUserId(), readThrough: chatReadState.get() }), signal: current.signal
         });
-        if (!response.ok) throw new Error('Unable to load chats. Try refreshing.');
+        if (!response.ok) throw new Error('Unable to load chats. Try reloading the page.');
         const chats = await response.json();
         if (request !== current) return;
         renderChats(chats);
         status.textContent = '';
     } catch (error) {
-        if (error.name !== 'AbortError' && request === current) status.textContent = 'Unable to load chats. Try refreshing.';
-    } finally {
-        if (request === current) refresh.disabled = false;
+        if (error.name !== 'AbortError' && request === current) status.textContent = 'Unable to load chats. Try reloading the page.';
     }
 };
 
@@ -154,7 +150,6 @@ document.addEventListener('keydown', event => {
         menu.querySelector('summary').focus();
     });
 });
-refresh.addEventListener('click', loadChats);
 window.addEventListener('focus', loadChats);
 window.addEventListener('storage', loadChats);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) loadChats(); });

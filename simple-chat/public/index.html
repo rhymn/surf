@@ -87,6 +87,25 @@
             .back-to-chats svg { width: 20px; height: 20px; }
             .back-to-chats { text-decoration: none; }
             #edit-room-title:disabled { opacity: 0.5; cursor: not-allowed; }
+            #room-profile {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                flex: 0 1 auto;
+                gap: 8px;
+                min-width: 44px;
+                max-width: 132px;
+                height: 44px;
+                margin: 0;
+                padding: 8px 10px;
+                border: 1px solid #bdc9c1;
+                border-radius: 4px;
+                background: white;
+                color: #253e30;
+                font: inherit;
+            }
+            #room-profile svg { width: 20px; height: 20px; flex-shrink: 0; }
+            #room-username { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
             .audio-bar {
                 display: flex;
                 align-items: center;
@@ -320,8 +339,6 @@
             .settings-action:hover { background: #eef4ef; }
             .settings-action.primary { background: #267347; border-color: #267347; color: white; }
             .settings-action.primary:hover { background: #205d39; }
-            #set-username { width: 100%; }
-            #manage-account { width: 100%; margin-top: 10px; }
             .typing-setting { display: flex; align-items: center; gap: 10px; min-height: 44px; margin-top: 16px; cursor: pointer; }
             #show-typing { flex: 0 0 20px; width: 20px; height: 20px; margin: 0; accent-color: #267347; cursor: pointer; }
             .typing-setting span { min-width: 0; overflow-wrap: anywhere; }
@@ -363,6 +380,7 @@
                         <button type="button" id="leave-call" title="Hang up" aria-label="Hang up"><i data-lucide="phone-off" aria-hidden="true"></i></button>
                     </div>
                 </div>
+                <button type="button" id="room-profile" title="Your profile" aria-label="Your profile"><i data-lucide="user-round" aria-hidden="true"></i><span id="room-username">Your profile</span></button>
             </header>
             <div id="remote-audio" hidden></div>
             <div class="messages" id="messages"></div>
@@ -398,8 +416,6 @@
             </section>
             <section class="settings-section" aria-label="Preferences">
                 <h3>Preferences</h3>
-                <button class="settings-action" type="button" id="set-username"><i data-lucide="user-round" aria-hidden="true"></i>Set username</button>
-                <button class="settings-action" type="button" id="manage-account"><i data-lucide="key-round" aria-hidden="true"></i><span id="account-action-label">Set password / log in</span></button>
                 <label class="typing-setting" for="show-typing">
                     <input type="checkbox" id="show-typing" checked>
                     <span>Show when I'm typing</span>
