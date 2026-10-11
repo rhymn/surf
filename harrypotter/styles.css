@@ -1,13 +1,13 @@
-:root { color-scheme: dark; --ink: #eef3ef; --muted: #bdccc4; --line: #54685f; --accent: #b7dec9; --gold: #d6bd7c; --surface: #172a24; --control: #11201b; --action: #593044; --action-hover: #704059; }
+:root { color-scheme: dark; --ink: #edf3f5; --muted: #b7c6cc; --line: #536872; --accent: #bddde0; --gold: #d6bd7c; --surface: #162128; --control: #0d171d; --action: #593044; --action-hover: #704059; }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-body { position: relative; isolation: isolate; min-height: 100svh; margin: 0; padding: 0 16px; color: var(--ink); background: #080e10; font-family: Georgia, serif; font-size: 16px; line-height: 1.5; letter-spacing: 0; }
-body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(125deg, #050708 0%, #1d2928 30%, #121920 52%, #28353a 74%, #090c10 100%); background-size: 300% 300%; background-position: 0% 20%; animation: mist-drift 52s ease-in-out infinite alternate; }
-@keyframes mist-drift {
-  0% { background-position: 0% 20%; }
-  37% { background-position: 55% 80%; }
-  70% { background-position: 100% 40%; }
-  100% { background-position: 20% 95%; }
+body { position: relative; isolation: isolate; min-height: 100svh; margin: 0; padding: 0 16px; color: var(--ink); background: #05080b; font-family: Georgia, serif; font-size: 16px; line-height: 1.5; letter-spacing: 0; }
+body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(ellipse 90% 46% at 14% 15%, #8ba9b018 0%, transparent 65%), radial-gradient(ellipse 75% 40% at 86% 78%, #6c879018 0%, transparent 66%), linear-gradient(122deg, #030507 0%, #17252e 28%, #0b1118 52%, #263640 76%, #04070a 100%); background-size: 220% 180%, 190% 170%, 300% 300%; background-position: 0% 22%, 100% 74%, 0% 20%; animation: dementor-mist 64s ease-in-out infinite alternate; }
+@keyframes dementor-mist {
+  0% { background-position: 0% 22%, 100% 74%, 0% 20%; }
+  37% { background-position: 65% 38%, 36% 18%, 56% 80%; }
+  70% { background-position: 28% 88%, 80% 52%, 100% 42%; }
+  100% { background-position: 88% 30%, 16% 82%, 22% 94%; }
 }
 header, main, footer { width: 100%; max-width: 640px; margin: auto; }
 header { padding: 8px 0; border-bottom: 1px solid var(--line); box-shadow: inset 0 -1px 0 var(--gold); }
@@ -41,5 +41,5 @@ footer { margin-top: 16px; padding: 8px 0; border-top: 1px solid var(--line); co
   body { padding: 0 24px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  body::before { animation: none; background-position: 35% 50%; }
+  body::before { animation: none; background-position: 35% 50%, 65% 50%, 35% 50%; }
 }
