@@ -226,29 +226,72 @@
             .menu-container {
                 display: none; /* Hide the original menu container */
             }
-            dialog {
+            #menu-modal {
+                box-sizing: border-box;
+                width: min(440px, calc(100% - 32px));
+                max-height: calc(100dvh - 32px);
+                overflow-y: auto;
                 border: none;
-                border-radius: 10px;
-                box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-                padding: 20px;
-                text-align: center;
+                border-radius: 8px;
+                box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+                padding: 24px;
+                text-align: left;
+                color: #202624;
+                background: white;
             }
-            .close-btn {
-                position: absolute;
-                top: 10px;
-                right: 20px;
-                font-size: 30px;
-                cursor: pointer;
+            #menu-modal::backdrop { background: rgba(20, 30, 25, 0.35); }
+            .settings-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+            .settings-header h2 { margin: 0; font-size: 22px; }
+            .settings-header p { margin: 4px 0 0; font-size: 14px; color: #69766d; }
+            #menu-modal svg { width: 20px; height: 20px; flex-shrink: 0; }
+            #close-btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                flex: 0 0 40px;
+                height: 40px;
+                padding: 8px;
+                margin: 0;
+                background: #f1f4f2;
+                color: #59645e;
             }
-            .language-setting {
+            .settings-section { margin-top: 24px; }
+            .settings-section h3 { font-size: 13px; margin: 0 0 10px; color: #69766d; font-weight: normal; }
+            .settings-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+            .settings-action {
+                box-sizing: border-box;
                 display: flex;
                 align-items: center;
-                flex-wrap: wrap;
-                gap: 8px;
-                margin-top: 16px;
+                gap: 10px;
+                min-height: 52px;
+                padding: 12px;
+                margin: 0;
+                border: 1px solid #d9dfdb;
+                border-radius: 4px;
+                background: #fafbfa;
+                color: #253e30;
                 text-align: left;
+                text-decoration: none;
+                font: inherit;
+                overflow-wrap: anywhere;
+            }
+            .settings-action:hover { background: #eef4ef; }
+            .settings-action.primary { background: #267347; border-color: #267347; color: white; }
+            .settings-action.primary:hover { background: #205d39; }
+            #set-username { width: 100%; }
+            .language-setting { margin-top: 18px; }
+            .language-setting label { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 14px; }
+            .settings-footer { margin-top: 24px; padding-top: 16px; border-top: 1px solid #d9dfdb; }
+            .settings-footer a { display: inline-flex; align-items: center; gap: 8px; color: #59645e; font-size: 14px; text-decoration: none; }
+            .settings-footer a:hover { text-decoration: underline; }
+            @media (max-width: 360px) {
+                #menu-modal { padding: 16px; }
+                .settings-action { gap: 6px; padding: 10px; font-size: 14px; }
             }
             #dictation-language {
+                box-sizing: border-box;
+                width: 100%;
+                min-height: 44px;
                 padding: 8px;
                 max-width: 100%;
                 min-width: 0;
@@ -289,20 +332,25 @@
             </form>
         </div>
 
-        <dialog id="menu-modal">
-            <span class="close-btn" id="close-btn">&times;</span>
-            <h1>Simple Chat</h1>
-            
-            <p>Simple chat is a URL based chat application for anyone and any device, no signup needed. Simply share the URL with those you wish to chat with.</p>
-
-            <a href="mailto:simple-chat.extinct538@passinbox.com">Contact</a>
-            <a href="/">My chats</a>
-            <a href="/random" id="create-room">New chat</a>
-            <a href id="copy-url">Copy URL</a>
-            <a href id="set-username">Set username</a>
-            <a href id="invite-friends">Invite friends</a>
+        <dialog id="menu-modal" aria-labelledby="settings-title">
+            <div class="settings-header">
+                <div><h2 id="settings-title">Settings</h2><p>Simple Chat</p></div>
+                <button type="button" id="close-btn" title="Close settings" aria-label="Close settings"><i data-lucide="x" aria-hidden="true"></i></button>
+            </div>
+            <section class="settings-section" aria-label="Chats">
+                <h3>Chats</h3>
+                <div class="settings-actions">
+                    <a class="settings-action" href="/"><i data-lucide="messages-square" aria-hidden="true"></i>My chats</a>
+                    <a class="settings-action primary" href="/random" id="create-room"><i data-lucide="plus" aria-hidden="true"></i>New chat</a>
+                    <button class="settings-action" type="button" id="copy-url"><i data-lucide="link" aria-hidden="true"></i>Copy link</button>
+                    <button class="settings-action" type="button" id="invite-friends"><i data-lucide="user-plus" aria-hidden="true"></i>Invite friends</button>
+                </div>
+            </section>
+            <section class="settings-section" aria-label="Preferences">
+                <h3>Preferences</h3>
+                <button class="settings-action" type="button" id="set-username"><i data-lucide="user-round" aria-hidden="true"></i>Set username</button>
             <div class="language-setting">
-                <label for="dictation-language">Dictation language</label>
+                <label for="dictation-language"><i data-lucide="languages" aria-hidden="true"></i>Dictation language</label>
                 <select id="dictation-language">
                     <option value="">Browser default</option>
                     <option value="sv-SE">Swedish (Sweden)</option>
@@ -324,6 +372,10 @@
                     <option value="zh-CN">Chinese (China)</option>
                 </select>
             </div>
+            </section>
+            <footer class="settings-footer">
+                <a href="mailto:simple-chat.extinct538@passinbox.com"><i data-lucide="mail" aria-hidden="true"></i>Contact</a>
+            </footer>
         </dialog>
 
         <script>
@@ -341,7 +393,9 @@
 
             window.addEventListener('click', (event) => {
                 if (event.target === menuModal) {
-                    menuModal.close();
+                    const bounds = menuModal.getBoundingClientRect();
+                    if (event.clientX < bounds.left || event.clientX > bounds.right ||
+                        event.clientY < bounds.top || event.clientY > bounds.bottom) menuModal.close();
                 }
             });
 

@@ -334,6 +334,7 @@ test('summary storage requests only known room IDs and includes visitor and mess
             any: async (sql, values) => {
                 calls.push({ sql, values });
                 return sql.startsWith('SELECT room, title') ? [{ room: 'aaaa', title: 'Weekend' }]
+                    : sql.includes('COUNT(*)') ? [{ room: 'aaaa', message_count: 12 }]
                     : [{ room: 'aaaa', userid: 'alice', username: 'Alice' }];
             }
         }),
@@ -345,10 +346,15 @@ test('summary storage requests only known room IDs and includes visitor and mess
     assert.equal(chats[0].title, 'Weekend');
     assert.equal(chats[0].participants[0].username, 'Alice');
     assert.equal(chats[1].participants.length, 0);
+    assert.equal(chats[0].messageCount, 12);
+    assert.equal(chats[1].messageCount, 0);
     assert.match(calls[1].sql, /DISTINCT ON \(room, userid\)/);
     assert.match(calls[1].sql, /FROM chat_participants WHERE room = ANY\(\$1::text\[\]\)/);
     assert.match(calls[1].sql, /FROM messages WHERE room = ANY\(\$1::text\[\]\)/);
+    assert.match(calls[2].sql, /COUNT\(\*\)::integer AS message_count/);
+    assert.match(calls[2].sql, /room = ANY\(\$1::text\[\]\) AND removed = FALSE GROUP BY room/);
+    assert.deepEqual(Array.from(calls[2].values[0]), ['aaaa', 'bbbb']);
     await context.module.exports.saveParticipant('aaaa', 'alice', 'New name');
-    assert.match(calls[2].sql, /ON CONFLICT \(room, userid\) DO UPDATE SET username/);
-    assert.deepEqual(Array.from(calls[2].values), ['aaaa', 'alice', 'New name']);
+    assert.match(calls[3].sql, /ON CONFLICT \(room, userid\) DO UPDATE SET username/);
+    assert.deepEqual(Array.from(calls[3].values), ['aaaa', 'alice', 'New name']);
 });

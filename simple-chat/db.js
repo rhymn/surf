@@ -93,9 +93,11 @@ async function getChatSummaries(rooms) {
             FROM messages WHERE room = ANY($1::text[])
         ) AS participants ORDER BY room, userid, priority, timestamp DESC
     `, [rooms]);
+    const counts = await db.any('SELECT room, COUNT(*)::integer AS message_count FROM messages WHERE room = ANY($1::text[]) AND removed = FALSE GROUP BY room', [rooms]);
     return rooms.map(room => ({
         room,
         title: titles.find(chat => chat.room === room)?.title || '',
+        messageCount: counts.find(chat => chat.room === room)?.message_count || 0,
         participants: participants.filter(participant => participant.room === room)
             .map(({ userid, username }) => ({ userId: userid, username }))
     }));

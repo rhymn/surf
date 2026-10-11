@@ -40,7 +40,8 @@ const renderChats = (chats) => {
         }
         const count = document.createElement('p');
         count.className = 'participant-count';
-        count.textContent = `${chat.participants.length} ${chat.participants.length === 1 ? 'participant' : 'participants'}`;
+        const messageCount = chat.messageCount ?? 0;
+        count.textContent = `${chat.participants.length} ${chat.participants.length === 1 ? 'participant' : 'participants'} · ${messageCount} ${messageCount === 1 ? 'message' : 'messages'}`;
         link.append(heading, people, count);
         const remove = document.createElement('button');
         remove.type = 'button';
