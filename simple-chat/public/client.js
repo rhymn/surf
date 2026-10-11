@@ -149,10 +149,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const roomTitle = document.getElementById('room-title');
     const editTitle = document.getElementById('edit-room-title');
     let currentTitle = '';
+    const updateTabTitle = () => {
+        const unread = document.querySelectorAll('#messages .message.other.unread').length;
+        const title = currentTitle ? `${currentTitle} - Simple Chat` : 'Simple Chat';
+        document.title = unread ? `(${unread}) ${title}` : title;
+    };
     socket.on('roomTitle', ({ title }) => {
         currentTitle = title;
         roomTitle.textContent = title || 'Group chat';
-        document.title = title ? `${title} - Simple Chat` : 'Simple Chat';
+        updateTabTitle();
     });
     socket.on('connect', () => { editTitle.disabled = false; });
     socket.on('disconnect', () => { editTitle.disabled = true; });
@@ -207,6 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
             messagesDiv.scrollTop + messagesDiv.clientHeight < messagesDiv.scrollHeight - 2) return;
         chatReadState.mark(group(), latestMessageId);
         messageElements.forEach(element => element.classList.remove('unread'));
+        updateTabTitle();
         newMessageIndicator.style.display = 'none';
     };
     const scheduleRead = () => {
@@ -214,6 +220,15 @@ document.addEventListener('DOMContentLoaded', () => {
         readTimer = setTimeout(markVisibleMessagesRead, 700);
     };
     window.addEventListener('focus', scheduleRead);
+    window.addEventListener('storage', event => {
+        if (event.key !== null && event.key !== 'readMessages') return;
+        const lastRead = chatReadState.get()[group()] || 0;
+        messageElements.forEach((element, id) => {
+            element.classList.toggle('unread', element.classList.contains('other') &&
+                !element.classList.contains('removed') && id > lastRead);
+        });
+        updateTabTitle();
+    });
     document.addEventListener('visibilitychange', scheduleRead);
     document.getElementById('menu-modal').addEventListener('close', scheduleRead);
     window.addEventListener('pagehide', () => clearTimeout(readTimer));
@@ -257,6 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
         element.classList.toggle('unread', !removed && !isFromMe(msg) &&
             msg.id > (chatReadState.get()[group()] || 0));
         if (removed) element.querySelectorAll('button').forEach(button => button.remove());
+        updateTabTitle();
     };
 
     const appendMessage = (msg) => {
@@ -324,6 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateMessageState(messageElement, msg);
         if (Number.isSafeInteger(id)) messageElements.set(id, messageElement);
         messagesDiv.appendChild(messageElement);
+        updateTabTitle();
         lucide.createIcons();
         if (!userScrolled) {
             messagesDiv.scrollTop = messagesDiv.scrollHeight; // Scroll to the newest message

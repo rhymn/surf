@@ -7,6 +7,8 @@ const getRememberedChats = () => [...new Set((localStorage.getItem('groups') || 
     .filter(room => /^[a-z0-9]+$/.test(room) && room.length <= 128).slice(-200).reverse();
 
 const renderChats = (chats) => {
+    const unread = chats.reduce((total, chat) => total + (chat.unreadCount || 0), 0);
+    document.title = `${unread ? `(${unread}) ` : ''}My chats - Simple Chat`;
     list.replaceChildren();
     for (const chat of chats) {
         const row = document.createElement('li');
