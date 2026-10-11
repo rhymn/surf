@@ -7,6 +7,7 @@
         <script src="/socket.io/socket.io.js"></script>
         <script src="/icons.js"></script>
         <script src="/audio-call.js"></script>
+        <script src="/dictation.js"></script>
         <script src="/client.js"></script>
         <meta name="description" content="URL based chat application for anyone on any device, no signup needed. Simply share the URL with those you wish to chat with.">
             <style>
@@ -120,6 +121,7 @@
             }
             #chat-form {
                 display: flex;
+                flex-wrap: wrap;
                 padding: 10px;
                 background-color: #f1f1f1;
                 position: fixed;
@@ -134,6 +136,24 @@
                 border: 1px solid #ccc;
                 border-radius: 4px;
             }
+            #dictate-message {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                flex: 0 0 40px;
+                height: 40px;
+                padding: 8px;
+            }
+            #dictate-message svg { width: 20px; height: 20px; }
+            #dictate-message[aria-pressed="true"] { background: #b42332; }
+            #dictate-message:disabled { background: #ddd; color: #666; cursor: not-allowed; }
+            #dictation-status {
+                flex: 0 0 100%;
+                margin-top: 6px;
+                font-size: 14px;
+                overflow-wrap: anywhere;
+            }
+            #chat-form [hidden] { display: none !important; }
             button {
                 padding: 10px;
                 border: none;
@@ -181,10 +201,12 @@
             <div class="messages" id="messages"></div>
             <form id="chat-form">
                 <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off" required />
+                <button type="button" id="dictate-message" title="Dictate message" aria-label="Dictate message" aria-pressed="false" hidden><i data-lucide="speech" aria-hidden="true"></i></button>
                 <button type="submit">Send</button>
                 <button type="button" id="menu-button">
                     <span>&#9776;</span>
                 </button>
+                <span id="dictation-status" role="status" aria-live="polite" hidden></span>
             </form>
         </div>
 

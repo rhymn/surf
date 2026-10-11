@@ -14,6 +14,7 @@ const initializeAudioCall = (socket) => {
     let joining = false;
     let joined = false;
     let generation = 0;
+    let callActive = false;
 
     lucide.createIcons();
 
@@ -51,6 +52,10 @@ const initializeAudioCall = (socket) => {
         joinButton.disabled = !supported || !socket.connected;
         controls.hidden = !joined && !joining;
         muteButton.disabled = !joined;
+        if (callActive !== (joined || joining)) {
+            callActive = joined || joining;
+            document.dispatchEvent(new CustomEvent('audio-call-state', { detail: { active: callActive } }));
+        }
         if (!supported) {
             status.textContent = 'Audio calls require HTTPS and microphone support.';
         } else if (message) {

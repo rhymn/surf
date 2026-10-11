@@ -148,6 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     socket.on('connect', () => socket.emit('newUser', getUsername()));
     document.addEventListener('username-changed', () => socket.emit('newUser', getUsername()));
+    const dictation = initializeDictation();
     initializeAudioCall(socket);
 
     const messagesDiv = document.getElementById('messages');
@@ -303,6 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Listen for form submission
     document.getElementById('chat-form').addEventListener('submit', (event) => {
         event.preventDefault();
+        dictation.stop();
         const messageInput = document.getElementById('message-input');
         const message = messageInput.value;
         sendMessage(message);

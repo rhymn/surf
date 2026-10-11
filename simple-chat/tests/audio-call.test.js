@@ -79,7 +79,8 @@ const setup = ({ getUserMedia, secure = true, joinError, permission, savedNotifi
             assert.equal(constraints.video, false);
             return getUserMedia ? getUserMedia() : stream;
         } } },
-        document: { getElementById: element },
+        document: { getElementById: element, dispatchEvent() {} },
+        CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options.detail; } },
         lucide: { createIcons() {} },
         fetch: async () => ({ ok: true, json: async () => ({ iceServers: [] }) })
     });
