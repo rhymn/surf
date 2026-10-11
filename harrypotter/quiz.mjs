@@ -31,7 +31,7 @@ function restore() {
         !Number.isInteger(candidate.cursor) || candidate.cursor < 0 || candidate.cursor > candidate.round.length ||
         !Array.isArray(candidate.answers) || candidate.answers.length !== candidate.round.length ||
         new Set(candidate.round.map(item => item?.id)).size !== candidate.round.length) return;
-    const valid = candidate.round.every((item, index) => byId.has(item?.id) && byId.get(item.id).reviewStatus === 'reviewed' &&
+    const valid = candidate.round.every((item, index) => byId.has(item?.id) &&
       Array.isArray(item.order) && item.order.length === 4 && new Set(item.order).size === 4 &&
       item.order.every(option => Number.isInteger(option) && option >= 0 && option < 4) &&
       (candidate.answers[index] === null || (Number.isInteger(candidate.answers[index]) && candidate.answers[index] >= 0 && candidate.answers[index] < 4)) &&
@@ -54,7 +54,7 @@ function eligible() {
 
 function updateSettings() {
   const questions = eligible();
-  element('available').textContent = questions.length === 0 ? 'Inga granskade frågor matchar dina val.' : `${questions.length} frågor tillgängliga`;
+  element('available').textContent = questions.length === 0 ? 'Inga frågor matchar dina val.' : `${questions.length} frågor tillgängliga`;
   element('start').disabled = questions.length === 0;
   element('practice').disabled = !questions.some(question => progress[question.id] === false);
   const values = Object.values(progress);
@@ -179,7 +179,7 @@ element('next').addEventListener('click', () => {
 try {
   bank = await loadQuestionBank();
   byId = new Map(bank.map(question => [question.id, question]));
-  for (const category of [...new Set(bank.filter(question => question.reviewStatus === 'reviewed').map(question => question.category))].sort()) {
+  for (const category of [...new Set(filterQuestions(bank).map(question => question.category))].sort()) {
     const option = document.createElement('option');
     option.value = category;
     option.textContent = categoryNames[category] || category;
@@ -198,7 +198,7 @@ try {
   element('settings-fields').disabled = false;
   const playableCount = filterQuestions(bank).length;
   const draftCount = bank.filter(question => question.reviewStatus === 'draft' && question.language === 'sv').length;
-  element('quiz-status').textContent = `${playableCount + draftCount} frågor: ${playableCount} spelbara, ${draftCount} utkast`;
+  element('quiz-status').textContent = `${playableCount} spelbara frågor, ${draftCount} utkast`;
   render();
 } catch {
   element('quiz-status').textContent = 'Kunde inte ladda frågebanken. Försök ladda om sidan.';

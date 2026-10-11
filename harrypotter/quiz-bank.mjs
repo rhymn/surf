@@ -57,7 +57,7 @@ export async function loadQuestionBank(baseURL = './data/quiz/', fetcher = fetch
 
 export function filterQuestions(questions, { category = 'all', canon = 'all', difficulty = 'all', spoilerThroughBook = 7, language = 'sv', entity = null } = {}) {
   const difficulties = Array.isArray(difficulty) ? difficulty : difficulty === 'all' ? null : [difficulty];
-  return questions.filter(question => question.reviewStatus === 'reviewed' && question.language === language &&
+  return questions.filter(question => question.language === language &&
     (category === 'all' || question.category === category) && (canon === 'all' || question.canon === canon) &&
     (!difficulties || difficulties.includes(question.difficulty)) && question.spoilerThroughBook <= spoilerThroughBook &&
     (!entity || question.entities.some(reference => reference.type === entity.type && reference.id === entity.id)));

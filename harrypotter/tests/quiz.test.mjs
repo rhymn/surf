@@ -16,12 +16,12 @@ test('Scabbers keeps its stable ID and Swedish name in the wiki and quiz', async
   assert.equal(JSON.stringify(bank).includes('Skabbis'), false);
 });
 
-test('objects includes horcruxes, Gryffindors sword, and the diadem without bypassing review', () => {
+test('objects includes reviewed and draft horcrux, sword, and diadem questions', () => {
   const objectIds = ['book6-010', 'book7-005', 'book7-011', 'book7-012'];
   for (const id of objectIds) {
     const question = bank.find(question => question.id === id);
     assert.equal(question.category, 'objects', id);
-    assert.deepEqual(filterQuestions([question], { category: 'objects' }), question.reviewStatus === 'reviewed' ? [question] : []);
+    assert.deepEqual(filterQuestions([question], { category: 'objects' }), [question]);
   }
   const playable = filterQuestions(bank, { category: 'objects' });
   for (const id of ['book5-015', 'book6-010', 'book7-005']) {
@@ -57,7 +57,7 @@ test('rejects duplicates, malformed answers, sources, and individual files', asy
   await assert.rejects(loadQuestionBank('', async () => ({ ok: false })));
 });
 
-test('filters drafts, canon, spoilers, topics, difficulty, language, and entities', () => {
+test('filters canon, spoilers, topics, difficulty, language, and entities', () => {
   const questions = filterQuestions([...starter, { ...starter[0], id: 'draft', reviewStatus: 'draft' }], { canon: 'book', spoilerThroughBook: 1, category: 'pets' });
   assert.equal(questions.length, 3);
   assert.ok(questions.every(question => question.canon === 'book' && question.reviewStatus === 'reviewed'));
@@ -66,12 +66,13 @@ test('filters drafts, canon, spoilers, topics, difficulty, language, and entitie
   assert.equal(filterQuestions(starter, { entity: { type: 'characters', id: 'harry' } }).length, 3);
 });
 
-test('extreme difficulty validates and filters without admitting drafts or unknown levels', () => {
+test('extreme difficulty admits drafts while still rejecting invalid difficulty values', () => {
   const extreme = { ...starter[0], id: 'extreme-test', difficulty: 'extreme' };
   assert.doesNotThrow(() => validateQuestions([extreme]));
   assert.deepEqual(filterQuestions([starter[0], extreme], { difficulty: 'extreme' }), [extreme]);
   assert.deepEqual(filterQuestions([extreme], { difficulty: 'hard' }), []);
-  assert.deepEqual(filterQuestions([{ ...extreme, reviewStatus: 'draft' }], { difficulty: 'extreme' }), []);
+  const draft = { ...extreme, reviewStatus: 'draft' };
+  assert.deepEqual(filterQuestions([draft], { difficulty: 'extreme' }), [draft]);
   assert.deepEqual(filterQuestions([extreme], { difficulty: 'all' }), [extreme]);
   assert.throws(() => validateQuestions([{ ...extreme, difficulty: 'unknown' }]));
 });
@@ -79,7 +80,7 @@ test('extreme difficulty validates and filters without admitting drafts or unkno
 test('difficulty selections combine levels and preserve single-level callers', () => {
   const questions = ['easy', 'medium', 'hard', 'extreme'].map(difficulty => ({ ...starter[0], id: `selection-${difficulty}`, difficulty }));
   const draft = { ...questions[3], id: 'selection-draft', reviewStatus: 'draft' };
-  assert.deepEqual(filterQuestions([...questions, draft], { difficulty: ['medium', 'extreme'] }), [questions[1], questions[3]]);
+  assert.deepEqual(filterQuestions([...questions, draft], { difficulty: ['medium', 'extreme'] }), [questions[1], questions[3], draft]);
   assert.deepEqual(filterQuestions(questions, { difficulty: [] }), []);
   assert.deepEqual(filterQuestions(questions, { difficulty: ['hard'] }), [questions[2]]);
   assert.deepEqual(filterQuestions(questions, { difficulty: ['hard', 'hard'] }), [questions[2]]);
@@ -92,7 +93,7 @@ test('hard difficulty has verified playable questions and still respects spoiler
   const verifiedIds = ['book2-007', 'book4-015', 'book5-015'];
   const verified = verifiedIds.map(id => hard.find(question => question.id === id));
   assert.ok(verified.every(Boolean));
-  assert.ok(hard.every(question => question.reviewStatus === 'reviewed'));
+  assert.ok(hard.every(question => question.difficulty === 'hard'));
   for (const question of verified) {
     assert.equal(new URL(question.source.verificationUrl).hostname, 'www.hp-lexicon.org');
   }
@@ -154,7 +155,7 @@ test('book batches cover all seven books with valid chapter bounds and spoiler l
       assert.ok(question.id.startsWith(`book${book}-`), question.id);
       assert.ok(question.source.chapter <= chapterCounts[book - 1], question.id);
       assert.ok(question.spoilerThroughBook >= book, question.id);
-      if (question.reviewStatus === 'draft') assert.equal(playableIds.has(question.id), false, question.id);
+      if (question.reviewStatus === 'draft') assert.equal(playableIds.has(question.id), true, question.id);
     }
   }
 });
@@ -170,10 +171,19 @@ test('additional batch contains 49 Swedish questions across seven books and four
       assert.ok(question, id);
       assert.equal(question.language, 'sv', id);
       assert.equal(question.source.book, book, id);
-      if (question.reviewStatus === 'draft') assert.equal(playableIds.has(id), false, id);
+      if (question.reviewStatus === 'draft') assert.equal(playableIds.has(id), true, id);
       additions.push(question);
     }
   }
   assert.equal(additions.length, 49);
   assert.deepEqual([...new Set(additions.map(question => question.difficulty))].sort(), ['easy', 'extreme', 'hard', 'medium']);
+});
+
+test('all Swedish questions are playable without changing their review metadata', () => {
+  const original = JSON.stringify(bank);
+  const playable = filterQuestions(bank);
+  assert.equal(playable.length, bank.filter(question => question.language === 'sv').length);
+  assert.ok(playable.some(question => question.reviewStatus === 'draft'));
+  assert.ok(playable.some(question => question.reviewStatus === 'reviewed'));
+  assert.equal(JSON.stringify(bank), original);
 });
