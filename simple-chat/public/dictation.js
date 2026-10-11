@@ -104,7 +104,8 @@ const initializeDictation = () => {
     document.addEventListener('keydown', (event) => {
         if (!recognition || event.key !== 'Enter' || event.defaultPrevented || event.isComposing ||
             event.keyCode === 229 || event.ctrlKey || event.altKey || event.metaKey || event.shiftKey ||
-            document.activeElement === input || document.getElementById('menu-modal').open) return;
+            document.activeElement === input || document.getElementById('menu-modal').open ||
+            document.getElementById('profile-dialog')?.open) return;
         if (document.activeElement !== button &&
             event.target.closest('button, a, input, select, textarea, [contenteditable], [role="button"]')) return;
         event.preventDefault();

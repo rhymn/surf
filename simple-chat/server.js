@@ -5,6 +5,8 @@ const { saveMessage, getMessages, deleteMessage, editMessage, getRoomTitle, setR
 const { randomInt } = require('node:crypto');
 const { registerAudioSignaling } = require('./audio-signaling');
 const bodyParser = require('body-parser')
+const { registerAccounts } = require('./accounts');
+const storage = require('./db');
 
 const app = express();
 const server = http.createServer(app);
@@ -13,6 +15,8 @@ const port = process.env.PORT || 3000;
 
 app.use(express.static('public', { index: false }));
 app.use(bodyParser.json());
+if (process.env.RENDER === 'true') app.set('trust proxy', 1);
+const accountAuth = registerAccounts({ app, io, storage });
 
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/public/home.html');
@@ -78,7 +82,13 @@ app.post('/chats', async (req, res) => {
         return;
     }
     try {
-        const chats = await getChatSummaries([...new Set(rooms)], userId, readThrough);
+        const requestsAccount = userId.startsWith('account:');
+        const account = requestsAccount ? await accountAuth.resolve(req.headers) : null;
+        if (requestsAccount && (!account || account.id !== userId)) {
+            res.status(401).json({ error: 'Log in to use this account.' });
+            return;
+        }
+        const chats = await getChatSummaries([...new Set(rooms)], account?.id || userId, readThrough);
         for (const chat of chats) {
             const online = new Map();
             for (const peer of io.sockets.sockets.values()) {
@@ -115,13 +125,20 @@ io.on('connection', (socket) => {
     console.log('A user connected');
 
     // Join a room based on the URL path
-    const groupName = socket.handshake.auth?.room;
+    let groupName = socket.handshake.auth?.room;
+    if (groupName === undefined) {
+        try {
+            const pathname = new URL(socket.handshake.headers?.referer).pathname;
+            groupName = pathname === '/' ? 'default' : /^\/([a-z0-9]+)\/?$/.exec(pathname)?.[1];
+        } catch {}
+    }
     if (!isRealGroupName(groupName || '')) {
         socket.disconnect(true);
         return;
     }
     const room = `chat:${groupName}`;
-    const userId = socket.handshake.auth?.userId;
+    const account = socket.data.account;
+    let userId = account?.id || socket.handshake.auth?.userId;
     socket.data.userId = userId;
     let typingTimer;
     let typing = false;
@@ -180,10 +197,11 @@ io.on('connection', (socket) => {
 
     // Handle new user
     socket.on('newUser', (userName) => {
+        userName = account?.username || userName;
         if (typeof userName !== 'string' || !userName.trim() || userName.length > 100 ||
-            typeof userId !== 'string' || !userId || userId.length > 128) return;
+            (userId !== undefined && (typeof userId !== 'string' || !userId || userId.length > 128))) return;
         users[socket.id] = userName;
-        saveParticipant(groupName, userId, userName).catch(error => {
+        if (userId) saveParticipant(groupName, userId, userName).catch(error => {
             console.error('Error saving participant:', error);
         });
         // io.to(room).emit('message', `${userName} joined the chat`);
@@ -192,13 +210,18 @@ io.on('connection', (socket) => {
     // Handle chat messages
     socket.on('message', async (msg, reply) => {
         stopTyping();
+        if (userId === undefined && typeof msg?.userid === 'string' && msg.userid &&
+            msg.userid.length <= 128 && !msg.userid.startsWith('account:')) {
+            userId = msg.userid;
+            socket.data.userId = userId;
+        }
         if (!msg || typeof msg.message !== 'string' || !msg.message.trim() ||
             typeof msg.username !== 'string' || typeof userId !== 'string' || !userId) {
             if (typeof reply === 'function') reply({ error: 'Unable to send this message. Reload and try again.' });
             return;
         }
         try {
-            const saved = await saveMessage(groupName, msg.username, userId, msg.message);
+            const saved = await saveMessage(groupName, account?.username || msg.username, userId, msg.message);
             io.to(room).emit('message', saved);
             if (typeof reply === 'function') reply({});
         } catch (error) {

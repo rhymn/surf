@@ -10,6 +10,7 @@ const setup = ({ candidates = [] } = {}) => {
     const members = new Map();
     const sockets = new Map();
     const events = [];
+    const histories = new Map();
     const timers = new Map();
     let connectionHandler;
     let nextId = 1;
@@ -69,35 +70,42 @@ const setup = ({ candidates = [] } = {}) => {
             to: target => ({ emit: (event, payload) => events.push({ target, event, payload }) })
         }),
         './db': database,
+        './accounts': { registerAccounts: () => ({ resolve: async () => null }) },
         'node:crypto': { randomInt: () => Number.parseInt(candidates.shift() || '0000', 36) },
         './audio-signaling': { registerAudioSignaling: (io, socket, room) => { socket.data.chatRoom = room; } },
         'body-parser': { json() {} }
     };
     runInNewContext(readFileSync(join(__dirname, '../server.js'), 'utf8'), {
         __dirname: join(__dirname, '..'),
+        URL,
         setTimeout: (callback, delay) => { const timer = {}; timers.set(timer, { callback, delay }); return timer; },
         clearTimeout: timer => timers.delete(timer),
         require: name => dependencies[name], process: { env: {} }, console: { log() {}, error() {}, warn() {} }
     });
-    const connect = (userId, room = 'room') => {
+    const connect = (userId, room = 'room', { legacy = false, account } = {}) => {
         const handlers = new Map();
         const socket = {
-            id: userId, data: {}, handshake: { auth: { room, userId } },
+            id: userId, data: { account }, handshake: legacy
+                ? { headers: { referer: `https://chat.example/${room}` } }
+                : { auth: { room, userId } },
             to: target => ({ emit: (event, payload) => events.push({ target, exclude: userId, event, payload }) }),
             join() {}, emit: (event, payload) => {
                 if (event === 'roomTitle') events.push({ target: userId, event, payload });
+                if (event === 'previousMessages') histories.set(userId, payload);
             }, disconnect() {},
             on: (event, handler) => handlers.set(event, handler)
         };
         sockets.set(userId, socket);
         connectionHandler(socket);
-        return async (event, payload) => {
+        const receive = async (event, payload) => {
             let result;
             await handlers.get(event)(payload, reply => { result = reply; });
             return result;
         };
+        receive.withoutReply = (event, payload) => handlers.get(event)(payload);
+        return receive;
     };
-    return { rows, titles, events, connect, routes, activeRooms, sockets, members, timers, fail: () => { failing = true; } };
+    return { rows, titles, events, connect, routes, activeRooms, sockets, members, timers, histories, fail: () => { failing = true; } };
 };
 
 test('saved messages use socket identity and carry IDs; owners can delete after reconnecting', async () => {
@@ -405,4 +413,46 @@ test('typing expires and disconnect removes active typing before username cleanu
         assert.equal(last.payload.username, 'Alice');
         assert.equal(state.timers.size, 0);
     }
+});
+
+test('legacy clients keep their longer room links and message ownership without handshake auth', async () => {
+    const state = setup();
+    const legacy = state.connect('legacyguest', 'olderlongroom', { legacy: true });
+    await legacy('newUser', 'Legacy user');
+    await legacy('message', { username: 'Legacy user', userid: 'legacyguest', message: 'Old client message' });
+    assert.equal(state.rows.get(1).room, 'olderlongroom');
+    assert.equal(state.rows.get(1).userid, 'legacyguest');
+    await legacy('message', { username: 'Legacy user', userid: 'changed', message: 'Still same owner' });
+    assert.equal(state.rows.get(2).userid, 'legacyguest');
+    await legacy('deleteMessage', 1);
+    assert.equal(state.rows.get(1).removed, true);
+});
+
+test('authenticated messages use the verified account name and identity', async () => {
+    const state = setup();
+    const signedIn = state.connect('forged', 'room', { account: { id: 'account:verified', username: 'Verified user' } });
+    await signedIn('message', { username: 'Forged name', userid: 'forged', message: 'Account message' });
+    assert.equal(state.rows.get(1).userid, 'account:verified');
+    assert.equal(state.rows.get(1).username, 'Verified user');
+    await state.connect('guest')('message', { username: 'Guest', message: 'Guest message' });
+    assert.match((await signedIn('editMessage', { id: 2, message: 'Not mine' })).error, /not yours/);
+});
+
+test('legacy rows and acknowledgement-free sending retain their original room and identity', async () => {
+    const state = setup();
+    const original = { id: 10, room: 'olderlongroom', username: 'Legacy user', userid: 'legacyguest', message: 'Existing history' };
+    state.rows.set(original.id, original);
+    const legacy = state.connect('legacyguest', 'olderlongroom?from=oldlink', { legacy: true });
+    await legacy.withoutReply('newUser', 'Legacy user');
+    await legacy.withoutReply('message', { username: 'Legacy user', userid: 'legacyguest', message: 'No acknowledgement callback' });
+    assert.deepEqual(state.histories.get('legacyguest'), [original]);
+    assert.equal(state.rows.get(10), original);
+    assert.equal(state.rows.get(10).edited, undefined);
+    assert.equal(state.rows.get(10).removed, undefined);
+    assert.equal(state.rows.get(1).room, 'olderlongroom');
+    assert.equal(state.rows.get(1).userid, 'legacyguest');
+    assert.equal(state.events.find(event => event.event === 'message').target, 'chat:olderlongroom');
+    const rootClient = state.connect('rootguest', '', { legacy: true });
+    await rootClient.withoutReply('message', { username: 'Root guest', userid: 'rootguest', message: 'Original root chat' });
+    assert.equal(state.rows.get(2).room, 'default');
 });

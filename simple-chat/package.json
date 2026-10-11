@@ -9,6 +9,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "cookie": "^0.7.2",
     "express": "^4.21.2",
     "lucide": "^1.55.0",
     "pg-promise": "^11.10.2",

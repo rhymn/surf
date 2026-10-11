@@ -42,7 +42,7 @@ const renderChats = (chats) => {
             dot.setAttribute('aria-hidden', 'true');
             const name = document.createElement('span');
             name.className = 'participant-name';
-            name.textContent = `${person.username}${person.userId === localStorage.getItem('userId') ? ' (you)' : ''}${person.online ? ' - online' : ''}`;
+            name.textContent = `${person.username}${person.userId === chatProfile.getUserId() ? ' (you)' : ''}${person.online ? ' - online' : ''}`;
             participant.append(dot, name);
             people.appendChild(participant);
         }
@@ -69,6 +69,7 @@ const renderChats = (chats) => {
 };
 
 const loadChats = async () => {
+    await chatProfile.ready;
     request?.abort();
     const current = new AbortController();
     request = current;
@@ -82,7 +83,7 @@ const loadChats = async () => {
         }
         const response = await fetch('/chats', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ rooms, userId: localStorage.getItem('userId') || '', readThrough: chatReadState.get() }), signal: current.signal
+            body: JSON.stringify({ rooms, userId: chatProfile.getUserId(), readThrough: chatReadState.get() }), signal: current.signal
         });
         if (!response.ok) throw new Error('Unable to load chats. Try refreshing.');
         const chats = await response.json();
@@ -97,17 +98,9 @@ const loadChats = async () => {
 };
 
 const usernameLabel = document.getElementById('username-label');
-usernameLabel.textContent = localStorage.getItem('username') || 'Set username';
-document.getElementById('home-username').addEventListener('click', () => {
-    const username = prompt('Enter your username', localStorage.getItem('username') || '');
-    if (!username?.trim()) return;
-    if (username.length > 100) {
-        alert('Username must be 100 characters or fewer.');
-        return;
-    }
-    localStorage.setItem('username', username.trim());
-    usernameLabel.textContent = username.trim();
-});
+chatProfile.ready.then(() => { usernameLabel.textContent = chatProfile.getUsername(); });
+document.addEventListener('profile-changed', () => { usernameLabel.textContent = chatProfile.getUsername(); });
+document.getElementById('home-username').addEventListener('click', () => chatProfile.open());
 document.getElementById('join-chat').addEventListener('submit', event => {
     event.preventDefault();
     const room = document.getElementById('room-code').value.trim().toLowerCase();

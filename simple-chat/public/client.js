@@ -14,11 +14,11 @@ const notify = (msg) => {
 
 
 const getUsername = () => {
-    return localStorage.getItem('username');
+    return chatProfile.getUsername();
 }
 
 const getUserId = () => {
-    return localStorage.getItem('userId');
+    return chatProfile.getUserId();
 }
 
 const initUsername = () => {
@@ -79,11 +79,7 @@ const buttonListeners = () => {
     {
         document.getElementById('set-username').addEventListener('click', (event) => {
             event.preventDefault();
-            const username = prompt('Enter your username', getUsername());
-            if (username) {
-                localStorage.setItem('username', username);
-                document.dispatchEvent(new Event('username-changed'));
-            }
+            chatProfile.open();
         });    
     }
 
@@ -129,7 +125,7 @@ const group = () => window.location.pathname.split('/').pop();
 const appendGroupIdToLocalStorage = () => {
     const rooms = (localStorage.getItem('groups') || '').split(',')
         .filter(room => /^[a-z0-9]+$/.test(room) && room !== group() && room.length <= 128);
-    localStorage.setItem('groups', [...new Set([...rooms, group()])].slice(-200).join(','));
+    localStorage.setItem('groups', [...new Set([...rooms, group()])].join(','));
 }
 
 const getGroups = () => {
@@ -138,13 +134,19 @@ const getGroups = () => {
 
 appendGroupIdToLocalStorage();
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    await chatProfile.ready;
     buttonListeners();
+    document.getElementById('account-action-label').textContent = chatProfile.isLoggedIn() ? 'Your account' : 'Set password / log in';
+    document.getElementById('manage-account').addEventListener('click', () => chatProfile.open('register'));
 
     initUsername();
     initUserId();
 
     const socket = io({ auth: { room: group(), userId: getUserId() } });
+    socket.on('connect_error', () => {
+        document.getElementById('audio-status').textContent = 'Unable to connect. Check your login or try reloading.';
+    });
 
     const roomTitle = document.getElementById('room-title');
     const editTitle = document.getElementById('edit-room-title');
@@ -208,7 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const markVisibleMessagesRead = () => {
         if (loadingHistory || document.hidden || !document.hasFocus() ||
-            document.getElementById('menu-modal').open ||
+            document.querySelector('dialog[open]') ||
             messagesDiv.scrollTop + messagesDiv.clientHeight < messagesDiv.scrollHeight - 2) return;
         chatReadState.mark(group(), latestMessageId);
         messageElements.forEach(element => element.classList.remove('unread'));

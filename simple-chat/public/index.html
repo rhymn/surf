@@ -6,6 +6,8 @@
         <title>Simple Chat</title>
         <script src="/socket.io/socket.io.js"></script>
         <script src="/icons.js"></script>
+        <script src="/profile.js"></script>
+        <link rel="stylesheet" href="/profile.css">
         <script src="/audio-call.js"></script>
         <script src="/dictation.js"></script>
         <script src="/typing.js"></script>
@@ -295,6 +297,7 @@
             .settings-action.primary { background: #267347; border-color: #267347; color: white; }
             .settings-action.primary:hover { background: #205d39; }
             #set-username { width: 100%; }
+            #manage-account { width: 100%; margin-top: 10px; }
             .typing-setting { display: flex; align-items: center; gap: 10px; min-height: 44px; margin-top: 16px; cursor: pointer; }
             #show-typing { flex: 0 0 20px; width: 20px; height: 20px; margin: 0; accent-color: #267347; cursor: pointer; }
             .typing-setting span { min-width: 0; overflow-wrap: anywhere; }
@@ -371,6 +374,7 @@
             <section class="settings-section" aria-label="Preferences">
                 <h3>Preferences</h3>
                 <button class="settings-action" type="button" id="set-username"><i data-lucide="user-round" aria-hidden="true"></i>Set username</button>
+                <button class="settings-action" type="button" id="manage-account"><i data-lucide="key-round" aria-hidden="true"></i><span id="account-action-label">Set password / log in</span></button>
                 <label class="typing-setting" for="show-typing">
                     <input type="checkbox" id="show-typing" checked>
                     <span>Show when I'm typing</span>

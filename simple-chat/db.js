@@ -34,6 +34,18 @@ const ready = db.none(`
         username TEXT NOT NULL,
         PRIMARY KEY (room, userid)
     );
+    CREATE TABLE IF NOT EXISTS chat_accounts (
+        id TEXT PRIMARY KEY,
+        login TEXT NOT NULL UNIQUE,
+        username TEXT NOT NULL,
+        email TEXT,
+        password_hash TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS chat_account_sessions (
+        token_hash TEXT PRIMARY KEY,
+        account_id TEXT NOT NULL REFERENCES chat_accounts(id) ON DELETE CASCADE,
+        expires_at TIMESTAMPTZ NOT NULL
+    );
 `);
 ready.catch(error => {
     console.error('Error creating messages table:', error);
@@ -111,7 +123,56 @@ async function getChatSummaries(rooms, userId = '', readThrough = {}) {
     }));
 }
 
+async function createAccount({ id, login, username, email, passwordHash }) {
+    await ready;
+    return db.one('INSERT INTO chat_accounts(id, login, username, email, password_hash) VALUES($1, $2, $3, $4, $5) RETURNING *', [id, login, username, email, passwordHash]);
+}
+
+async function getAccountByLogin(login) {
+    await ready;
+    return db.oneOrNone('SELECT * FROM chat_accounts WHERE login = $1', [login]);
+}
+
+async function updateAccount(id, username, email) {
+    await ready;
+    return db.one('UPDATE chat_accounts SET username = $2, email = $3 WHERE id = $1 RETURNING *', [id, username, email]);
+}
+
+async function saveAccountSession(tokenHash, accountId, expiresAt) {
+    await ready;
+    return db.none('INSERT INTO chat_account_sessions(token_hash, account_id, expires_at) VALUES($1, $2, $3)', [tokenHash, accountId, expiresAt]);
+}
+
+async function getAccountSession(tokenHash) {
+    await ready;
+    return db.oneOrNone('SELECT accounts.* FROM chat_accounts AS accounts JOIN chat_account_sessions AS sessions ON accounts.id = sessions.account_id WHERE sessions.token_hash = $1 AND sessions.expires_at > NOW()', [tokenHash]);
+}
+
+async function deleteAccountSession(tokenHash) {
+    await ready;
+    return db.none('DELETE FROM chat_account_sessions WHERE token_hash = $1', [tokenHash]);
+}
+
+async function renewAccountSession(tokenHash, expiresAt) {
+    await ready;
+    return db.oneOrNone('UPDATE chat_account_sessions SET expires_at = $2 WHERE token_hash = $1 AND expires_at > NOW() RETURNING account_id', [tokenHash, expiresAt]);
+}
+
+async function getAccountRooms(accountId) {
+    await ready;
+    const rooms = await db.any('SELECT room FROM chat_participants WHERE userid = $1 UNION SELECT room FROM messages WHERE userid = $1', [accountId]);
+    return rooms.map(row => row.room);
+}
+
 module.exports = {
+    getAccountRooms,
+    createAccount,
+    getAccountByLogin,
+    updateAccount,
+    saveAccountSession,
+    getAccountSession,
+    deleteAccountSession,
+    renewAccountSession,
     saveMessage,
     deleteMessage,
     editMessage,
