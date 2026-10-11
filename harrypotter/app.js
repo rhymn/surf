@@ -14,14 +14,6 @@ const TYPE_TO_TITLE = {
   relationships: 'Relation'
 };
 
-const PAGE_TO_BACKGROUND = {
-  characters: '#f3f8ff',
-  actors: '#fff7ef',
-  pets: '#f2fff4',
-  years: '#f7f3ff',
-  relationships: '#fff3f8'
-};
-
 const page = document.body.dataset.page;
 
 const navigation = document.querySelector('nav');
@@ -121,21 +113,6 @@ function renderRelationshipConnections(item, list, db) {
   addConnection(list, 'characters', item.toId, db, 'Till: ');
 }
 
-function applyBackground() {
-  if (PAGE_TO_BACKGROUND[page]) {
-    document.body.style.backgroundColor = PAGE_TO_BACKGROUND[page];
-    return;
-  }
-
-  if (page === 'detail') {
-    const params = new URLSearchParams(window.location.search);
-    const type = params.get('type');
-    if (type && PAGE_TO_BACKGROUND[type]) {
-      document.body.style.backgroundColor = PAGE_TO_BACKGROUND[type];
-    }
-  }
-}
-
 function renderDetail(type, id, db) {
   const detail = document.getElementById('detail');
   const connections = document.getElementById('connections');
@@ -232,8 +209,6 @@ function renderDetail(type, id, db) {
 
 async function run() {
   if (!page || page === 'home') return;
-
-  applyBackground();
 
   const db = await loadAll();
 
