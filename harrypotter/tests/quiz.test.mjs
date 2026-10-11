@@ -7,6 +7,29 @@ const fetcher = async filename => ({ ok: true, json: async () => JSON.parse(awai
 const bank = await loadQuestionBank('', fetcher);
 const starter = bank.filter(question => /^film-00[1-5]$|^world-00[1-8]$/.test(question.id));
 
+test('Ginny has valid actor, year, pet, and relationship links in the wiki', async () => {
+  const readData = async type => JSON.parse(await readFile(new URL(`../data/${type}.json`, import.meta.url), 'utf8'));
+  const characters = await readData('characters');
+  const actors = await readData('actors');
+  const years = await readData('years');
+  const pets = await readData('pets');
+  const relationships = await readData('relationships');
+  const ginny = characters.find(character => character.id === 'ginny');
+  assert.equal(characters.filter(character => character.id === 'ginny').length, 1);
+  assert.equal(ginny.name, 'Ginny Weasley');
+  assert.equal(ginny.house, 'Gryffindor');
+  assert.equal(ginny.birthYear, 1981);
+  const actor = actors.find(actor => actor.id === ginny.actorId);
+  assert.equal(actor.name, 'Bonnie Wright');
+  assert.ok(actor.characterIds.includes(ginny.id));
+  assert.equal(ginny.yearIds[0], 'year-2');
+  assert.ok(ginny.yearIds.every(id => years.some(year => year.id === id)));
+  assert.ok(ginny.petIds.every(id => pets.some(pet => pet.id === id)));
+  const connections = relationships.filter(relationship => relationship.fromId === ginny.id || relationship.toId === ginny.id);
+  assert.equal(connections.length, 4);
+  assert.ok(connections.every(relationship => characters.some(character => character.id === relationship.fromId) && characters.some(character => character.id === relationship.toId)));
+});
+
 test('Scabbers keeps its stable ID and Swedish name in the wiki and quiz', async () => {
   const pets = JSON.parse(await readFile(new URL('../data/pets.json', import.meta.url), 'utf8'));
   assert.equal(pets.find(pet => pet.id === 'scabbers').name, 'Scabbers');

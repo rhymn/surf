@@ -59,5 +59,17 @@
     "description": "Känd för skämt, bus och Weasleys skämtartiklar.",
     "kuriosa": "Ger Marodörkartan till Harry"
   }
-
+  ,
+  {
+    "id": "ginny",
+    "name": "Ginny Weasley",
+    "house": "Gryffindor",
+    "birthYear": 1981,
+    "deathYear": null,
+    "actorId": "bonnie-wright",
+    "petIds": [],
+    "yearIds": ["year-2", "year-3", "year-4", "year-5", "year-6", "year-7"],
+    "description": "Familjen Weasleys yngsta barn och enda dotter. Börjar på Hogwarts 1992 och blir medlem i Dumbledores armé.",
+    "kuriosa": "Heter egentligen Ginevra. Spelar quidditch som jagare och vikarierar som sökare. Gifter sig senare med Harry Potter."
+  }
 ]

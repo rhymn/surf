@@ -19,5 +19,33 @@
     "fromId": "hermione",
     "toId": "ron",
     "description": "Vänner och allierade"
+  },
+  {
+    "id": "ron-ginny-syskon",
+    "type": "syskon",
+    "fromId": "ron",
+    "toId": "ginny",
+    "description": "Ron är Ginnys äldre bror"
+  },
+  {
+    "id": "fred-ginny-syskon",
+    "type": "syskon",
+    "fromId": "fred",
+    "toId": "ginny",
+    "description": "Fred är Ginnys äldre bror"
+  },
+  {
+    "id": "george-ginny-syskon",
+    "type": "syskon",
+    "fromId": "george",
+    "toId": "ginny",
+    "description": "George är Ginnys äldre bror"
+  },
+  {
+    "id": "harry-ginny-karlek",
+    "type": "kärlek",
+    "fromId": "harry",
+    "toId": "ginny",
+    "description": "Harry och Ginny blir ett par och gifter sig senare"
   }
 ]

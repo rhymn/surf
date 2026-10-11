@@ -30,5 +30,11 @@
     "characterIds": ["george"],
     "description": "Gestaltade George Weasley i filmerna"
   }
-
+  ,
+  {
+    "id": "bonnie-wright",
+    "name": "Bonnie Wright",
+    "characterIds": ["ginny"],
+    "description": "Gestaltade Ginny Weasley i Harry Potter-filmerna"
+  }
 ]
