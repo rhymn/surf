@@ -1,7 +1,7 @@
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
-const { saveMessage, getMessages, deleteMessage, editMessage } = require('./db');
+const { saveMessage, getMessages, deleteMessage, editMessage, getRoomTitle, setRoomTitle } = require('./db');
 const { registerAudioSignaling } = require('./audio-signaling');
 const bodyParser = require('body-parser')
 
@@ -74,6 +74,28 @@ io.on('connection', (socket) => {
     const userId = socket.handshake.auth?.userId;
     socket.join(room);
     console.log(`User joined room: ${room}`);
+
+    getRoomTitle(groupName).then(title => {
+        socket.emit('roomTitle', { title });
+    }).catch(error => {
+        console.error('Error fetching room title:', error);
+    });
+
+    socket.on('setRoomTitle', async (title, reply) => {
+        if (typeof reply !== 'function') return;
+        if (typeof title !== 'string' || title.trim().length > 120) {
+            reply({ error: 'Title must be 120 characters or fewer.' });
+            return;
+        }
+        try {
+            const saved = await setRoomTitle(groupName, title.trim());
+            io.to(room).emit('roomTitle', saved);
+            reply({});
+        } catch (error) {
+            console.error('Error saving room title:', error);
+            reply({ error: 'Title could not be saved. Try again.' });
+        }
+    });
 
     // Fetch and send previous messages to the new user
     getMessages(groupName).then(messages => {

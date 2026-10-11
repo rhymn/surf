@@ -24,6 +24,10 @@ const ready = db.none(`
     );
     ALTER TABLE messages ADD COLUMN IF NOT EXISTS edited BOOLEAN NOT NULL DEFAULT FALSE;
     ALTER TABLE messages ADD COLUMN IF NOT EXISTS removed BOOLEAN NOT NULL DEFAULT FALSE;
+    CREATE TABLE IF NOT EXISTS chat_rooms (
+        room TEXT PRIMARY KEY,
+        title TEXT NOT NULL DEFAULT ''
+    );
 `);
 ready.catch(error => {
     console.error('Error creating messages table:', error);
@@ -50,9 +54,22 @@ async function getMessages(room) {
     return db.any('SELECT * FROM messages WHERE room = $1 ORDER BY timestamp ASC', [room]);
 }
 
+async function getRoomTitle(room) {
+    await ready;
+    const saved = await db.oneOrNone('SELECT title FROM chat_rooms WHERE room = $1', [room]);
+    return saved?.title || '';
+}
+
+async function setRoomTitle(room, title) {
+    await ready;
+    return db.one('INSERT INTO chat_rooms(room, title) VALUES($1, $2) ON CONFLICT (room) DO UPDATE SET title = EXCLUDED.title RETURNING title', [room, title]);
+}
+
 module.exports = {
     saveMessage,
     deleteMessage,
     editMessage,
-    getMessages
+    getMessages,
+    getRoomTitle,
+    setRoomTitle
 };

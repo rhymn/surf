@@ -6,12 +6,19 @@ const { runInNewContext } = require('node:vm');
 
 const setup = () => {
     const rows = new Map();
+    const titles = new Map();
     const events = [];
     let connectionHandler;
     let nextId = 1;
     let failing = false;
     const app = { use() {}, get() {}, post() {} };
     const database = {
+        getRoomTitle: async room => titles.get(room) || '',
+        setRoomTitle: async (room, title) => {
+            if (failing) throw new Error('Database unavailable');
+            titles.set(room, title);
+            return { title };
+        },
         getMessages: async room => Array.from(rows.values()).filter(row => row.room === room),
         saveMessage: async (room, username, userid, message) => {
             if (failing) throw new Error('Database unavailable');
@@ -53,7 +60,9 @@ const setup = () => {
         const handlers = new Map();
         const socket = {
             id: userId, handshake: { auth: { room, userId } },
-            join() {}, emit() {}, disconnect() {},
+            join() {}, emit: (event, payload) => {
+                if (event === 'roomTitle') events.push({ target: userId, event, payload });
+            }, disconnect() {},
             on: (event, handler) => handlers.set(event, handler)
         };
         connectionHandler(socket);
@@ -63,7 +72,7 @@ const setup = () => {
             return result;
         };
     };
-    return { rows, events, connect, fail: () => { failing = true; } };
+    return { rows, titles, events, connect, fail: () => { failing = true; } };
 };
 
 test('saved messages use socket identity and carry IDs; owners can delete after reconnecting', async () => {
@@ -99,7 +108,7 @@ test('invalid IDs and missing identities cannot delete messages', async () => {
         assert.ok((await state.connect('owner')('deleteMessage', id)).error);
     }
     assert.ok((await state.connect(undefined)('deleteMessage', 1)).error);
-    assert.equal(state.events.length, 0);
+    assert.equal(state.events.filter(event => event.event !== 'roomTitle').length, 0);
 });
 
 test('database failures do not broadcast phantom messages or deletions', async () => {
@@ -108,7 +117,7 @@ test('database failures do not broadcast phantom messages or deletions', async (
     state.fail();
     assert.match((await owner('message', { username: 'Alice', message: 'Hello' })).error, /saved/);
     assert.match((await owner('deleteMessage', 1)).error, /deleted/);
-    assert.equal(state.events.length, 0);
+    assert.equal(state.events.filter(event => event.event !== 'roomTitle').length, 0);
 });
 
 test('storage persists edited and removed states with room and ownership predicates', async () => {
@@ -117,6 +126,7 @@ test('storage persists edited and removed states with room and ownership predica
         none: async sql => {
             assert.match(sql, /ADD COLUMN IF NOT EXISTS edited BOOLEAN NOT NULL DEFAULT FALSE/);
             assert.match(sql, /ADD COLUMN IF NOT EXISTS removed BOOLEAN NOT NULL DEFAULT FALSE/);
+            assert.match(sql, /CREATE TABLE IF NOT EXISTS chat_rooms/);
         },
         one: async (sql, values) => { calls.push({ sql, values }); return { id: 3 }; },
         oneOrNone: async (sql, values) => { calls.push({ sql, values }); return { id: 3 }; }
@@ -137,6 +147,12 @@ test('storage persists edited and removed states with room and ownership predica
     await storage.editMessage('room', 'owner', 3, 'Updated');
     assert.match(calls[2].sql, /UPDATE messages SET message = \$4, edited = TRUE WHERE id = \$1 AND room = \$2 AND userid = \$3 AND removed = FALSE RETURNING \*/);
     assert.deepEqual(Array.from(calls[2].values), [3, 'room', 'owner', 'Updated']);
+    await storage.setRoomTitle('room', 'Weekend plans');
+    assert.match(calls[3].sql, /ON CONFLICT \(room\) DO UPDATE SET title = EXCLUDED.title RETURNING title/);
+    assert.deepEqual(Array.from(calls[3].values), ['room', 'Weekend plans']);
+    await storage.getRoomTitle('room');
+    assert.equal(calls[4].sql, 'SELECT title FROM chat_rooms WHERE room = $1');
+    assert.deepEqual(Array.from(calls[4].values), ['room']);
 });
 
 test('owners can edit saved messages after reconnecting without changing identity or position', async () => {
@@ -181,4 +197,32 @@ test('failed edits leave the stored message unchanged and do not broadcast', asy
     assert.match((await owner('editMessage', { id: 1, message: 'Updated' })).error, /could not be edited/);
     assert.equal(state.rows.get(1).message, 'Original');
     assert.equal(state.events.filter(event => event.event === 'messageEdited').length, 0);
+});
+
+test('room titles are shared, persisted, and isolated by room', async () => {
+    const state = setup();
+    const first = state.connect('first');
+    assert.equal((await first('setRoomTitle', '  Weekend plans  ')).error, undefined);
+    assert.equal(state.titles.get('room'), 'Weekend plans');
+    const update = state.events.find(event => event.target === 'chat:room' && event.event === 'roomTitle');
+    assert.equal(update.payload.title, 'Weekend plans');
+    state.connect('second');
+    state.connect('outsider', 'other');
+    await new Promise(resolve => setImmediate(resolve));
+    assert.ok(state.events.some(event => event.target === 'second' && event.payload.title === 'Weekend plans'));
+    assert.ok(state.events.some(event => event.target === 'outsider' && event.payload.title === ''));
+    assert.equal((await state.connect('second')('setRoomTitle', '')).error, undefined);
+    assert.equal(state.titles.get('room'), '');
+});
+
+test('invalid titles and database errors do not broadcast updates', async () => {
+    const state = setup();
+    const first = state.connect('first');
+    for (const title of [null, {}, 'x'.repeat(121)]) {
+        assert.ok((await first('setRoomTitle', title)).error);
+    }
+    state.fail();
+    assert.match((await first('setRoomTitle', 'Weekend plans')).error, /could not be saved/);
+    assert.equal(state.titles.size, 0);
+    assert.equal(state.events.filter(event => event.target === 'chat:room').length, 0);
 });

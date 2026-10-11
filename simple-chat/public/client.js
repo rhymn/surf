@@ -146,6 +146,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const socket = io({ auth: { room: group(), userId: getUserId() } });
 
+    const roomTitle = document.getElementById('room-title');
+    const editTitle = document.getElementById('edit-room-title');
+    let currentTitle = '';
+    socket.on('roomTitle', ({ title }) => {
+        currentTitle = title;
+        roomTitle.textContent = title || 'Group chat';
+        document.title = title ? `${title} - Simple Chat` : 'Simple Chat';
+    });
+    socket.on('connect', () => { editTitle.disabled = false; });
+    socket.on('disconnect', () => { editTitle.disabled = true; });
+    editTitle.addEventListener('click', () => {
+        const title = prompt('Group title', currentTitle);
+        if (title === null || title.trim() === currentTitle) return;
+        if (title.trim().length > 120) {
+            alert('Title must be 120 characters or fewer.');
+            return;
+        }
+        editTitle.disabled = true;
+        socket.timeout(5000).emit('setRoomTitle', title, (error, result) => {
+            editTitle.disabled = !socket.connected;
+            if (error || result?.error) alert(result?.error || 'Unable to save title. Check your connection and try again.');
+        });
+    });
+
     socket.on('connect', () => socket.emit('newUser', getUsername()));
     document.addEventListener('username-changed', () => socket.emit('newUser', getUsername()));
     const dictation = initializeDictation();
