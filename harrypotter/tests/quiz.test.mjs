@@ -16,6 +16,18 @@ test('Scabbers keeps its stable ID and Swedish name in the wiki and quiz', async
   assert.equal(JSON.stringify(bank).includes('Skabbis'), false);
 });
 
+test('objects includes horcruxes, Gryffindors sword, and the diadem without bypassing review', () => {
+  const objectIds = ['book6-010', 'book7-005', 'book7-011', 'book7-012'];
+  for (const id of objectIds) {
+    const question = bank.find(question => question.id === id);
+    assert.equal(question.category, 'objects', id);
+    assert.deepEqual(filterQuestions([question], { category: 'objects' }), question.reviewStatus === 'reviewed' ? [question] : []);
+  }
+  const playable = filterQuestions(bank, { category: 'objects' });
+  assert.ok(playable.some(question => question.id === 'book5-015'));
+  assert.ok(playable.every(question => question.category === 'objects'));
+});
+
 test('bank has valid questions, existing wiki references, and answers matching local sources', async () => {
   assert.ok(bank.length > 0);
   for (const question of bank) {

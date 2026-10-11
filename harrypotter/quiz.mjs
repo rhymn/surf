@@ -2,7 +2,7 @@ import { loadQuestionBank, filterQuestions, createRound, checkAnswer } from './q
 
 const element = id => document.getElementById(id);
 const storageKey = 'harrypotter.quiz.v1';
-const categoryNames = { actors: 'Skådespelare', characters: 'Karaktärer', pets: 'Husdjur' };
+const categoryNames = { actors: 'Skådespelare', characters: 'Karaktärer', pets: 'Husdjur', objects: 'Objects' };
 const params = new URLSearchParams(location.search);
 const entity = params.get('type') && params.get('id') ? { type: params.get('type'), id: params.get('id') } : null;
 let bank = [];

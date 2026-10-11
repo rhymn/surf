@@ -28,7 +28,7 @@
     "entities": [], "reviewStatus": "draft"
   },
   {
-    "id": "book7-005", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "characters", "difficulty": "medium",
+    "id": "book7-005", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "objects", "difficulty": "medium",
     "question": "Vem förstör medaljongens horrokrux med Gryffindors svärd?",
     "options": ["Harry Potter", "Hermione Granger", "Ron Weasley", "Neville Longbottom"], "correctOptionIndex": 2,
     "explanation": "Efter att ha räddat Harry ur vattnet förstör Ron medaljongen med svärdet.", "source": {"type": "book", "book": 7, "chapter": 19},
@@ -77,7 +77,7 @@
     "entities": [], "reviewStatus": "draft"
   },
   {
-    "id": "book7-012", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "magic", "difficulty": "hard",
+    "id": "book7-012", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "objects", "difficulty": "hard",
     "question": "Vad förstör Ravenclaws diadem i boken?",
     "options": ["En vanlig brasa", "Den förhäxade eld som Crabbe framkallar", "Ett slag med en kvast", "En avväpningsbesvärjelse"], "correctOptionIndex": 1,
     "explanation": "Crabbes okontrollerbara magiska eld förstör diademet i Vid-behov-rummet.", "source": {"type": "book", "book": 7, "chapter": 31},

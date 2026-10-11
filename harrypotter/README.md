@@ -58,6 +58,8 @@ den sparade omgången utan att ändra dess ordning.
 Felaktigt besvarade frågor kan övas igen inom de valda filtren.
 Svårighetsgrader väljs med kryssrutor och kan kombineras. Alla fyra nivåer är
 förvalda; utan valda nivåer kan ingen omgång startas.
+Ämnet Objects (`objects`) samlar frågor om magiska föremål, bland annat
+horrokruxer, Gryffindors svärd, dödsreliker och trollstavar.
 
 ### Frågebanken
 
@@ -87,7 +89,7 @@ Varje fråga har följande fält:
 - `language`: exempelvis `sv`.
 - `canon`: `book` eller `film`.
 - `spoilerThroughBook`: högsta boknummer som frågan, alternativen eller förklaringen avslöjar (1–7).
-- `category`: exempelvis `characters`, `pets`, `actors` eller `spells`.
+- `category`: exempelvis `characters`, `pets`, `actors`, `objects` eller `spells`.
 - `difficulty`: `easy`, `medium`, `hard` eller `extreme`.
 - `question`, fyra unika `options`, samt `correctOptionIndex` (0–3).
 - `explanation`: egen kort förklaring, inte kopierad boktext.
