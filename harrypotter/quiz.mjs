@@ -101,19 +101,15 @@ function render() {
   options.appendChild(legend);
   for (const index of item.order) {
     const paragraph = document.createElement('p');
-    const label = document.createElement('label');
-    const input = document.createElement('input');
-    input.type = 'radio';
-    input.name = 'option';
-    input.value = String(index);
-    input.required = true;
-    input.checked = selected === index;
-    label.append(input, document.createTextNode(` ${question.options[index]}`));
-    paragraph.appendChild(label);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.name = 'option';
+    button.value = String(index);
+    button.textContent = `${selected === index ? 'Ditt svar: ' : ''}${question.options[index]}`;
+    paragraph.appendChild(button);
     options.appendChild(paragraph);
   }
   options.disabled = answered;
-  element('answer').hidden = answered;
   element('next').hidden = !answered;
   element('next').textContent = session.cursor === session.round.length - 1 ? 'Visa resultat' : 'Nästa fråga';
   element('feedback').replaceChildren();
@@ -146,12 +142,11 @@ element('quiz-settings').addEventListener('submit', event => {
 });
 element('quiz-settings').addEventListener('change', updateSettings);
 element('practice').addEventListener('click', () => start(true));
-element('answer-form').addEventListener('submit', event => {
-  event.preventDefault();
+element('answer-options').addEventListener('click', event => {
   if (!session || session.cursor >= session.round.length || session.answers[session.cursor] !== null) return;
-  const selected = new FormData(event.currentTarget).get('option');
-  if (selected === null) return;
-  const index = Number(selected);
+  const button = event.target.closest('button[name="option"]');
+  if (!button) return;
+  const index = Number(button.value);
   if (!Number.isInteger(index) || index < 0 || index > 3) return;
   const question = byId.get(session.round[session.cursor].id);
   session.answers[session.cursor] = index;
