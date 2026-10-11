@@ -66,7 +66,7 @@ const initializeAudioCall = (socket) => {
             const connected = Array.from(peers.values()).filter(peer => peer.connection.connectionState === 'connected').length;
             status.textContent = participants.length <= 1 ? 'Waiting for others...' : `${connected} connected, ${participants.length} in call`;
         } else {
-            status.textContent = participants.length ? `${participants.length} in call` : 'Audio call';
+            status.textContent = participants.length ? `${participants.length} in call` : '';
         }
     };
 

@@ -90,16 +90,13 @@
             .audio-bar {
                 display: flex;
                 align-items: center;
-                justify-content: space-between;
-                flex-wrap: wrap;
-                gap: 8px;
-                padding: 8px 10px;
-                border-bottom: 1px solid #ddd;
-                background: #f1f1f1;
+                flex: 0 0 auto;
+                gap: 4px;
             }
             #audio-status {
-                flex: 1;
-                min-width: 120px;
+                flex: 0 1 auto;
+                min-width: 0;
+                max-width: 120px;
                 overflow-wrap: anywhere;
             }
             #audio-controls {
@@ -356,17 +353,17 @@
             <header class="room-header">
                 <a class="back-to-chats" href="/" title="My chats" aria-label="My chats"><i data-lucide="arrow-left" aria-hidden="true"></i></a>
                 <h1 class="room-title-heading"><button type="button" id="edit-room-title" title="Edit group title" disabled><span id="room-title">Group chat</span></button></h1>
-            </header>
-            <div class="audio-bar" aria-label="Audio call">
-                <span id="audio-status" role="status" aria-live="polite">Audio call</span>
-                <button type="button" id="call-notifications" title="Enable call notifications" aria-label="Enable call notifications" aria-pressed="false" hidden><i data-lucide="bell-off" aria-hidden="true"></i></button>
-                <button type="button" id="join-call" disabled><i data-lucide="phone" aria-hidden="true"></i>Join call</button>
-                <div id="audio-controls" hidden>
-                    <button type="button" id="play-call" title="Play call audio" aria-label="Play call audio" hidden><i data-lucide="volume-2" aria-hidden="true"></i></button>
-                    <button type="button" id="mute-call" title="Mute microphone" aria-label="Mute microphone" aria-pressed="false"><i data-lucide="mic" aria-hidden="true"></i></button>
-                    <button type="button" id="leave-call" title="Hang up" aria-label="Hang up"><i data-lucide="phone-off" aria-hidden="true"></i></button>
+                <div class="audio-bar" aria-label="Audio call">
+                    <span id="audio-status" role="status" aria-live="polite"></span>
+                    <button type="button" id="call-notifications" title="Enable call notifications" aria-label="Enable call notifications" aria-pressed="false" hidden><i data-lucide="bell-off" aria-hidden="true"></i></button>
+                    <button type="button" id="join-call" title="Join call" aria-label="Join call" disabled><i data-lucide="phone" aria-hidden="true"></i></button>
+                    <div id="audio-controls" hidden>
+                        <button type="button" id="play-call" title="Play call audio" aria-label="Play call audio" hidden><i data-lucide="volume-2" aria-hidden="true"></i></button>
+                        <button type="button" id="mute-call" title="Mute microphone" aria-label="Mute microphone" aria-pressed="false"><i data-lucide="mic" aria-hidden="true"></i></button>
+                        <button type="button" id="leave-call" title="Hang up" aria-label="Hang up"><i data-lucide="phone-off" aria-hidden="true"></i></button>
+                    </div>
                 </div>
-            </div>
+            </header>
             <div id="remote-audio" hidden></div>
             <div class="messages" id="messages"></div>
             <form id="chat-form">

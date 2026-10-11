@@ -74,18 +74,31 @@ const renderChats = (chats) => {
             count.appendChild(metric);
         }
         link.append(heading, people, count);
+        const actions = document.createElement('details');
+        actions.className = 'chat-actions';
+        const trigger = document.createElement('summary');
+        trigger.title = 'Chat actions';
+        trigger.setAttribute('aria-label', `Actions for ${chat.title || chat.room}`);
+        trigger.innerHTML = '<i data-lucide="ellipsis" aria-hidden="true"></i>';
+        actions.addEventListener('toggle', () => {
+            if (actions.open) list.querySelectorAll('.chat-actions').forEach(menu => {
+                if (menu !== actions) menu.open = false;
+            });
+        });
         const remove = document.createElement('button');
         remove.type = 'button';
         remove.className = 'remove-chat';
         remove.title = 'Remove from my chats';
         remove.setAttribute('aria-label', `Remove ${chat.title || chat.room} from my chats`);
-        remove.innerHTML = '<i data-lucide="x" aria-hidden="true"></i>';
+        remove.innerHTML = '<i data-lucide="list-minus" aria-hidden="true"></i>Remove from my chats';
         remove.addEventListener('click', () => {
+            actions.open = false;
             if (!confirm('Remove this chat from your list?')) return;
             localStorage.setItem('groups', getRememberedChats().reverse().filter(room => room !== chat.room).join(','));
             loadChats();
         });
-        row.append(link, remove);
+        actions.append(trigger, remove);
+        row.append(link, actions);
         list.appendChild(row);
     }
     lucide.createIcons();
@@ -128,6 +141,18 @@ document.getElementById('join-chat').addEventListener('submit', event => {
     event.preventDefault();
     const room = document.getElementById('room-code').value.trim().toLowerCase();
     if (/^[a-z0-9]+$/.test(room)) window.location.assign(`/${room}`);
+});
+document.addEventListener('click', event => {
+    list.querySelectorAll('.chat-actions[open]').forEach(menu => {
+        if (!menu.contains(event.target)) menu.open = false;
+    });
+});
+document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape') return;
+    list.querySelectorAll('.chat-actions[open]').forEach(menu => {
+        menu.open = false;
+        menu.querySelector('summary').focus();
+    });
 });
 refresh.addEventListener('click', loadChats);
 window.addEventListener('focus', loadChats);

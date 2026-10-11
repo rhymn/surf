@@ -46,14 +46,18 @@
             .chat-metric { display: inline-flex; align-items: center; gap: 6px; }
             .chat-metric svg { width: 16px; height: 16px; }
             .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
-            .remove-chat { color: #69766d; flex-shrink: 0; }
+            .chat-actions { position: relative; flex-shrink: 0; }
+            .chat-actions summary { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 4px; color: #69766d; cursor: pointer; list-style: none; }
+            .chat-actions summary::-webkit-details-marker { display: none; }
+            .chat-actions summary:hover, .chat-actions[open] summary { background: #eef4ef; }
+            .remove-chat { position: absolute; top: 48px; right: 0; z-index: 2; width: 230px; background: #fff; color: #59645e; box-shadow: 0 4px 16px rgba(0,0,0,0.12); font-size: 14px; }
             @media (max-width: 560px) {
                 .header-inner, main { padding: 16px; }
                 .toolbar { align-items: flex-start; }
                 form { width: 100%; }
                 input { flex: 1; }
                 .chat-row { align-items: flex-start; }
-                .remove-chat { margin-top: 16px; }
+                .chat-actions { margin-top: 16px; }
                 #username-label { max-width: 130px; overflow-wrap: anywhere; }
             }
         </style>
