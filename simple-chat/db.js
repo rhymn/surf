@@ -28,6 +28,12 @@ const ready = db.none(`
         room TEXT PRIMARY KEY,
         title TEXT NOT NULL DEFAULT ''
     );
+    CREATE TABLE IF NOT EXISTS chat_participants (
+        room TEXT NOT NULL,
+        userid TEXT NOT NULL,
+        username TEXT NOT NULL,
+        PRIMARY KEY (room, userid)
+    );
 `);
 ready.catch(error => {
     console.error('Error creating messages table:', error);
@@ -70,6 +76,31 @@ async function reserveRoom(room) {
     return db.oneOrNone('INSERT INTO chat_rooms(room) SELECT $1 WHERE NOT EXISTS (SELECT 1 FROM messages WHERE room = $1) ON CONFLICT (room) DO NOTHING RETURNING room', [room]);
 }
 
+async function saveParticipant(room, userId, username) {
+    await ready;
+    return db.none('INSERT INTO chat_participants(room, userid, username) VALUES($1, $2, $3) ON CONFLICT (room, userid) DO UPDATE SET username = EXCLUDED.username', [room, userId, username]);
+}
+
+async function getChatSummaries(rooms) {
+    await ready;
+    const titles = await db.any('SELECT room, title FROM chat_rooms WHERE room = ANY($1::text[])', [rooms]);
+    const participants = await db.any(`
+        SELECT DISTINCT ON (room, userid) room, userid, username FROM (
+            SELECT room, userid, username, 0 AS priority, NULL::timestamptz AS timestamp
+            FROM chat_participants WHERE room = ANY($1::text[])
+            UNION ALL
+            SELECT room, userid, username, 1 AS priority, timestamp
+            FROM messages WHERE room = ANY($1::text[])
+        ) AS participants ORDER BY room, userid, priority, timestamp DESC
+    `, [rooms]);
+    return rooms.map(room => ({
+        room,
+        title: titles.find(chat => chat.room === room)?.title || '',
+        participants: participants.filter(participant => participant.room === room)
+            .map(({ userid, username }) => ({ userId: userid, username }))
+    }));
+}
+
 module.exports = {
     saveMessage,
     deleteMessage,
@@ -77,5 +108,7 @@ module.exports = {
     getMessages,
     getRoomTitle,
     setRoomTitle,
-    reserveRoom
+    reserveRoom,
+    saveParticipant,
+    getChatSummaries
 };

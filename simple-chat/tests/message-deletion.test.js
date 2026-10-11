@@ -7,14 +7,23 @@ const { runInNewContext } = require('node:vm');
 const setup = ({ candidates = [] } = {}) => {
     const rows = new Map();
     const titles = new Map();
+    const members = new Map();
+    const sockets = new Map();
     const events = [];
     let connectionHandler;
     let nextId = 1;
     let failing = false;
     const routes = new Map();
     const activeRooms = new Map();
-    const app = { use() {}, get: (route, handler) => routes.set(route, handler), post() {} };
+    const app = { use() {}, get: (route, handler) => routes.set(route, handler), post: (route, handler) => routes.set(`POST ${route}`, handler) };
     const database = {
+        saveParticipant: async (room, userId, username) => { members.set(`${room}:${userId}`, { room, userId, username }); },
+        getChatSummaries: async rooms => {
+            if (failing) throw new Error('Database unavailable');
+            return rooms.map(room => ({ room, title: titles.get(room) || '',
+                participants: Array.from(members.values()).filter(member => member.room === room)
+                    .map(({ userId, username }) => ({ userId, username })) }));
+        },
         reserveRoom: async room => {
             if (failing) throw new Error('Database unavailable');
             if (titles.has(room) || Array.from(rows.values()).some(row => row.room === room)) return null;
@@ -54,27 +63,29 @@ const setup = ({ candidates = [] } = {}) => {
         express: Object.assign(() => app, { static() {} }),
         http: { createServer: () => ({ listen() {} }) },
         'socket.io': () => ({
-            sockets: { adapter: { rooms: activeRooms } },
+            sockets: { adapter: { rooms: activeRooms }, sockets },
             on: (event, handler) => { connectionHandler = handler; },
             to: target => ({ emit: (event, payload) => events.push({ target, event, payload }) })
         }),
         './db': database,
         'node:crypto': { randomInt: () => Number.parseInt(candidates.shift() || '0000', 36) },
-        './audio-signaling': { registerAudioSignaling() {} },
+        './audio-signaling': { registerAudioSignaling: (io, socket, room) => { socket.data.chatRoom = room; } },
         'body-parser': { json() {} }
     };
     runInNewContext(readFileSync(join(__dirname, '../server.js'), 'utf8'), {
+        __dirname: join(__dirname, '..'),
         require: name => dependencies[name], process: { env: {} }, console: { log() {}, error() {}, warn() {} }
     });
     const connect = (userId, room = 'room') => {
         const handlers = new Map();
         const socket = {
-            id: userId, handshake: { auth: { room, userId } },
+            id: userId, data: {}, handshake: { auth: { room, userId } },
             join() {}, emit: (event, payload) => {
                 if (event === 'roomTitle') events.push({ target: userId, event, payload });
             }, disconnect() {},
             on: (event, handler) => handlers.set(event, handler)
         };
+        sockets.set(userId, socket);
         connectionHandler(socket);
         return async (event, payload) => {
             let result;
@@ -82,7 +93,7 @@ const setup = ({ candidates = [] } = {}) => {
             return result;
         };
     };
-    return { rows, titles, events, connect, routes, activeRooms, fail: () => { failing = true; } };
+    return { rows, titles, events, connect, routes, activeRooms, sockets, members, fail: () => { failing = true; } };
 };
 
 test('saved messages use socket identity and carry IDs; owners can delete after reconnecting', async () => {
@@ -266,4 +277,78 @@ test('room generation returns a retryable error on repeated collisions or databa
         assert.equal(code, 503);
         assert.match(message, /Try again/);
     }
+});
+
+test('home route is separate from rooms and summaries return only requested chats', async () => {
+    const state = setup();
+    let file;
+    state.routes.get('/')({}, { sendFile: value => { file = value; } });
+    assert.match(file, /public\/home.html$/);
+    state.titles.set('aaaa', 'First chat');
+    state.titles.set('bbbb', 'Other chat');
+    let result;
+    await state.routes.get('POST /chats')({ body: { rooms: ['aaaa', 'aaaa'] } }, {
+        set: () => ({ json: value => { result = value; } })
+    });
+    assert.equal(result.length, 1);
+    assert.equal(result[0].room, 'aaaa');
+    assert.equal(result[0].title, 'First chat');
+});
+
+test('invalid summary requests are rejected', async () => {
+    for (const rooms of [undefined, 'aaaa', ['/other'], [null], Array(201).fill('aaaa')]) {
+        const state = setup();
+        let code;
+        await state.routes.get('POST /chats')({ body: { rooms } }, {
+            status: value => { code = value; return { json() {} }; }
+        });
+        assert.equal(code, 400);
+    }
+});
+
+test('visitors are persisted without sending messages and online peers are deduplicated by identity', async () => {
+    const state = setup();
+    const visitor = state.connect('alice', 'aaaa');
+    await visitor('newUser', 'Alice');
+    state.connect('bob', 'bbbb');
+    await state.connect('offline', 'aaaa')('newUser', 'Offline visitor');
+    state.sockets.delete('offline');
+    const alice = state.sockets.get('alice');
+    state.sockets.set('second-tab', { id: 'alice', data: alice.data });
+    let chats;
+    await state.routes.get('POST /chats')({ body: { rooms: ['aaaa'] } }, {
+        set: () => ({ json: value => { chats = value; } })
+    });
+    assert.equal(state.rows.size, 0);
+    assert.equal(chats[0].participants.length, 2);
+    assert.equal(chats[0].participants.find(person => person.userId === 'alice').online, true);
+    assert.equal(chats[0].participants.find(person => person.userId === 'offline').online, false);
+    assert.equal(chats[0].participants.some(person => person.userId === 'bob'), false);
+});
+
+test('summary storage requests only known room IDs and includes visitor and message history', async () => {
+    const calls = [];
+    const context = {
+        require: () => () => () => ({
+            none: async (sql, values) => { if (values) calls.push({ sql, values }); },
+            any: async (sql, values) => {
+                calls.push({ sql, values });
+                return sql.startsWith('SELECT room, title') ? [{ room: 'aaaa', title: 'Weekend' }]
+                    : [{ room: 'aaaa', userid: 'alice', username: 'Alice' }];
+            }
+        }),
+        process: { env: { DATABASE_URL: 'postgresql://localhost/test' } },
+        console: { log() {}, error() {} }, module: { exports: {} }
+    };
+    runInNewContext(readFileSync(join(__dirname, '../db.js'), 'utf8'), context);
+    const chats = await context.module.exports.getChatSummaries(['aaaa', 'bbbb']);
+    assert.equal(chats[0].title, 'Weekend');
+    assert.equal(chats[0].participants[0].username, 'Alice');
+    assert.equal(chats[1].participants.length, 0);
+    assert.match(calls[1].sql, /DISTINCT ON \(room, userid\)/);
+    assert.match(calls[1].sql, /FROM chat_participants WHERE room = ANY\(\$1::text\[\]\)/);
+    assert.match(calls[1].sql, /FROM messages WHERE room = ANY\(\$1::text\[\]\)/);
+    await context.module.exports.saveParticipant('aaaa', 'alice', 'New name');
+    assert.match(calls[2].sql, /ON CONFLICT \(room, userid\) DO UPDATE SET username/);
+    assert.deepEqual(Array.from(calls[2].values), ['aaaa', 'alice', 'New name']);
 });

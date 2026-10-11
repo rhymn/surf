@@ -31,8 +31,8 @@ const initializeAudioCall = (socket) => {
     const setControlIcon = (button, icon) => {
         if (button.getAttribute('data-icon') === icon) return;
         button.setAttribute('data-icon', icon);
-        button.innerHTML = `<i data-lucide="${icon}" aria-hidden="true"></i>`;
-        lucide.createIcons();
+        const emojis = { 'bell-ring': '🔔', 'bell-off': '🔕', mic: '🎙️', 'mic-off': '🔇' };
+        button.innerHTML = `<span class="emoji" aria-hidden="true">${emojis[icon]}</span>`;
     };
 
     const render = (message) => {

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>My chats - Simple Chat</title>
+        <script src="/icons.js" defer></script>
+        <script src="/home.js" defer></script>
+        <style>
+            * { box-sizing: border-box; }
+            body { margin: 0; color: #202624; background: #fafbfa; font-family: Arial, sans-serif; font-size: 16px; }
+            header { border-bottom: 1px solid #d9dfdb; background: #fff; }
+            .header-inner, main { max-width: 860px; margin: auto; padding: 20px; }
+            .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+            .brand { font-size: 20px; font-weight: bold; }
+            h1 { margin: 0; font-size: 24px; }
+            .toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin: 24px 0; }
+            .commands, form { display: flex; align-items: center; gap: 8px; }
+            button, .new-chat { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 10px 12px; border: 1px solid #bdc9c1; border-radius: 4px; background: #fff; color: #253e30; font: inherit; cursor: pointer; text-decoration: none; }
+            .new-chat { background: #267347; color: #fff; border-color: #267347; }
+            button:hover, .new-chat:hover { filter: brightness(0.94); }
+            button:disabled { opacity: 0.5; cursor: not-allowed; }
+            svg { width: 20px; height: 20px; flex-shrink: 0; }
+            .emoji { display: inline-block; font-size: 20px; line-height: 24px; width: 24px; text-align: center; flex-shrink: 0; }
+            input { width: 160px; min-width: 0; min-height: 44px; padding: 10px; border: 1px solid #bdc9c1; border-radius: 4px; font: inherit; background: #fff; }
+            :focus-visible { outline: 3px solid #007bff; outline-offset: 2px; }
+            #list-status { color: #59645e; overflow-wrap: anywhere; }
+            #list-status:empty { display: none; }
+            #chat-list { padding: 0; margin: 0; list-style: none; border-top: 1px solid #d9dfdb; }
+            .chat-row { display: flex; align-items: center; border-bottom: 1px solid #d9dfdb; }
+            .chat-link { display: block; flex: 1; min-width: 0; padding: 20px 12px 20px 0; text-decoration: none; color: inherit; }
+            .chat-link:hover { background: #eef4ef; }
+            .chat-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+            .chat-title { margin: 0; font-size: 18px; overflow-wrap: anywhere; }
+            .room-id { color: #69766d; font-size: 13px; font-family: monospace; overflow-wrap: anywhere; }
+            .participants { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px; }
+            .participant { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; font-size: 14px; color: #59645e; }
+            .participant-name { overflow-wrap: anywhere; min-width: 0; }
+            .presence { flex: 0 0 8px; height: 8px; border-radius: 50%; background: #bbb; }
+            .participant.online .presence { background: #267347; }
+            .participant.online { color: #205d39; }
+            .participant-count { margin: 8px 0 0; color: #69766d; font-size: 13px; }
+            .remove-chat { color: #69766d; flex-shrink: 0; }
+            @media (max-width: 560px) {
+                .header-inner, main { padding: 16px; }
+                .toolbar { align-items: flex-start; }
+                form { width: 100%; }
+                input { flex: 1; }
+                .chat-row { align-items: flex-start; }
+                .remove-chat { margin-top: 16px; }
+                #username-label { max-width: 130px; overflow-wrap: anywhere; }
+            }
+        </style>
+    </head>
+    <body>
+        <header><div class="header-inner">
+            <span class="brand">Simple Chat</span>
+            <button id="home-username" type="button" title="Set username"><span class="emoji" aria-hidden="true">👤</span><span id="username-label">Set username</span></button>
+        </div></header>
+        <main>
+            <div class="toolbar">
+                <h1>My chats</h1>
+                <div class="commands">
+                    <button id="refresh-chats" type="button" title="Refresh chats" aria-label="Refresh chats"><span class="emoji" aria-hidden="true">🔄</span></button>
+                    <a class="new-chat" href="/random"><span class="emoji" aria-hidden="true">➕</span>New chat</a>
+                </div>
+                <form id="join-chat">
+                    <input id="room-code" aria-label="Chat ID" placeholder="Chat ID" pattern="[a-zA-Z0-9]+" maxlength="128" required autocomplete="off">
+                    <button type="submit"><span class="emoji" aria-hidden="true">🚪</span>Join</button>
+                </form>
+            </div>
+            <p id="list-status" role="status" aria-live="polite">Loading chats...</p>
+            <ul id="chat-list" aria-label="Chats"></ul>
+        </main>
+    </body>
+</html>

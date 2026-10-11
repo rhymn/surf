@@ -1,7 +1,7 @@
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
-const { saveMessage, getMessages, deleteMessage, editMessage, getRoomTitle, setRoomTitle, reserveRoom } = require('./db');
+const { saveMessage, getMessages, deleteMessage, editMessage, getRoomTitle, setRoomTitle, reserveRoom, saveParticipant, getChatSummaries } = require('./db');
 const { randomInt } = require('node:crypto');
 const { registerAudioSignaling } = require('./audio-signaling');
 const bodyParser = require('body-parser')
@@ -11,8 +11,14 @@ const server = http.createServer(app);
 const io = socketIo(server);
 const port = process.env.PORT || 3000;
 
-app.use(express.static('public'));
+app.use(express.static('public', { index: false }));
 app.use(bodyParser.json());
+
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/public/home.html');
+});
+
+app.get('/index.html', (req, res) => res.redirect('/'));
 
 const iceServers = (() => {
     try {
@@ -59,6 +65,33 @@ app.post('/invite', (req, res) => {
     res.send('Invitation sent');
 });
 
+app.post('/chats', async (req, res) => {
+    const rooms = req.body?.rooms;
+    if (!Array.isArray(rooms) || rooms.length > 200 ||
+        rooms.some(room => typeof room !== 'string' || room.length > 128 || !isRealGroupName(room))) {
+        res.status(400).json({ error: 'Invalid chat list.' });
+        return;
+    }
+    try {
+        const chats = await getChatSummaries([...new Set(rooms)]);
+        for (const chat of chats) {
+            const online = new Map();
+            for (const peer of io.sockets.sockets.values()) {
+                if (peer.data.chatRoom === `chat:${chat.room}` && users[peer.id] && peer.data.userId) {
+                    online.set(peer.data.userId, users[peer.id]);
+                }
+            }
+            const participants = new Map(chat.participants.map(participant => [participant.userId, { ...participant, online: false }]));
+            for (const [userId, username] of online) participants.set(userId, { userId, username, online: true });
+            chat.participants = Array.from(participants.values());
+        }
+        res.set('Cache-Control', 'no-store').json(chats);
+    } catch (error) {
+        console.error('Error fetching chat list:', error);
+        res.status(503).json({ error: 'Unable to load chats. Try again.' });
+    }
+});
+
 app.get('/:groupName', (req, res) => {
     if (!isRealGroupName(req.params.groupName)){
         console.log('not real group name');
@@ -84,6 +117,7 @@ io.on('connection', (socket) => {
     }
     const room = `chat:${groupName}`;
     const userId = socket.handshake.auth?.userId;
+    socket.data.userId = userId;
     socket.join(room);
     console.log(`User joined room: ${room}`);
 
@@ -118,7 +152,12 @@ io.on('connection', (socket) => {
 
     // Handle new user
     socket.on('newUser', (userName) => {
+        if (typeof userName !== 'string' || !userName.trim() || userName.length > 100 ||
+            typeof userId !== 'string' || !userId || userId.length > 128) return;
         users[socket.id] = userName;
+        saveParticipant(groupName, userId, userName).catch(error => {
+            console.error('Error saving participant:', error);
+        });
         // io.to(room).emit('message', `${userName} joined the chat`);
     });
 

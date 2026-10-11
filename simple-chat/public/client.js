@@ -127,13 +127,13 @@ const inviteFriends = (emails) => {
 const group = () => window.location.pathname.split('/').pop();
 
 const appendGroupIdToLocalStorage = () => {
-    const existinGroups = localStorage.getItem('groups') || [];
-    const arrayOfGroups = Array.isArray(existinGroups) ? existinGroups : existinGroups.split(',');
-    localStorage.setItem('groups', [...arrayOfGroups, group()]);
+    const rooms = (localStorage.getItem('groups') || '').split(',')
+        .filter(room => /^[a-z0-9]+$/.test(room) && room !== group() && room.length <= 128);
+    localStorage.setItem('groups', [...new Set([...rooms, group()])].slice(-200).join(','));
 }
 
 const getGroups = () => {
-    return localStorage.getItem('groups').split(',');
+    return (localStorage.getItem('groups') || '').split(',').filter(Boolean);
 }
 
 appendGroupIdToLocalStorage();
@@ -258,7 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 editButton.className = 'edit-message';
                 editButton.title = 'Edit message';
                 editButton.setAttribute('aria-label', 'Edit message');
-                editButton.innerHTML = '<i data-lucide="pencil" aria-hidden="true"></i>';
+                editButton.innerHTML = '<span class="emoji" aria-hidden="true">✏️</span>';
                 editButton.addEventListener('click', () => {
                     const updated = prompt('Edit message', messageText.textContent);
                     if (updated === null || updated === messageText.textContent) return;
@@ -278,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 deleteButton.className = 'delete-message';
                 deleteButton.title = 'Delete message';
                 deleteButton.setAttribute('aria-label', 'Delete message');
-                deleteButton.innerHTML = '<i data-lucide="trash-2" aria-hidden="true"></i>';
+                deleteButton.innerHTML = '<span class="emoji" aria-hidden="true">🗑️</span>';
                 deleteButton.addEventListener('click', () => {
                     if (!confirm('Delete this message for everyone?')) return;
                     deleteButton.disabled = true;
