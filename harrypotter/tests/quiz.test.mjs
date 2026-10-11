@@ -200,3 +200,31 @@ test('all Swedish questions are playable without changing their review metadata'
   assert.ok(playable.some(question => question.reviewStatus === 'reviewed'));
   assert.equal(JSON.stringify(bank), original);
 });
+
+test('100 additional film questions cover eight films with scene references and spoiler limits', () => {
+  const filmTitles = ['De vises sten', 'Hemligheternas kammare', 'Fången från Azkaban', 'Den flammande bägaren', 'Fenixorden', 'Halvblodsprinsen', 'Dödsrelikerna del 1', 'Dödsrelikerna del 2'];
+  const additions = [];
+  for (let number = 6; number <= 105; number += 1) {
+    const id = `film-${String(number).padStart(3, '0')}`;
+    const question = bank.find(question => question.id === id);
+    assert.ok(question, id);
+    assert.equal(question.language, 'sv', id);
+    assert.equal(question.canon, 'film', id);
+    assert.equal(question.source.type, 'film', id);
+    const filmIndex = filmTitles.indexOf(question.source.title);
+    assert.ok(filmIndex >= 0, id);
+    assert.equal(question.spoilerThroughBook, Math.min(filmIndex + 1, 7), id);
+    assert.ok(question.source.scene.trim().length > 0, id);
+    additions.push(question);
+  }
+  assert.equal(additions.length, 100);
+  for (const title of filmTitles) {
+    const questions = additions.filter(question => question.source.title === title);
+    assert.ok(questions.length >= 12, title);
+    assert.equal(new Set(questions.map(question => question.correctOptionIndex)).size, 4, title);
+  }
+  assert.deepEqual([...new Set(additions.map(question => question.difficulty))].sort(), ['easy', 'extreme', 'hard', 'medium']);
+  assert.equal(filterQuestions(additions, { canon: 'film' }).length, 100);
+  assert.equal(filterQuestions(additions, { canon: 'book' }).length, 0);
+  assert.equal(filterQuestions(additions, { canon: 'film', spoilerThroughBook: 1 }).length, 13);
+});

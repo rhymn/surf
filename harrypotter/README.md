@@ -67,16 +67,18 @@ horrokruxer, Gryffindors svärd, dödsreliker och trollstavar.
 ### Frågebanken
 
 `data/quiz/manifest.json` listar JSON-filerna som ska laddas. Banken innehåller
-171 frågor: 13 startfrågor i `films.json` och `cross-series.json`, kontrollerade
-mot befintliga lokala wikiuppgifter, samt 158 svenska bokfrågor i
-`book-1.json` till `book-7.json` (22–24 per bok).
+271 frågor: 105 filmfrågor i `films.json`, 8 frågor i `cross-series.json`
+och 158 svenska bokfrågor i `book-1.json` till `book-7.json` (22–24 per bok).
+De 100 nya filmfrågorna har scen- eller eftertexthänvisningar och täcker alla
+åtta filmer med 12–13 frågor per film. De är spelbara utkast; filmfakta,
+rollistor och svenska formuleringar har inte genomgått extern faktagranskning.
 
 Svårighetsnivån `extreme` (Extrem) är för små, svårmemorerade bokdetaljer.
-Nio sådana frågor finns som utkast bland bokfrågorna. Nivån följer samma
+Nio sådana frågor finns som utkast bland bokfrågorna och åtta bland filmfrågorna. Nivån följer samma
 spoilerfilter som övriga frågor och är spelbar även före faktagranskning.
 
 Fem bokfrågor är granskade mot Harry Potter Lexicon;
-referenslänkarna finns i `source.verificationUrl`. Alla 171 frågor är spelbara,
+referenslänkarna finns i `source.verificationUrl`. Alla 271 frågor är spelbara,
 oavsett om deras granskningsstatus är `draft` eller `reviewed`.
 De övriga 153 bokfrågorna är utkast med kapitelhänvisningar, egna förklaringar
 och varierade svarspositioner. Svar, svenska namn, kapitelhänvisningar och spoilergränser

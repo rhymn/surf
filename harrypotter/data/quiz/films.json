@@ -38,5 +38,705 @@
     "explanation": "Oliver Phelps gestaltar George Weasley.",
     "source": {"type": "wiki", "entityType": "actors", "entityId": "oliver-phelps", "field": "name"},
     "entities": [{"type": "characters", "id": "george"}, {"type": "actors", "id": "oliver-phelps"}], "reviewStatus": "reviewed"
+  },
+  {
+    "id": "film-006", "language": "sv", "canon": "film", "spoilerThroughBook": 1, "category": "characters", "difficulty": "easy",
+    "question": "Vem förvandlas från katt på Privet Drive i första filmen?",
+    "options": ["McGonagall", "Dumbledore", "Hagrid", "Snape"], "correctOptionIndex": 0,
+    "explanation": "McGonagall återtar sin mänskliga form när Dumbledore kommer till Privet Drive.",
+    "source": {"type": "film", "title": "De vises sten", "scene": "Inledningen på Privet Drive"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-007", "language": "sv", "canon": "film", "spoilerThroughBook": 1, "category": "actors", "difficulty": "medium",
+    "question": "Vem spelar Hagrid i De vises sten?",
+    "options": ["Brendan Gleeson", "Robbie Coltrane", "Richard Harris", "David Thewlis"], "correctOptionIndex": 1,
+    "explanation": "Robbie Coltrane spelar Rubeus Hagrid.",
+    "source": {"type": "film", "title": "De vises sten", "scene": "Eftertexter: Rubeus Hagrid"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-008", "language": "sv", "canon": "film", "spoilerThroughBook": 1, "category": "objects", "difficulty": "hard",
+    "question": "Vilken färg har glasyren på Hagrids födelsedagstårta?",
+    "options": ["Blå", "Vit", "Rosa", "Svart"], "correctOptionIndex": 2,
+    "explanation": "Tårtan Hagrid ger Harry har rosa glasyr och grön text.",
+    "source": {"type": "film", "title": "De vises sten", "scene": "Hagrid ger Harry en tårta i stugan"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-009", "language": "sv", "canon": "film", "spoilerThroughBook": 1, "category": "actors", "difficulty": "medium",
+    "question": "Vem spelar Dumbledore i den första filmen?",
+    "options": ["Michael Gambon", "Ian McKellen", "John Hurt", "Richard Harris"], "correctOptionIndex": 3,
+    "explanation": "Richard Harris spelar Dumbledore i de två första filmerna.",
+    "source": {"type": "film", "title": "De vises sten", "scene": "Eftertexter: Albus Dumbledore"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-010", "language": "sv", "canon": "film", "spoilerThroughBook": 1, "category": "plot", "difficulty": "easy",
+    "question": "Var blir Dudley instängd efter ormens flykt i filmen?",
+    "options": ["I terrariet", "I en hiss", "I en bil", "I en lejonbur"], "correctOptionIndex": 0,
+    "explanation": "När glaset återkommer är Dudley kvar inne i ormens terrarium.",
+    "source": {"type": "film", "title": "De vises sten", "scene": "Djurparkens reptilhus"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-011", "language": "sv", "canon": "film", "spoilerThroughBook": 1, "category": "creatures", "difficulty": "easy",
+    "question": "Vilka fåglar samlas vid Dursleys hus före brevstormen?",
+    "options": ["Korpar", "Ugglor", "Svanar", "Fenixar"], "correctOptionIndex": 1,
+    "explanation": "Ugglor väntar utanför huset när familjen försöker stoppa Harrys skolbrev.",
+    "source": {"type": "film", "title": "De vises sten", "scene": "Ugglorna och breven på Privet Drive"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-012", "language": "sv", "canon": "film", "spoilerThroughBook": 1, "category": "hogwarts", "difficulty": "easy",
+    "question": "Vad svävar ovanför borden i Stora salen?",
+    "options": ["Trollstavar", "Böcker", "Levande ljus", "Timglas"], "correctOptionIndex": 2,
+    "explanation": "Stora salen är upplyst av levande ljus som svävar i luften.",
+    "source": {"type": "film", "title": "De vises sten", "scene": "Första ankomsten till Stora salen"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-013", "language": "sv", "canon": "film", "spoilerThroughBook": 1, "category": "characters", "difficulty": "medium",
+    "question": "Vem fastnar vid skolbyggnaden på den första flyglektionen?",
+    "options": ["Draco", "Ron", "Seamus", "Neville"], "correctOptionIndex": 3,
+    "explanation": "Nevilles okontrollerade flygtur slutar med att han hänger vid byggnaden och sedan faller.",
+    "source": {"type": "film", "title": "De vises sten", "scene": "Madam Hoochs flyglektion"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-014", "language": "sv", "canon": "film", "spoilerThroughBook": 1, "category": "spells", "difficulty": "medium",
+    "question": "Vilken besvärjelse använder Hermione mot Neville i filmen?",
+    "options": ["Petrificus Totalus", "Expelliarmus", "Lumos", "Accio"], "correctOptionIndex": 0,
+    "explanation": "Hermione gör Neville orörlig när han försöker hindra trion från att lämna sällskapsrummet.",
+    "source": {"type": "film", "title": "De vises sten", "scene": "Neville stoppar trion i sällskapsrummet"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-015", "language": "sv", "canon": "film", "spoilerThroughBook": 1, "category": "objects", "difficulty": "hard",
+    "question": "Vilken schackpjäs rider Ron på i den första filmen?",
+    "options": ["Ett torn", "En springare", "En löpare", "En kung"], "correctOptionIndex": 1,
+    "explanation": "Ron tar plats på en springare, den hästformade pjäsen på det stora schackbrädet.",
+    "source": {"type": "film", "title": "De vises sten", "scene": "Det förtrollade schackbrädet"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-016", "language": "sv", "canon": "film", "spoilerThroughBook": 1, "category": "actors", "difficulty": "extreme",
+    "question": "Vem spelar professor Quirrell i De vises sten?",
+    "options": ["David Tennant", "Mark Williams", "Ian Hart", "Jason Isaacs"], "correctOptionIndex": 2,
+    "explanation": "Ian Hart spelar professor Quirrell.",
+    "source": {"type": "film", "title": "De vises sten", "scene": "Eftertexter: Professor Quirrell"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-017", "language": "sv", "canon": "film", "spoilerThroughBook": 1, "category": "spells", "difficulty": "hard",
+    "question": "Vilken besvärjelse befriar Ron från djävulssnaran i filmen?",
+    "options": ["Incendio", "Alohomora", "Wingardium Leviosa", "Lumos Solem"], "correctOptionIndex": 3,
+    "explanation": "I filmen använder Hermione Lumos Solem för att lysa på växten och befria Ron.",
+    "source": {"type": "film", "title": "De vises sten", "scene": "Djävulssnaran under falluckan"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-018", "language": "sv", "canon": "film", "spoilerThroughBook": 1, "category": "hogwarts", "difficulty": "hard",
+    "question": "Hur många extra poäng får Harry på slutets fest i filmen?",
+    "options": ["Sextio", "Femtio", "Tio", "Hundra"], "correctOptionIndex": 0,
+    "explanation": "Dumbledore ger Harry sextio poäng innan Neville får de sista avgörande poängen.",
+    "source": {"type": "film", "title": "De vises sten", "scene": "Dumbledores poängutdelning i Stora salen"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-019", "language": "sv", "canon": "film", "spoilerThroughBook": 2, "category": "objects", "difficulty": "easy",
+    "question": "Vad drar bilen loss från Harrys fönster i andra filmen?",
+    "options": ["En gardin", "Ett galler", "En flagga", "En brevlåda"], "correctOptionIndex": 1,
+    "explanation": "Weasleybröderna använder bilen för att dra loss gallret som håller Harry instängd.",
+    "source": {"type": "film", "title": "Hemligheternas kammare", "scene": "Flykt från Privet Drive"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-020", "language": "sv", "canon": "film", "spoilerThroughBook": 2, "category": "actors", "difficulty": "medium",
+    "question": "Vem spelar Gilderoy Lockhart i andra filmen?",
+    "options": ["Jason Isaacs", "David Tennant", "Kenneth Branagh", "Alan Rickman"], "correctOptionIndex": 2,
+    "explanation": "Kenneth Branagh spelar den självgode Gilderoy Lockhart.",
+    "source": {"type": "film", "title": "Hemligheternas kammare", "scene": "Eftertexter: Gilderoy Lockhart"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-021", "language": "sv", "canon": "film", "spoilerThroughBook": 2, "category": "creatures", "difficulty": "easy",
+    "question": "Vilka djur följer Harry och Ron in i skogen i filmen?",
+    "options": ["Ugglor", "Råttor", "Paddor", "Spindlar"], "correctOptionIndex": 3,
+    "explanation": "De följer spindlarna från Hogwarts till Aragogs område i Förbjudna skogen.",
+    "source": {"type": "film", "title": "Hemligheternas kammare", "scene": "Spindelspåret in i Förbjudna skogen"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-022", "language": "sv", "canon": "film", "spoilerThroughBook": 2, "category": "transport", "difficulty": "easy",
+    "question": "Vad räddar Harry och Ron från spindlarna i filmen?",
+    "options": ["Den flygande bilen", "Hogwarts Express", "Nattbussen", "En hippogriff"], "correctOptionIndex": 0,
+    "explanation": "Familjen Weasleys bil kommer tillbaka och hjälper dem att fly från spindlarna.",
+    "source": {"type": "film", "title": "Hemligheternas kammare", "scene": "Flykt från Aragogs spindlar"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-023", "language": "sv", "canon": "film", "spoilerThroughBook": 2, "category": "characters", "difficulty": "medium",
+    "question": "Vilken elev hängs upp av Lockharts blå varelser i filmen?",
+    "options": ["Seamus", "Neville", "Draco", "Dean"], "correctOptionIndex": 1,
+    "explanation": "De små blå varelserna lyfter Neville och lämnar honom hängande i klassrummet.",
+    "source": {"type": "film", "title": "Hemligheternas kammare", "scene": "Lockharts kaotiska första lektion"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-024", "language": "sv", "canon": "film", "spoilerThroughBook": 2, "category": "spells", "difficulty": "hard",
+    "question": "Vilken besvärjelse framkallar Dracos orm i duellen?",
+    "options": ["Expelliarmus", "Riddikulus", "Serpensortia", "Petrificus Totalus"], "correctOptionIndex": 2,
+    "explanation": "Draco använder Serpensortia för att framkalla en orm på duellplattformen.",
+    "source": {"type": "film", "title": "Hemligheternas kammare", "scene": "Harry och Draco på duellklubben"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-025", "language": "sv", "canon": "film", "spoilerThroughBook": 2, "category": "actors", "difficulty": "easy",
+    "question": "Vem spelar Severus Snape i Hemligheternas kammare?",
+    "options": ["Gary Oldman", "John Hurt", "Richard Harris", "Alan Rickman"], "correctOptionIndex": 3,
+    "explanation": "Alan Rickman spelar Severus Snape.",
+    "source": {"type": "film", "title": "Hemligheternas kammare", "scene": "Eftertexter: Professor Severus Snape"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-026", "language": "sv", "canon": "film", "spoilerThroughBook": 2, "category": "creatures", "difficulty": "medium",
+    "question": "Vad gör Fawkes med basiliskens ögon i filmen?",
+    "options": ["Gör den blind", "Gör dem blå", "Fryser dem", "Gör dem osynliga"], "correctOptionIndex": 0,
+    "explanation": "Fawkes angriper ögonen och gör basilisken blind så att dess direkta blick inte längre kan döda Harry.",
+    "source": {"type": "film", "title": "Hemligheternas kammare", "scene": "Fawkes möter basilisken i kammaren"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-027", "language": "sv", "canon": "film", "spoilerThroughBook": 2, "category": "objects", "difficulty": "medium",
+    "question": "Var hittar Harry svärdet i Hemligheternas kammare?",
+    "options": ["I dagboken", "I Sorteringshatten", "I en kista", "I sin skolväska"], "correctOptionIndex": 1,
+    "explanation": "Harry drar Gryffindors svärd ur Sorteringshatten som Fawkes har fört med sig.",
+    "source": {"type": "film", "title": "Hemligheternas kammare", "scene": "Harry får Gryffindors svärd"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-028", "language": "sv", "canon": "film", "spoilerThroughBook": 2, "category": "characters", "difficulty": "medium",
+    "question": "Vem stoppar Lucius från att angripa Harry efter alvens frihet?",
+    "options": ["Dumbledore", "Snape", "Dobby", "Ron"], "correctOptionIndex": 2,
+    "explanation": "Den frigivne Dobby använder sin magi för att hindra Lucius Malfoy från att skada Harry.",
+    "source": {"type": "film", "title": "Hemligheternas kammare", "scene": "Dobby försvarar Harry i korridoren"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-029", "language": "sv", "canon": "film", "spoilerThroughBook": 2, "category": "transport", "difficulty": "medium",
+    "question": "Hur lämnar gruppen kammaren efter basiliskstriden i filmen?",
+    "options": ["Med en kvast", "Med en hiss", "Genom att simma", "Med hjälp av Fawkes"], "correctOptionIndex": 3,
+    "explanation": "Fawkes bär gruppen upp från kammaren genom att de håller fast vid honom och varandra.",
+    "source": {"type": "film", "title": "Hemligheternas kammare", "scene": "Fawkes flyger gruppen ur kammaren"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-030", "language": "sv", "canon": "film", "spoilerThroughBook": 2, "category": "characters", "difficulty": "hard",
+    "question": "Vilket spöke blir förstenat i den andra filmen?",
+    "options": ["Nästan huvudlösa Nick", "Myrtle", "Blodiga baronen", "Grå damen"], "correctOptionIndex": 0,
+    "explanation": "Nästan huvudlösa Nick blir förstenad och ses orörlig efter en av attackerna.",
+    "source": {"type": "film", "title": "Hemligheternas kammare", "scene": "Förstenade offer och sjukflygeln"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-031", "language": "sv", "canon": "film", "spoilerThroughBook": 2, "category": "characters", "difficulty": "easy",
+    "question": "Vem får applåder när han återvänder i filmens sista fest?",
+    "options": ["Lockhart", "Hagrid", "Lucius", "Filch"], "correctOptionIndex": 1,
+    "explanation": "Hagrid återvänder från Azkaban och välkomnas varmt av eleverna i Stora salen.",
+    "source": {"type": "film", "title": "Hemligheternas kammare", "scene": "Hagrids återkomst i Stora salen"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-032", "language": "sv", "canon": "film", "spoilerThroughBook": 3, "category": "plot", "difficulty": "easy",
+    "question": "Vad händer med Marge när hon lämnar huset i tredje filmen?",
+    "options": ["Hon blir en hund", "Hon blir osynlig", "Hon svävar iväg uppblåst", "Hon försvinner i rök"], "correctOptionIndex": 2,
+    "explanation": "Den uppblåsta Marge svävar ut ur huset och vidare upp på himlen.",
+    "source": {"type": "film", "title": "Fången från Azkaban", "scene": "Marge svävar från Privet Drive"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-033", "language": "sv", "canon": "film", "spoilerThroughBook": 3, "category": "actors", "difficulty": "extreme",
+    "question": "Vem gör det krympta busshuvudets röst på engelska?",
+    "options": ["Warwick Davis", "Toby Jones", "John Cleese", "Lenny Henry"], "correctOptionIndex": 3,
+    "explanation": "Lenny Henry gör den engelska rösten till det krympta huvudet på Nattbussen.",
+    "source": {"type": "film", "title": "Fången från Azkaban", "scene": "Nattbussen och eftertexterna för Shrunken Head"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-034", "language": "sv", "canon": "film", "spoilerThroughBook": 3, "category": "transport", "difficulty": "easy",
+    "question": "Vilken färg har Nattbussen i den tredje filmen?",
+    "options": ["Lila", "Röd", "Grön", "Gul"], "correctOptionIndex": 0,
+    "explanation": "Nattbussen är lila och färdas i hög fart genom Londons gator.",
+    "source": {"type": "film", "title": "Fången från Azkaban", "scene": "Nattbussens ankomst och färd"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-035", "language": "sv", "canon": "film", "spoilerThroughBook": 3, "category": "creatures", "difficulty": "easy",
+    "question": "Vilken varelse flyger Harry på under Hagrids filmlektion?",
+    "options": ["Fawkes", "Vingfåle", "Norbert", "En thestral"], "correctOptionIndex": 1,
+    "explanation": "Harry rider på hippogriffen Vingfåle och flyger över Hogwarts marker.",
+    "source": {"type": "film", "title": "Fången från Azkaban", "scene": "Harrys första flygtur med Vingfåle"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-036", "language": "sv", "canon": "film", "spoilerThroughBook": 3, "category": "actors", "difficulty": "medium",
+    "question": "Vem tar över rollen som Dumbledore i tredje filmen?",
+    "options": ["Richard Harris", "Ian McKellen", "Michael Gambon", "John Hurt"], "correctOptionIndex": 2,
+    "explanation": "Michael Gambon spelar Dumbledore från Fången från Azkaban och framåt.",
+    "source": {"type": "film", "title": "Fången från Azkaban", "scene": "Eftertexter: Albus Dumbledore"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-037", "language": "sv", "canon": "film", "spoilerThroughBook": 3, "category": "plot", "difficulty": "medium",
+    "question": "Vad kastar den osynlige Harry på Draco i Hogsmeade?",
+    "options": ["Äpplen", "Böcker", "Stenar", "Snöbollar"], "correctOptionIndex": 3,
+    "explanation": "Harry använder osynlighetsmanteln för att kasta snöbollar på Draco och hans vänner.",
+    "source": {"type": "film", "title": "Fången från Azkaban", "scene": "Snöbollsscenen i Hogsmeade"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-038", "language": "sv", "canon": "film", "spoilerThroughBook": 3, "category": "objects", "difficulty": "medium",
+    "question": "Vilka kläder får boggart-Snape i Nevilles filmövning?",
+    "options": ["Nevilles farmors kläder", "En quidditchdräkt", "En rustning", "En bröllopskostym"], "correctOptionIndex": 0,
+    "explanation": "Neville gör boggarten komisk genom att föreställa sig Snape i farmoderns kläder.",
+    "source": {"type": "film", "title": "Fången från Azkaban", "scene": "Lupins boggartlektion"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-039", "language": "sv", "canon": "film", "spoilerThroughBook": 3, "category": "plot", "difficulty": "hard",
+    "question": "Vad gör Hermione mot Draco vid Hagrids stuga i filmen?",
+    "options": ["Kastar en snöboll", "Slår honom med knytnäven", "Förvandlar honom till en iller", "Tar hans kvast"], "correctOptionIndex": 1,
+    "explanation": "I filmen slår Hermione Draco med knytnäven, till skillnad från bokens örfil.",
+    "source": {"type": "film", "title": "Fången från Azkaban", "scene": "Hermione konfronterar Draco utanför Hagrids stuga"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-040", "language": "sv", "canon": "film", "spoilerThroughBook": 3, "category": "actors", "difficulty": "hard",
+    "question": "Vem spelar Remus Lupin i Fången från Azkaban?",
+    "options": ["Gary Oldman", "Timothy Spall", "David Thewlis", "Brendan Gleeson"], "correctOptionIndex": 2,
+    "explanation": "David Thewlis spelar Remus Lupin.",
+    "source": {"type": "film", "title": "Fången från Azkaban", "scene": "Eftertexter: Professor Lupin"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-041", "language": "sv", "canon": "film", "spoilerThroughBook": 3, "category": "plot", "difficulty": "hard",
+    "question": "Vilket ljud använder framtidens Hermione för att locka Lupin?",
+    "options": ["Ett ugglehoande", "En vissling", "Ett kattjamande", "Ett varulvsylande"], "correctOptionIndex": 3,
+    "explanation": "Hermione ylar för att locka varulven bort från sina tidigare jag och Harry.",
+    "source": {"type": "film", "title": "Fången från Azkaban", "scene": "Hermione och Harry efter tidsresan"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-042", "language": "sv", "canon": "film", "spoilerThroughBook": 3, "category": "objects", "difficulty": "easy",
+    "question": "Hur visas människors rörelser på filmens Marodörkarta?",
+    "options": ["Som rörliga fotspår", "Som fotografier", "Som flygande ljus", "Som små fåglar"], "correctOptionIndex": 0,
+    "explanation": "Kartan visar namn och animerade fotspår som rör sig genom Hogwarts.",
+    "source": {"type": "film", "title": "Fången från Azkaban", "scene": "Harry undersöker Marodörkartan"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-043", "language": "sv", "canon": "film", "spoilerThroughBook": 3, "category": "objects", "difficulty": "medium",
+    "question": "Vad finns i mitten av Hermiones tidvändare i filmen?",
+    "options": ["En kristallkula", "Ett litet timglas", "En kompassnål", "En fenixfjäder"], "correctOptionIndex": 1,
+    "explanation": "Tidvändaren har ett litet timglas omgivet av ringar som kan vridas.",
+    "source": {"type": "film", "title": "Fången från Azkaban", "scene": "Hermione visar tidvändaren i sjukflygeln"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-044", "language": "sv", "canon": "film", "spoilerThroughBook": 3, "category": "objects", "difficulty": "hard",
+    "question": "Vad träffar bödelns yxa när Vingfåle har räddats i filmen?",
+    "options": ["En sten", "En trädstam", "En pumpa", "En tom tunna"], "correctOptionIndex": 2,
+    "explanation": "Yxan träffar en pumpa när bödeln inser att Vingfåle har försvunnit.",
+    "source": {"type": "film", "title": "Fången från Azkaban", "scene": "Bödeln efter Vingfåles räddning"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-045", "language": "sv", "canon": "film", "spoilerThroughBook": 4, "category": "plot", "difficulty": "medium",
+    "question": "Var jagar draken Harry efter att ha lämnat arenan i filmen?",
+    "options": ["I Gringotts", "Runt Hogwarts", "I Hogsmeade", "På Privet Drive"], "correctOptionIndex": 1,
+    "explanation": "I filmen följer draken Harry runt Hogwarts byggnader, en längre jakt än i bokens uppgift.",
+    "source": {"type": "film", "title": "Den flammande bägaren", "scene": "Drakjakten under första uppgiften"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-046", "language": "sv", "canon": "film", "spoilerThroughBook": 4, "category": "characters", "difficulty": "hard",
+    "question": "Vem ger Harry gälgräs i Den flammande bägaren-filmen?",
+    "options": ["Dobby", "Cedric", "Neville", "Hermione"], "correctOptionIndex": 2,
+    "explanation": "I filmen hjälper Neville Harry med gälgräset; i boken är det Dobby som ger det till honom.",
+    "source": {"type": "film", "title": "Den flammande bägaren", "scene": "Neville hjälper Harry före andra uppgiften"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-047", "language": "sv", "canon": "film", "spoilerThroughBook": 4, "category": "characters", "difficulty": "medium",
+    "question": "Vem måste dansa med McGonagall under filmens danslektion?",
+    "options": ["Harry", "Neville", "Draco", "Ron"], "correctOptionIndex": 3,
+    "explanation": "McGonagall väljer Ron för att demonstrera dansstegen inför julbalen.",
+    "source": {"type": "film", "title": "Den flammande bägaren", "scene": "McGonagalls danslektion"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-048", "language": "sv", "canon": "film", "spoilerThroughBook": 4, "category": "magic", "difficulty": "medium",
+    "question": "Vilken djurform har Krums huvud under vattnet i filmen?",
+    "options": ["En haj", "En delfin", "En krokodil", "En säl"], "correctOptionIndex": 0,
+    "explanation": "Krum har delvis förvandlat sig till en haj för att kunna klara uppgiften under vattnet.",
+    "source": {"type": "film", "title": "Den flammande bägaren", "scene": "Krum under vattnet i andra uppgiften"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-049", "language": "sv", "canon": "film", "spoilerThroughBook": 4, "category": "characters", "difficulty": "hard",
+    "question": "Vad heter Fleurs syster som finns under vattnet i filmen?",
+    "options": ["Victoire", "Gabrielle", "Ariana", "Padma"], "correctOptionIndex": 1,
+    "explanation": "Gabrielle Delacour är Fleurs yngre syster och en av personerna som ska räddas ur sjön.",
+    "source": {"type": "film", "title": "Den flammande bägaren", "scene": "Gisslan hos sjöfolket i andra uppgiften"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-050", "language": "sv", "canon": "film", "spoilerThroughBook": 4, "category": "actors", "difficulty": "medium",
+    "question": "Vem spelar Cedric Diggory i Den flammande bägaren?",
+    "options": ["Tom Felton", "Matthew Lewis", "Robert Pattinson", "Oliver Phelps"], "correctOptionIndex": 2,
+    "explanation": "Robert Pattinson spelar Cedric Diggory.",
+    "source": {"type": "film", "title": "Den flammande bägaren", "scene": "Eftertexter: Cedric Diggory"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-051", "language": "sv", "canon": "film", "spoilerThroughBook": 4, "category": "actors", "difficulty": "hard",
+    "question": "Vem spelar Alastor Moody i den fjärde filmen?",
+    "options": ["Robbie Coltrane", "David Thewlis", "Gary Oldman", "Brendan Gleeson"], "correctOptionIndex": 3,
+    "explanation": "Brendan Gleeson spelar Alastor Moody.",
+    "source": {"type": "film", "title": "Den flammande bägaren", "scene": "Eftertexter: Alastor Mad-Eye Moody"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-052", "language": "sv", "canon": "film", "spoilerThroughBook": 4, "category": "actors", "difficulty": "hard",
+    "question": "Vem spelar Barty Crouch junior i den fjärde filmen?",
+    "options": ["David Tennant", "Jason Isaacs", "Ralph Fiennes", "Kenneth Branagh"], "correctOptionIndex": 0,
+    "explanation": "David Tennant spelar Barty Crouch junior, som avslöjas bakom Moodys utseende.",
+    "source": {"type": "film", "title": "Den flammande bägaren", "scene": "Eftertexter: Barty Crouch Junior"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-053", "language": "sv", "canon": "film", "spoilerThroughBook": 4, "category": "magic", "difficulty": "easy",
+    "question": "Vilket djur förvandlar Moody Draco till i filmen?",
+    "options": ["En råtta", "En iller", "En orm", "En katt"], "correctOptionIndex": 1,
+    "explanation": "Moody förvandlar Draco till en vit iller innan McGonagall ingriper.",
+    "source": {"type": "film", "title": "Den flammande bägaren", "scene": "Moody ingriper mot Draco på skolgården"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-054", "language": "sv", "canon": "film", "spoilerThroughBook": 4, "category": "magic", "difficulty": "extreme",
+    "question": "Vilken form får elden under Durmstrangs entré i filmen?",
+    "options": ["En fenix", "En örn", "En drake", "En enhörning"], "correctOptionIndex": 2,
+    "explanation": "Durmstrangs dramatiska entré i Stora salen innehåller eld som tar formen av en drake.",
+    "source": {"type": "film", "title": "Den flammande bägaren", "scene": "Durmstrangs uppvisning i Stora salen"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-055", "language": "sv", "canon": "film", "spoilerThroughBook": 4, "category": "spells", "difficulty": "medium",
+    "question": "Vilken besvärjelse hämtar Harrys kvast till drakarenan?",
+    "options": ["Lumos", "Alohomora", "Protego", "Accio"], "correctOptionIndex": 3,
+    "explanation": "Harry använder Accio för att kalla på Åskviggen under den första uppgiften.",
+    "source": {"type": "film", "title": "Den flammande bägaren", "scene": "Harry kallar på Åskviggen"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-056", "language": "sv", "canon": "film", "spoilerThroughBook": 4, "category": "actors", "difficulty": "extreme",
+    "question": "Vilken artist spelar bandets sångare på julbalen?",
+    "options": ["Jarvis Cocker", "David Bowie", "Damon Albarn", "Thom Yorke"], "correctOptionIndex": 0,
+    "explanation": "Jarvis Cocker spelar sångaren Myron Wagtail i bandet på julbalen.",
+    "source": {"type": "film", "title": "Den flammande bägaren", "scene": "Julbalens band och eftertexter: Myron Wagtail"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-057", "language": "sv", "canon": "film", "spoilerThroughBook": 4, "category": "actors", "difficulty": "medium",
+    "question": "Vem spelar Voldemort efter återkomsten i fjärde filmen?",
+    "options": ["Alan Rickman", "Ralph Fiennes", "Gary Oldman", "Jason Isaacs"], "correctOptionIndex": 1,
+    "explanation": "Ralph Fiennes spelar Voldemort när han återfår sin kropp.",
+    "source": {"type": "film", "title": "Den flammande bägaren", "scene": "Kyrkogårdsscenen och eftertexter: Lord Voldemort"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-058", "language": "sv", "canon": "film", "spoilerThroughBook": 5, "category": "places", "difficulty": "easy",
+    "question": "Var angriper dementorer Harry och Dudley i femte filmen?",
+    "options": ["I en butik", "På ett tåg", "I en gångtunnel", "På en bro"], "correctOptionIndex": 2,
+    "explanation": "Dementorerna angriper dem i en gångtunnel nära området där Dursleys bor.",
+    "source": {"type": "film", "title": "Fenixorden", "scene": "Dementorattacken i gångtunneln"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-059", "language": "sv", "canon": "film", "spoilerThroughBook": 5, "category": "characters", "difficulty": "easy",
+    "question": "Vilken färg dominerar Umbridges kläder i femte filmen?",
+    "options": ["Grön", "Svart", "Blå", "Rosa"], "correctOptionIndex": 3,
+    "explanation": "Umbridge har ofta rosa kläder, vilket kontrasterar mot hennes stränga och grymma beteende.",
+    "source": {"type": "film", "title": "Fenixorden", "scene": "Umbridges lektioner och kontor"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-060", "language": "sv", "canon": "film", "spoilerThroughBook": 5, "category": "actors", "difficulty": "medium",
+    "question": "Vem spelar Dolores Umbridge i Fenixorden?",
+    "options": ["Imelda Staunton", "Maggie Smith", "Julie Walters", "Emma Thompson"], "correctOptionIndex": 0,
+    "explanation": "Imelda Staunton spelar Dolores Umbridge.",
+    "source": {"type": "film", "title": "Fenixorden", "scene": "Eftertexter: Dolores Umbridge"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-061", "language": "sv", "canon": "film", "spoilerThroughBook": 5, "category": "actors", "difficulty": "medium",
+    "question": "Vem spelar Luna Lovegood i Fenixorden?",
+    "options": ["Bonnie Wright", "Evanna Lynch", "Katie Leung", "Clemence Poesy"], "correctOptionIndex": 1,
+    "explanation": "Evanna Lynch spelar Luna Lovegood.",
+    "source": {"type": "film", "title": "Fenixorden", "scene": "Eftertexter: Luna Lovegood"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-062", "language": "sv", "canon": "film", "spoilerThroughBook": 5, "category": "characters", "difficulty": "hard",
+    "question": "Vem avslöjar Dumbledores armé under sanningsserum i filmen?",
+    "options": ["Marietta Edgecombe", "Luna Lovegood", "Cho Chang", "Ginny Weasley"], "correctOptionIndex": 2,
+    "explanation": "I filmen berättar Cho under påverkan av Veritaserum; bokens avslöjande görs i stället av Marietta.",
+    "source": {"type": "film", "title": "Fenixorden", "scene": "Dumbledores armé avslöjas för Umbridge"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-063", "language": "sv", "canon": "film", "spoilerThroughBook": 5, "category": "spells", "difficulty": "hard",
+    "question": "Vilken djurform har Lunas patronus under filmens träning?",
+    "options": ["En utter", "En katt", "En häst", "En hare"], "correctOptionIndex": 3,
+    "explanation": "Lunas patronus syns som en hare när eleverna tränar i Vid-behov-rummet.",
+    "source": {"type": "film", "title": "Fenixorden", "scene": "Patronusträning med Dumbledores armé"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-064", "language": "sv", "canon": "film", "spoilerThroughBook": 5, "category": "magic", "difficulty": "medium",
+    "question": "Vilken form får fyrverkeriet som jagar Umbridge i filmen?",
+    "options": ["En drake", "En orm", "En fenix", "En hippogriff"], "correctOptionIndex": 0,
+    "explanation": "Fred och Georges fyrverkerier bildar bland annat en stor drake under deras avsked från Hogwarts.",
+    "source": {"type": "film", "title": "Fenixorden", "scene": "Fred och Georges avsked under proven"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-065", "language": "sv", "canon": "film", "spoilerThroughBook": 5, "category": "objects", "difficulty": "medium",
+    "question": "Vad faller Sirius genom på Mysterieavdelningen i filmen?",
+    "options": ["En trasig spegel", "Ett beslöjat stenvalv", "En öppen bok", "En flyttnyckel"], "correctOptionIndex": 1,
+    "explanation": "Sirius faller genom slöjan som hänger i stenvalvet under striden på ministeriet.",
+    "source": {"type": "film", "title": "Fenixorden", "scene": "Striden vid det beslöjade valvet"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-066", "language": "sv", "canon": "film", "spoilerThroughBook": 5, "category": "actors", "difficulty": "medium",
+    "question": "Vem spelar Bellatrix Lestrange i Fenixorden?",
+    "options": ["Helen McCrory", "Emma Thompson", "Helena Bonham Carter", "Imelda Staunton"], "correctOptionIndex": 2,
+    "explanation": "Helena Bonham Carter spelar Bellatrix Lestrange.",
+    "source": {"type": "film", "title": "Fenixorden", "scene": "Eftertexter: Bellatrix Lestrange"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-067", "language": "sv", "canon": "film", "spoilerThroughBook": 5, "category": "magic", "difficulty": "hard",
+    "question": "Vad omsluter Voldemort i Dumbledores atriumduell i filmen?",
+    "options": ["Ett stenblock", "En träbur", "En isvägg", "Ett stort vattenklot"], "correctOptionIndex": 3,
+    "explanation": "Dumbledore fångar tillfälligt Voldemort i ett stort klot av vatten.",
+    "source": {"type": "film", "title": "Fenixorden", "scene": "Dumbledores och Voldemorts duell i atriet"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-068", "language": "sv", "canon": "film", "spoilerThroughBook": 5, "category": "spells", "difficulty": "medium",
+    "question": "Vilken avväpningsbesvärjelse övar gruppen i Fenixorden?",
+    "options": ["Expelliarmus", "Lumos", "Alohomora", "Accio"], "correctOptionIndex": 0,
+    "explanation": "Harry låter eleverna öva Expelliarmus som en del av försvarsträningen.",
+    "source": {"type": "film", "title": "Fenixorden", "scene": "Försvarsträningen i Vid-behov-rummet"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-069", "language": "sv", "canon": "film", "spoilerThroughBook": 5, "category": "transport", "difficulty": "medium",
+    "question": "Vilka varelser flyger eleverna till London på i femte filmen?",
+    "options": ["Hippogriffer", "Thestraler", "Drakar", "Fenixar"], "correctOptionIndex": 1,
+    "explanation": "Eleverna flyger på thestraler för att ta sig till ministeriet i London.",
+    "source": {"type": "film", "title": "Fenixorden", "scene": "Flygningen till London"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-070", "language": "sv", "canon": "film", "spoilerThroughBook": 6, "category": "places", "difficulty": "medium",
+    "question": "Var möter Dumbledore Harry i början av sjätte filmen?",
+    "options": ["På Privet Drive", "På Hogwarts", "Vid en järnvägsstation", "I Gringotts"], "correctOptionIndex": 2,
+    "explanation": "Filmen låter Dumbledore hämta Harry vid en järnvägsstation, inte hos Dursleys som i boken.",
+    "source": {"type": "film", "title": "Halvblodsprinsen", "scene": "Harry på stationskaféet och Dumbledores ankomst"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-071", "language": "sv", "canon": "film", "spoilerThroughBook": 6, "category": "magic", "difficulty": "medium",
+    "question": "Vad har Slughorn förvandlat sig till när besökarna kommer?",
+    "options": ["En lampa", "En bokhylla", "Ett piano", "En fåtölj"], "correctOptionIndex": 3,
+    "explanation": "Slughorn gömmer sig i formen av en fåtölj i det till synes förstörda huset.",
+    "source": {"type": "film", "title": "Halvblodsprinsen", "scene": "Harry och Dumbledore besöker Slughorn"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-072", "language": "sv", "canon": "film", "spoilerThroughBook": 6, "category": "actors", "difficulty": "hard",
+    "question": "Vem spelar Horace Slughorn i Halvblodsprinsen?",
+    "options": ["Jim Broadbent", "John Hurt", "Richard Griffiths", "David Thewlis"], "correctOptionIndex": 0,
+    "explanation": "Jim Broadbent spelar Horace Slughorn.",
+    "source": {"type": "film", "title": "Halvblodsprinsen", "scene": "Eftertexter: Horace Slughorn"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-073", "language": "sv", "canon": "film", "spoilerThroughBook": 6, "category": "actors", "difficulty": "extreme",
+    "question": "Vem spelar Tom Riddle som barn i sjätte filmen?",
+    "options": ["Frank Dillane", "Hero Fiennes Tiffin", "Christian Coulson", "Tom Felton"], "correctOptionIndex": 1,
+    "explanation": "Hero Fiennes Tiffin spelar den elvaårige Tom Riddle i minnet från barnhemmet.",
+    "source": {"type": "film", "title": "Halvblodsprinsen", "scene": "Barnhemsminnet och eftertexter: Tom Riddle, aged 11"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-074", "language": "sv", "canon": "film", "spoilerThroughBook": 6, "category": "characters", "difficulty": "hard",
+    "question": "Vem lagar Harrys näsa på tåget i sjätte filmen?",
+    "options": ["Tonks", "Hermione", "Luna", "Ginny"], "correctOptionIndex": 2,
+    "explanation": "I filmen hittar Luna Harry och lagar hans näsa; i boken är det Tonks som hjälper honom.",
+    "source": {"type": "film", "title": "Halvblodsprinsen", "scene": "Luna hittar Harry efter Dracos attack"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-075", "language": "sv", "canon": "film", "spoilerThroughBook": 6, "category": "plot", "difficulty": "medium",
+    "question": "Vilken byggnad brinner efter filmens julattack?",
+    "options": ["Hogwarts", "Gringotts", "Svinhuvudet", "Familjen Weasleys hem"], "correctOptionIndex": 3,
+    "explanation": "Dödsätarnas attack mot familjen Weasleys hem och branden är en scen som lagts till i filmen.",
+    "source": {"type": "film", "title": "Halvblodsprinsen", "scene": "Bellatrix och Greybacks attack under julen"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-076", "language": "sv", "canon": "film", "spoilerThroughBook": 6, "category": "plot", "difficulty": "hard",
+    "question": "Var kysser Ginny Harry medan hon gömmer hans bok i filmen?",
+    "options": ["I Vid-behov-rummet", "I Stora salen", "Vid sjön", "I sjukflygeln"], "correctOptionIndex": 0,
+    "explanation": "Ginny kysser Harry i Vid-behov-rummet medan hon hjälper honom att gömma prinsens bok.",
+    "source": {"type": "film", "title": "Halvblodsprinsen", "scene": "Ginny gömmer prinsens bok"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-077", "language": "sv", "canon": "film", "spoilerThroughBook": 6, "category": "objects", "difficulty": "extreme",
+    "question": "Vilken färg har äpplena Draco använder i sina skåptester?",
+    "options": ["Röd", "Grön", "Gul", "Svart"], "correctOptionIndex": 1,
+    "explanation": "Draco använder gröna äpplen när han testar försvinnandeskåpet.",
+    "source": {"type": "film", "title": "Halvblodsprinsen", "scene": "Dracos tester av försvinnandeskåpet"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-078", "language": "sv", "canon": "film", "spoilerThroughBook": 6, "category": "creatures", "difficulty": "medium",
+    "question": "Vad griper Harry när han faller i grottans sjö i filmen?",
+    "options": ["Dementorer", "Sjöfolk", "Inferier", "Spindlar"], "correctOptionIndex": 2,
+    "explanation": "Inferierna drar Harry under vatten innan Dumbledore driver bort dem med eld.",
+    "source": {"type": "film", "title": "Halvblodsprinsen", "scene": "Inferierna i grottans sjö"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-079", "language": "sv", "canon": "film", "spoilerThroughBook": 6, "category": "characters", "difficulty": "medium",
+    "question": "Vem förstör Hagrids stuga med eld i slutet av filmen?",
+    "options": ["Draco", "Lucius", "Slughorn", "Bellatrix"], "correctOptionIndex": 3,
+    "explanation": "Bellatrix sätter Hagrids stuga i brand under dödsätarnas flykt från Hogwarts.",
+    "source": {"type": "film", "title": "Halvblodsprinsen", "scene": "Dödsätarnas flykt över Hogwarts marker"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-080", "language": "sv", "canon": "film", "spoilerThroughBook": 6, "category": "magic", "difficulty": "medium",
+    "question": "Vad gör eleverna med trollstavarna vid Dumbledores kropp?",
+    "options": ["Höjer dem med lysande spetsar", "Bryter dem", "Lägger dem på marken", "Förvandlar dem till blommor"], "correctOptionIndex": 0,
+    "explanation": "Elever och lärare höjer lysande trollstavar för att hedra Dumbledore och skingra Mörkrets märke.",
+    "source": {"type": "film", "title": "Halvblodsprinsen", "scene": "Samlingen vid Dumbledores kropp"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-081", "language": "sv", "canon": "film", "spoilerThroughBook": 6, "category": "characters", "difficulty": "hard",
+    "question": "Vem följer Harry med till Slughorns julfest i filmen?",
+    "options": ["Hermione", "Luna", "Ginny", "Cho"], "correctOptionIndex": 1,
+    "explanation": "Harry bjuder med Luna som vän till Slughorns julfest.",
+    "source": {"type": "film", "title": "Halvblodsprinsen", "scene": "Harry och Luna på Slughorns julfest"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-082", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "plot", "difficulty": "medium",
+    "question": "Vad händer med Hermione på familjens fotografier i del 1?",
+    "options": ["Hon blir äldre", "Hon blir en katt", "Hon försvinner ur bilderna", "Hon byter hårfärg"], "correctOptionIndex": 2,
+    "explanation": "Filmen visar hur Hermione försvinner ur familjefotografierna när hon ändrar sina föräldrars minnen.",
+    "source": {"type": "film", "title": "Dödsrelikerna del 1", "scene": "Hermione ändrar föräldrarnas minnen"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-083", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "creatures", "difficulty": "easy",
+    "question": "Vilket djur dödas under Harrys flykt från Privet Drive i filmen?",
+    "options": ["Scabbers", "Krummben", "Piggelin", "Hedwig"], "correctOptionIndex": 3,
+    "explanation": "Hedwig dödas under striden när Harry lämnar Privet Drive.",
+    "source": {"type": "film", "title": "Dödsrelikerna del 1", "scene": "Striden under de sju Harrys flykt"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-084", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "plot", "difficulty": "hard",
+    "question": "Vad gör Hedwig strax före sin död i del 1-filmen?",
+    "options": ["Försvarar Harry i luften", "Gömmer sig i en bur", "Flyger till Hogwarts", "Levererar ett brev"], "correctOptionIndex": 0,
+    "explanation": "I filmen flyger Hedwig fritt och ingriper för att skydda Harry under striden.",
+    "source": {"type": "film", "title": "Dödsrelikerna del 1", "scene": "Hedwigs ingripande under flykten"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-085", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "characters", "difficulty": "medium",
+    "question": "Vilken del av Georges kropp skadas under flykten i del 1?",
+    "options": ["En hand", "Ett öra", "Ett knä", "En fot"], "correctOptionIndex": 1,
+    "explanation": "George förlorar ett öra under striden och får hjälp när han kommer fram till Weasleys hem.",
+    "source": {"type": "film", "title": "Dödsrelikerna del 1", "scene": "George vårdas efter flykten"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-086", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "characters", "difficulty": "easy",
+    "question": "Vilka två gifter sig i början av Dödsrelikerna del 1?",
+    "options": ["Ron och Hermione", "Harry och Ginny", "Bill och Fleur", "Lupin och Tonks"], "correctOptionIndex": 2,
+    "explanation": "Bill Weasley och Fleur Delacour gifter sig vid familjen Weasleys hem.",
+    "source": {"type": "film", "title": "Dödsrelikerna del 1", "scene": "Bröllopet i tältet"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-087", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "plot", "difficulty": "medium",
+    "question": "Vad gör Harry och Hermione till radiomusiken i tältet?",
+    "options": ["Duellerar", "Spelar schack", "Skriver brev", "Dansar"], "correctOptionIndex": 3,
+    "explanation": "Harry försöker lätta upp stämningen genom att dansa med Hermione i en scen skapad för filmen.",
+    "source": {"type": "film", "title": "Dödsrelikerna del 1", "scene": "Harry och Hermiones dans i tältet"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-088", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "actors", "difficulty": "extreme",
+    "question": "Vilken artist hörs under tältets dansscen i del 1?",
+    "options": ["Nick Cave", "David Bowie", "Jarvis Cocker", "Leonard Cohen"], "correctOptionIndex": 0,
+    "explanation": "Scenen använder O Children av Nick Cave and the Bad Seeds.",
+    "source": {"type": "film", "title": "Dödsrelikerna del 1", "scene": "Dansscenens musik och musikuppgifter i eftertexterna"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-089", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "plot", "difficulty": "hard",
+    "question": "Hur skildras sagan om de tre bröderna i del 1?",
+    "options": ["Som en stumfilm", "Som en animerad sekvens", "Som en skolpjäs", "Som en dröm utan bilder"], "correctOptionIndex": 1,
+    "explanation": "Hermiones uppläsning åtföljs av en stiliserad animerad berättelse om de tre bröderna.",
+    "source": {"type": "film", "title": "Dödsrelikerna del 1", "scene": "Sagan om de tre bröderna hos Lovegood"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-090", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "actors", "difficulty": "hard",
+    "question": "Vem spelar Xenophilius Lovegood i Dödsrelikerna del 1?",
+    "options": ["Jim Broadbent", "Brendan Gleeson", "Rhys Ifans", "David Thewlis"], "correctOptionIndex": 2,
+    "explanation": "Rhys Ifans spelar Lunas pappa Xenophilius Lovegood.",
+    "source": {"type": "film", "title": "Dödsrelikerna del 1", "scene": "Eftertexter: Xenophilius Lovegood"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-091", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "plot", "difficulty": "easy",
+    "question": "Vad drar Dobby ned från taket i Malfoys herrgård i filmen?",
+    "options": ["En tavla", "En klocka", "Ett draperi", "En ljuskrona"], "correctOptionIndex": 3,
+    "explanation": "Dobby släpper ned en stor ljuskrona för att ingripa i striden och hjälpa fångarna.",
+    "source": {"type": "film", "title": "Dödsrelikerna del 1", "scene": "Dobbys räddning på Malfoys herrgård"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-092", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "characters", "difficulty": "medium",
+    "question": "Vem kastar kniven som dödar Dobby i del 1?",
+    "options": ["Bellatrix", "Lucius", "Narcissa", "Draco"], "correctOptionIndex": 0,
+    "explanation": "Bellatrix kastar kniven precis när Dobby flyr med Harry och hans vänner.",
+    "source": {"type": "film", "title": "Dödsrelikerna del 1", "scene": "Flykten från Malfoys herrgård och stranden"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-093", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "objects", "difficulty": "medium",
+    "question": "Vad tar Voldemort från Dumbledores grav i slutet av del 1?",
+    "options": ["En ring", "Fläderstaven", "Ett svärd", "En medaljong"], "correctOptionIndex": 1,
+    "explanation": "Voldemort öppnar graven och tar fläderstaven ur Dumbledores händer.",
+    "source": {"type": "film", "title": "Dödsrelikerna del 1", "scene": "Voldemort öppnar Dumbledores grav"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-094", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "potions", "difficulty": "medium",
+    "question": "Vems utseende tar Hermione för bankinbrottet i del 2?",
+    "options": ["Narcissas", "Umbridges", "Bellatrixs", "McGonagalls"], "correctOptionIndex": 2,
+    "explanation": "Hermione använder polyjuice-elixir för att ta Bellatrixs form och försöka komma in i hennes valv.",
+    "source": {"type": "film", "title": "Dödsrelikerna del 2", "scene": "Hermione som Bellatrix på Gringotts"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-095", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "characters", "difficulty": "hard",
+    "question": "Vem hjälper trion att ta sig till Lestranges valv i del 2?",
+    "options": ["Kreacher", "Dobby", "Ollivander", "Griphook"], "correctOptionIndex": 3,
+    "explanation": "Svartalfen Griphook hjälper trion genom Gringotts säkerhetssystem.",
+    "source": {"type": "film", "title": "Dödsrelikerna del 2", "scene": "Griphook leder trion genom Gringotts"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-096", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "magic", "difficulty": "medium",
+    "question": "Vad händer med föremålen som berörs i bankvalvet i del 2?",
+    "options": ["De mångfaldigas", "De blir osynliga", "De krymper", "De blir fåglar"], "correctOptionIndex": 0,
+    "explanation": "Förbannelsen i valvet får skatterna att mångfaldigas när de berörs, så att trion nästan begravs bland kopiorna.",
+    "source": {"type": "film", "title": "Dödsrelikerna del 2", "scene": "Föremålen förökar sig i Lestranges valv"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-097", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "actors", "difficulty": "extreme",
+    "question": "Vem spelar Aberforth Dumbledore i den sista filmen?",
+    "options": ["Michael Gambon", "Ciaran Hinds", "Jim Broadbent", "Richard Griffiths"], "correctOptionIndex": 1,
+    "explanation": "Ciaran Hinds spelar Aberforth Dumbledore.",
+    "source": {"type": "film", "title": "Dödsrelikerna del 2", "scene": "Eftertexter: Aberforth Dumbledore"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-098", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "spells", "difficulty": "hard",
+    "question": "Vilken besvärjelse väcker Hogwarts statyer i del 2?",
+    "options": ["Lumos Maxima", "Wingardium Leviosa", "Piertotum Locomotor", "Expelliarmus"], "correctOptionIndex": 2,
+    "explanation": "McGonagall använder Piertotum Locomotor för att sätta statyerna i rörelse och försvara Hogwarts.",
+    "source": {"type": "film", "title": "Dödsrelikerna del 2", "scene": "McGonagall mobiliserar Hogwarts försvar"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-099", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "characters", "difficulty": "hard",
+    "question": "Vem framkallar den okontrollerbara elden i del 2-filmen?",
+    "options": ["Crabbe", "Draco", "Harry", "Goyle"], "correctOptionIndex": 3,
+    "explanation": "I filmen är det Goyle som framkallar elden i Vid-behov-rummet; i boken är det Crabbe.",
+    "source": {"type": "film", "title": "Dödsrelikerna del 2", "scene": "Eldstriden i Vid-behov-rummet"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-100", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "places", "difficulty": "hard",
+    "question": "Var dödas Snape i Dödsrelikerna del 2-filmen?",
+    "options": ["I ett båthus", "I den tjutande stugan", "I Stora salen", "I astronomitornet"], "correctOptionIndex": 0,
+    "explanation": "Filmen placerar Snapes död i ett båthus vid sjön, inte i den tjutande stugan som i boken.",
+    "source": {"type": "film", "title": "Dödsrelikerna del 2", "scene": "Voldemort och Nagini angriper Snape i båthuset"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-101", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "plot", "difficulty": "medium",
+    "question": "Hur visas Voldemorts kropp efter nederlaget i sista filmen?",
+    "options": ["Som en stenstaty", "Den faller sönder i partiklar", "Den blir en orm", "Den sjunker genom golvet"], "correctOptionIndex": 1,
+    "explanation": "Voldemort upplöses visuellt i partiklar i filmen, i stället för att lämna en vanlig kropp som i boken.",
+    "source": {"type": "film", "title": "Dödsrelikerna del 2", "scene": "Voldemorts nederlag på Hogwarts gård"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-102", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "objects", "difficulty": "medium",
+    "question": "Vad gör Harry med fläderstaven på bron i sista filmen?",
+    "options": ["Ger den till Ron", "Lägger den i graven", "Bryter den och kastar delarna", "Gömmer den i ett träd"], "correctOptionIndex": 2,
+    "explanation": "Harry bryter fläderstaven och kastar bort delarna i slutet av filmen, vilket skiljer sig från bokens avslutning.",
+    "source": {"type": "film", "title": "Dödsrelikerna del 2", "scene": "Harry, Ron och Hermione på bron efter striden"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-103", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "objects", "difficulty": "easy",
+    "question": "Vilket vapen använder Neville mot Nagini i sista filmen?",
+    "options": ["En yxa", "En pilbåge", "En kniv", "Gryffindors svärd"], "correctOptionIndex": 3,
+    "explanation": "Neville dödar Nagini med Gryffindors svärd under slutstriden.",
+    "source": {"type": "film", "title": "Dödsrelikerna del 2", "scene": "Neville angriper Nagini på Hogwarts gård"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-104", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "characters", "difficulty": "easy",
+    "question": "Vem besegrar Bellatrix i den sista filmen?",
+    "options": ["Molly Weasley", "Hermione Granger", "Minerva McGonagall", "Ginny Weasley"], "correctOptionIndex": 0,
+    "explanation": "Molly Weasley ingriper när Bellatrix hotar Ginny och besegrar henne i en duell.",
+    "source": {"type": "film", "title": "Dödsrelikerna del 2", "scene": "Mollys duell med Bellatrix i Stora salen"}, "entities": [], "reviewStatus": "draft"
+  },
+  {
+    "id": "film-105", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "plot", "difficulty": "medium",
+    "question": "Var kysser Ron och Hermione varandra i del 2-filmen?",
+    "options": ["I Stora salen", "I Hemligheternas kammare", "I Gringotts", "På Hogwarts Express"], "correctOptionIndex": 1,
+    "explanation": "I filmen kysser Ron och Hermione varandra i kammaren efter att de förstört Hufflepuffs bägare.",
+    "source": {"type": "film", "title": "Dödsrelikerna del 2", "scene": "Ron och Hermione efter bägarens förstörelse"}, "entities": [], "reviewStatus": "draft"
   }
 ]
