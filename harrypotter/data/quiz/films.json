@@ -733,10 +733,10 @@
     "source": {"type": "film", "title": "Dödsrelikerna del 2", "scene": "Mollys duell med Bellatrix i Stora salen"}, "entities": [], "reviewStatus": "draft"
   },
   {
-    "id": "film-105", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "plot", "difficulty": "medium",
-    "question": "Var kysser Ron och Hermione varandra i del 2-filmen?",
-    "options": ["I Stora salen", "I Hemligheternas kammare", "I Gringotts", "På Hogwarts Express"], "correctOptionIndex": 1,
-    "explanation": "I filmen kysser Ron och Hermione varandra i kammaren efter att de förstört Hufflepuffs bägare.",
+    "id": "film-105", "language": "sv", "canon": "film", "spoilerThroughBook": 7, "category": "objects", "difficulty": "extreme",
+    "question": "Vilken horrokrux förstör Ron och Hermione innan de kysser varandra i Hemligheternas kammare?",
+    "options": ["Hufflepuffs bägare", "Slytherins medaljong", "Ravenclaws diadem", "Riddles dagbok"], "correctOptionIndex": 0,
+    "explanation": "I filmen förstör Ron och Hermione Hufflepuffs bägare i kammaren innan de kysser varandra.",
     "source": {"type": "film", "title": "Dödsrelikerna del 2", "scene": "Ron och Hermione efter bägarens förstörelse"}, "entities": [], "reviewStatus": "draft"
   }
 ]

@@ -67,20 +67,28 @@ horrokruxer, Gryffindors svärd, dödsreliker och trollstavar.
 ### Frågebanken
 
 `data/quiz/manifest.json` listar JSON-filerna som ska laddas. Banken innehåller
-271 frågor: 105 filmfrågor i `films.json`, 8 frågor i `cross-series.json`
-och 158 svenska bokfrågor i `book-1.json` till `book-7.json` (22–24 per bok).
-De 100 nya filmfrågorna har scen- eller eftertexthänvisningar och täcker alla
-åtta filmer med 12–13 frågor per film. De är spelbara utkast; filmfakta,
-rollistor och svenska formuleringar har inte genomgått extern faktagranskning.
+479 frågor: 205 filmfrågor i `films.json` och `films-extra.json`, 8 frågor i
+`cross-series.json` och 258 svenska bokfrågor i `book-1.json` till `book-7.json`
+samt `books-extra.json`, plus 8 expertfrågor i `universe.json`. De extra filerna innehåller 100 bokfrågor och 100
+filmfrågor. Filmfrågorna har scen- eller eftertexthänvisningar och täcker alla
+åtta filmer. De är spelbara utkast; filmfakta, rollistor, bokfakta och svenska
+formuleringar har inte genomgått extern faktagranskning.
 
-Svårighetsnivån `extreme` (Extrem) är för små, svårmemorerade bokdetaljer.
-Nio sådana frågor finns som utkast bland bokfrågorna och åtta bland filmfrågorna. Nivån följer samma
+`universe.json` är för utvidgad världskunskap som inte behöver komma från de
+huvudsakliga böckerna eller filmerna. Varje sådan fråga måste ha `canon` satt
+till `universe`, en `universe`-källa med titel, detalj och HTTPS-referens, och
+kan väljas via Källa: Universum.
+
+Svårighetsnivån `extreme` (Extrem+) är för expertfrågor. Den kan använda
+flera sammanhängande fakta, exempelvis person + händelse + magiskt föremål,
+utöver små, svårmemorerade detaljer. Nivåerna fördelas över alla nya bok- och
+filmfrågor. De följer samma
 spoilerfilter som övriga frågor och är spelbar även före faktagranskning.
 
 Fem bokfrågor är granskade mot Harry Potter Lexicon;
-referenslänkarna finns i `source.verificationUrl`. Alla 271 frågor är spelbara,
+referenslänkarna finns i `source.verificationUrl`. Alla 471 frågor är spelbara,
 oavsett om deras granskningsstatus är `draft` eller `reviewed`.
-De övriga 153 bokfrågorna är utkast med kapitelhänvisningar, egna förklaringar
+De övriga 253 bokfrågorna är utkast med kapitelhänvisningar, egna förklaringar
 och varierade svarspositioner. Svar, svenska namn, kapitelhänvisningar och spoilergränser
 behöver kontrolleras mot böckerna innan `reviewStatus` ändras från `draft`
 till `reviewed`.

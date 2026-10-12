@@ -1,0 +1,66 @@
+[
+  {
+    "id": "universe-001", "language": "sv", "canon": "universe", "spoilerThroughBook": 7, "category": "universe", "difficulty": "extreme",
+    "question": "I vilken amerikansk delstat ligger Ilvermorny, den trollkarlsskola som ofta jämförs med Hogwarts?",
+    "options": ["Massachusetts", "New York", "Virginia", "Kalifornien"], "correctOptionIndex": 0,
+    "explanation": "Ilvermorny är gömd på Mount Greylock i Massachusetts.",
+    "source": {"type": "universe", "title": "Ilvermorny: North America's Wizarding School", "detail": "Ilvermornys plats", "referenceUrl": "https://www.harrypotter.com/features/everything-you-need-to-know-about-ilvermorny"},
+    "entities": [], "reviewStatus": "reviewed"
+  },
+  {
+    "id": "universe-002", "language": "sv", "canon": "universe", "spoilerThroughBook": 7, "category": "universe", "difficulty": "extreme",
+    "question": "Vilken uppsättning innehåller alla fyra av Ilvermornys elevhem?",
+    "options": ["Horned Serpent, Wampus, Thunderbird och Pukwudgie", "Gryffindor, Slytherin, Ravenclaw och Hufflepuff", "Kneazle, Niffler, Bowtruckle och Thestral", "Fenix, Drake, Enhörning och Hippogriff"], "correctOptionIndex": 0,
+    "explanation": "Ilvermorny har elevhemmen Horned Serpent, Wampus, Thunderbird och Pukwudgie.",
+    "source": {"type": "universe", "title": "Ilvermorny: North America's Wizarding School", "detail": "Ilvermornys fyra elevhem", "referenceUrl": "https://www.harrypotter.com/features/everything-you-need-to-know-about-ilvermorny"},
+    "entities": [], "reviewStatus": "reviewed"
+  },
+  {
+    "id": "universe-003", "language": "sv", "canon": "universe", "spoilerThroughBook": 7, "category": "universe", "difficulty": "extreme",
+    "question": "Vilket Ilvermornyhem förknippas med sinnet i skolans symbolik?",
+    "options": ["Horned Serpent", "Wampus", "Thunderbird", "Pukwudgie"], "correctOptionIndex": 0,
+    "explanation": "Horned Serpent representerar sinnet, medan Wampus representerar kroppen, Pukwudgie hjärtat och Thunderbird själen.",
+    "source": {"type": "universe", "title": "Ilvermorny: North America's Wizarding School", "detail": "Elevhemmens symbolik", "referenceUrl": "https://www.harrypotter.com/features/everything-you-need-to-know-about-ilvermorny"},
+    "entities": [], "reviewStatus": "reviewed"
+  },
+  {
+    "id": "universe-004", "language": "sv", "canon": "universe", "spoilerThroughBook": 7, "category": "universe", "difficulty": "extreme",
+    "question": "Vilken reaktion i Ilvermornys sorteringsceremoni visar att Horned Serpent vill ha en elev?",
+    "options": ["Kristallen i pannan lyser", "Den ryter", "Den slår med vingarna", "Den höjer en pil"], "correctOptionIndex": 0,
+    "explanation": "När Horned Serpent väljer en elev lyser kristallen i dess panna.",
+    "source": {"type": "universe", "title": "Ilvermorny: North America's Wizarding School", "detail": "Sorteringsceremonin", "referenceUrl": "https://www.harrypotter.com/features/everything-you-need-to-know-about-ilvermorny"},
+    "entities": [], "reviewStatus": "reviewed"
+  },
+  {
+    "id": "universe-005", "language": "sv", "canon": "universe", "spoilerThroughBook": 7, "category": "universe", "difficulty": "extreme",
+    "question": "Vem avgör Ilvermornyhemmet om fler än en förtrollad figur väljer samma elev?",
+    "options": ["Eleven själv", "Skolans rektor", "Elevens föräldrar", "En slumpgenerator"], "correctOptionIndex": 0,
+    "explanation": "Om flera figurer reagerar är det eleven som väljer vilket hem hen vill tillhöra.",
+    "source": {"type": "universe", "title": "Ilvermorny: North America's Wizarding School", "detail": "Val mellan flera elevhem", "referenceUrl": "https://www.harrypotter.com/features/everything-you-need-to-know-about-ilvermorny"},
+    "entities": [], "reviewStatus": "reviewed"
+  },
+  {
+    "id": "universe-006", "language": "sv", "canon": "universe", "spoilerThroughBook": 7, "category": "universe", "difficulty": "extreme",
+    "question": "Vilken No-Maj var med och grundade Ilvermorny tillsammans med Isolt Sayre?",
+    "options": ["James Steward", "Jacob Kowalski", "Frank Bryce", "Tom Riddle senior"], "correctOptionIndex": 0,
+    "explanation": "Isolts make James Steward var en No-Maj och hjälpte till att grunda Ilvermorny.",
+    "source": {"type": "universe", "title": "Ilvermorny: North America's Wizarding School", "detail": "James Steward", "referenceUrl": "https://www.harrypotter.com/features/everything-you-need-to-know-about-ilvermorny"},
+    "entities": [], "reviewStatus": "reviewed"
+  },
+  {
+    "id": "universe-007", "language": "sv", "canon": "universe", "spoilerThroughBook": 7, "category": "universe", "difficulty": "extreme",
+    "question": "Vilken symbol är invävd i Ilvermornys sorteringsceremoni och på elevernas mantelspännen?",
+    "options": ["Gordiska knuten", "Dödsrelikernas symbol", "Mörkrets märke", "Hogwarts vapensköld"], "correctOptionIndex": 0,
+    "explanation": "Ilvermornys Gordiska knut kommer från en brosch som tillhörde Isolt Sayres mor.",
+    "source": {"type": "universe", "title": "Ilvermorny: North America's Wizarding School", "detail": "Gordiska knuten", "referenceUrl": "https://www.harrypotter.com/features/everything-you-need-to-know-about-ilvermorny"},
+    "entities": [], "reviewStatus": "reviewed"
+  },
+  {
+    "id": "universe-008", "language": "sv", "canon": "universe", "spoilerThroughBook": 7, "category": "universe", "difficulty": "extreme",
+    "question": "Vilka varelser sköter säkerhet och underhåll på Ilvermorny efter att William bestämt sig för att stanna?",
+    "options": ["Pukwudgies", "Husalver", "Goblins", "Nifflare"], "correctOptionIndex": 0,
+    "explanation": "Pukwudgies blev Ilvermornys första ansvariga för säkerhet och underhåll, och flera arbetar fortsatt på skolan.",
+    "source": {"type": "universe", "title": "Ilvermorny: North America's Wizarding School", "detail": "Pukwudgies på Ilvermorny", "referenceUrl": "https://www.harrypotter.com/features/everything-you-need-to-know-about-ilvermorny"},
+    "entities": [], "reviewStatus": "reviewed"
+  }
+]

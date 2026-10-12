@@ -188,7 +188,7 @@ test('book batches cover all seven books with valid chapter bounds and spoiler l
     assert.equal(new Set(questions.map(question => question.correctOptionIndex)).size, 4, `Answer positions for book ${book}`);
     for (const question of questions) {
       assert.equal(question.canon, 'book', question.id);
-      assert.ok(question.id.startsWith(`book${book}-`), question.id);
+      assert.ok(question.id.startsWith(`book${book}-`) || question.id.startsWith('book-extra-'), question.id);
       assert.ok(question.source.chapter <= chapterCounts[book - 1], question.id);
       assert.ok(question.spoilerThroughBook >= book, question.id);
       if (question.reviewStatus === 'draft') assert.equal(playableIds.has(question.id), true, question.id);
@@ -258,6 +258,26 @@ test('independent model audits clarify polyjuice, Swedish Snitch forms, and basi
   assert.ok(bank.find(question => question.id === 'film-094').options.includes('Bellatrixs'));
 });
 
+test('extreme questions may combine multiple linked facts without changing spoilers', () => {
+  const bookExtreme = bank.find(question => question.id === 'book7-005');
+  const filmExtreme = bank.find(question => question.id === 'film-105');
+  assert.equal(bookExtreme.difficulty, 'extreme');
+  assert.equal(bookExtreme.options[bookExtreme.correctOptionIndex], 'Gryffindors svärd och Slytherins medaljong');
+  assert.equal(filmExtreme.difficulty, 'extreme');
+  assert.equal(filmExtreme.options[filmExtreme.correctOptionIndex], 'Hufflepuffs bägare');
+  assert.equal(filterQuestions([bookExtreme, filmExtreme], { difficulty: 'extreme', spoilerThroughBook: 6 }).length, 0);
+});
+
+test('universe canon supports externally referenced expert lore outside books and films', () => {
+  const universe = bank.filter(question => question.canon === 'universe');
+  assert.equal(universe.length, 8);
+  assert.ok(universe.every(question => question.difficulty === 'extreme' && question.category === 'universe' && question.source.type === 'universe'));
+  assert.ok(universe.every(question => question.source.referenceUrl.startsWith('https://www.harrypotter.com/')));
+  assert.equal(filterQuestions(bank, { canon: 'universe' }).length, 8);
+  assert.equal(filterQuestions(bank, { canon: 'universe', spoilerThroughBook: 6 }).length, 0);
+  assert.throws(() => validateQuestions([{ ...universe[0], source: { type: 'universe', title: 'Missing reference', detail: 'Test' } }]));
+});
+
 test('100 additional film questions cover eight films with scene references and spoiler limits', () => {
   const filmTitles = ['De vises sten', 'Hemligheternas kammare', 'Fången från Azkaban', 'Den flammande bägaren', 'Fenixorden', 'Halvblodsprinsen', 'Dödsrelikerna del 1', 'Dödsrelikerna del 2'];
   const additions = [];
@@ -284,4 +304,19 @@ test('100 additional film questions cover eight films with scene references and 
   assert.equal(filterQuestions(additions, { canon: 'film' }).length, 100);
   assert.equal(filterQuestions(additions, { canon: 'book' }).length, 0);
   assert.equal(filterQuestions(additions, { canon: 'film', spoilerThroughBook: 1 }).length, 13);
+});
+
+test('200 extra questions extend the live bank without ID or prompt collisions', () => {
+  const bookExtra = bank.filter(question => question.id.startsWith('book-extra-'));
+  const filmExtra = bank.filter(question => question.id.startsWith('film-extra-'));
+  assert.equal(bookExtra.length, 100);
+  assert.equal(filmExtra.length, 100);
+  assert.equal(bank.length, 479);
+  assert.equal(new Set(bank.map(question => question.id)).size, bank.length);
+  assert.equal(new Set(bank.map(question => question.question.trim())).size, bank.length);
+  assert.ok(bookExtra.every(question => question.canon === 'book' && question.source.type === 'book' && question.reviewStatus === 'draft'));
+  assert.ok(filmExtra.every(question => question.canon === 'film' && question.source.type === 'film' && question.reviewStatus === 'draft'));
+  assert.deepEqual(Object.fromEntries([...Array(7)].map((_, index) => [index + 1, bookExtra.filter(question => question.source.book === index + 1).length])), { 1: 14, 2: 14, 3: 14, 4: 14, 5: 14, 6: 15, 7: 15 });
+  assert.equal(filterQuestions(bank, { canon: 'film' }).length, 205);
+  assert.equal(filterQuestions(bank, { canon: 'book' }).length, 266);
 });

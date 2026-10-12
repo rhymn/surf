@@ -9,7 +9,7 @@ export function validateQuestions(questions) {
     if (!question || !validText(question.id) || ids.has(question.id) ||
         !validText(question.question) || prompts.has(question.question.trim()) ||
         !validText(question.language) || !validText(question.category) ||
-        !['book', 'film'].includes(question.canon) ||
+        !['book', 'film', 'universe'].includes(question.canon) ||
         !['easy', 'medium', 'hard', 'extreme'].includes(question.difficulty) ||
         !['draft', 'reviewed'].includes(question.reviewStatus) ||
         !Number.isInteger(question.spoilerThroughBook) || question.spoilerThroughBook < 1 || question.spoilerThroughBook > 7 ||
@@ -31,6 +31,10 @@ export function validateQuestions(questions) {
       }
     } else if (source.type === 'film') {
       if (!validText(source.title) || !validText(source.scene)) throw new Error(`Invalid film source: ${question.id}`);
+    } else if (source.type === 'universe') {
+      if (!validText(source.title) || !validText(source.detail) || !validText(source.referenceUrl) || !/^https:\/\//.test(source.referenceUrl)) {
+        throw new Error(`Invalid universe source: ${question.id}`);
+      }
     } else {
       throw new Error(`Unknown source type: ${question.id}`);
     }

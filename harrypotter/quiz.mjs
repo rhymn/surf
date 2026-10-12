@@ -6,7 +6,7 @@ const categoryNames = {
   actors: 'Skådespelare', characters: 'Karaktärer', pets: 'Husdjur', objects: 'Objects',
   places: 'Platser', creatures: 'Varelser', hogwarts: 'Hogwarts', quidditch: 'Quidditch',
   spells: 'Besvärjelser', plot: 'Händelser', herbology: 'Örtlära', potions: 'Trolldrycker',
-  magic: 'Magi', history: 'Historia', transport: 'Resor'
+  magic: 'Magi', history: 'Historia', transport: 'Resor', universe: 'Universum'
 };
 const params = new URLSearchParams(location.search);
 const entity = params.get('type') && params.get('id') ? { type: params.get('type'), id: params.get('id') } : null;

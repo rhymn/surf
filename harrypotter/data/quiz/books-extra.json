@@ -1,0 +1,2398 @@
+[
+  {
+    "id": "book-extra-001",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 1,
+    "category": "objects",
+    "difficulty": "easy",
+    "question": "Vilket föremål använder Dumbledore för att släcka gatlyktorna på Privet Drive?",
+    "options": [
+      "En ljussläckare",
+      "En minnessåll",
+      "En flyttnyckel",
+      "En förtrollad fjäderpenna"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Dumbledore använder en ljussläckare för att släcka gatans lyktor innan Harry lämnas hos Dursleys.",
+    "source": {
+      "type": "book",
+      "book": 1,
+      "chapter": 1
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-002",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 1,
+    "category": "characters",
+    "difficulty": "easy",
+    "question": "Vad tar Hagrid med sig till Harry på hans elvaårsdag?",
+    "options": [
+      "En födelsedagstårta",
+      "En kvast",
+      "En uggla",
+      "En trollstav"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Hagrid ger Harry en tårta med grön glasyr när de möts i stugan.",
+    "source": {
+      "type": "book",
+      "book": 1,
+      "chapter": 4
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-003",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 1,
+    "category": "creatures",
+    "difficulty": "easy",
+    "question": "Vilken ovanlig talang upptäcker Harry att han har i reptilhuset?",
+    "options": [
+      "Att han kan tala med ormar",
+      "Att han kan försvinna",
+      "Att han kan läsa tankar",
+      "Att han kan flyga"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "I reptilhuset visar Harry att han är en parselmouth.",
+    "source": {
+      "type": "book",
+      "book": 1,
+      "chapter": 2
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-004",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 1,
+    "category": "places",
+    "difficulty": "medium",
+    "question": "Vem säljer Harry hans första trollstav?",
+    "options": [
+      "Garrick Ollivander",
+      "Rubeus Hagrid",
+      "Mr Borgin",
+      "Albus Dumbledore"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Ollivander hittar den trollstav som väljer Harry.",
+    "source": {
+      "type": "book",
+      "book": 1,
+      "chapter": 5
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-005",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 1,
+    "category": "objects",
+    "difficulty": "medium",
+    "question": "Var köper Harry sin uggla Hedwig?",
+    "options": [
+      "Eeylops Owl Emporium",
+      "Flourish and Blotts",
+      "Madam Malkins",
+      "Weasleys Wizard Wheezes"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Hedwig kommer från ugglebutiken i Diagongränden.",
+    "source": {
+      "type": "book",
+      "book": 1,
+      "chapter": 5
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-006",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 1,
+    "category": "transport",
+    "difficulty": "easy",
+    "question": "Vilken boll i quidditch är minst och svårast att fånga?",
+    "options": [
+      "The Golden Snitch",
+      "Quaffle",
+      "Bludger",
+      "Kvasten"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Snitchen är den lilla gyllene bollen som sökaren ska fånga.",
+    "source": {
+      "type": "book",
+      "book": 1,
+      "chapter": 6
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-007",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 1,
+    "category": "hogwarts",
+    "difficulty": "easy",
+    "question": "Vem undervisar i trollformler när Harry lär sig få fjädrar att sväva?",
+    "options": [
+      "Filius Flitwick",
+      "Minerva McGonagall",
+      "Pomona Sprout",
+      "Severus Snape"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Flitwick leder charmlektionen där eleverna tränar Wingardium Leviosa.",
+    "source": {
+      "type": "book",
+      "book": 1,
+      "chapter": 7
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-008",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 1,
+    "category": "quidditch",
+    "difficulty": "easy",
+    "question": "Vem blir Harrys nya vän efter bergtrollets attack på Hogwarts?",
+    "options": [
+      "Hermione Granger",
+      "Pansy Parkinson",
+      "Lavender Brown",
+      "Cho Chang"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Efter att ha räddat henne blir Hermione en av Harrys närmaste vänner.",
+    "source": {
+      "type": "book",
+      "book": 1,
+      "chapter": 9
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-009",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 1,
+    "category": "spells",
+    "difficulty": "easy",
+    "question": "Vad gör Harry av misstag när han pratar med en orm på zoo?",
+    "options": [
+      "Får glaset att försvinna",
+      "Förvandlar ormen till sten",
+      "Får en bok att explodera",
+      "Tappar sin trollstav"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Harrys talang får skiljeväggen till reptilhuset att försvinna.",
+    "source": {
+      "type": "book",
+      "book": 1,
+      "chapter": 10
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-010",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 1,
+    "category": "creatures",
+    "difficulty": "easy",
+    "question": "Vilket föremål använder Harry och Ron för att driva bort bergtrollet?",
+    "options": [
+      "Trollets egen klubba",
+      "En kvast",
+      "En kittel",
+      "En snitch"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Ron använder trollets egen klubba för att slå ut det.",
+    "source": {
+      "type": "book",
+      "book": 1,
+      "chapter": 10
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-011",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 1,
+    "category": "objects",
+    "difficulty": "medium",
+    "question": "Vad visar spegeln Erised när Harry tittar i den?",
+    "options": [
+      "Hans familj",
+      "Hogwarts från ovan",
+      "Voldemorts ansikte",
+      "Quidditchpokalen"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Spegeln visar Harry det han längtar mest efter: sin familj.",
+    "source": {
+      "type": "book",
+      "book": 1,
+      "chapter": 12
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-012",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 1,
+    "category": "creatures",
+    "difficulty": "medium",
+    "question": "Vilken trehövdad hund vaktar luckan ner till nästa rum?",
+    "options": [
+      "Fluffy",
+      "Fang",
+      "Buckbeak",
+      "Scabbers"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Den trehövdade hunden heter Fluffy.",
+    "source": {
+      "type": "book",
+      "book": 1,
+      "chapter": 13
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-013",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 1,
+    "category": "objects",
+    "difficulty": "hard",
+    "question": "Vad är det alla försöker skydda från mörkret i första boken?",
+    "options": [
+      "De vises sten",
+      "Tidsvändaren",
+      "Uppståndelsestenen",
+      "Dödsrelikerna"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Hela konflikten kretsar kring De vises sten.",
+    "source": {
+      "type": "book",
+      "book": 1,
+      "chapter": 14
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-014",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 1,
+    "category": "plot",
+    "difficulty": "hard",
+    "question": "Vem visar sig ha varit den verkliga hjärnan bakom försvarstimmarna?",
+    "options": [
+      "Professor Quirrell",
+      "Argus Filch",
+      "Gilderoy Lockhart",
+      "Remus Lupin"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Quirrell är den som i hemlighet driver på händelserna.",
+    "source": {
+      "type": "book",
+      "book": 1,
+      "chapter": 17
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-015",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 2,
+    "category": "characters",
+    "difficulty": "easy",
+    "question": "Vad ger Dobby Harry som gör att han blir fri?",
+    "options": [
+      "En strumpa",
+      "En hatt",
+      "En bok",
+      "En kvast"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Harry gömmer en strumpa i dagboken och Lucius lämnar den till Dobby.",
+    "source": {
+      "type": "book",
+      "book": 2,
+      "chapter": 2
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-016",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 2,
+    "category": "transport",
+    "difficulty": "easy",
+    "question": "Vilket flygande fordon hämtar Harry från Privet Drive?",
+    "options": [
+      "Ford Anglia",
+      "Knight Bus",
+      "Motorcykel",
+      "Portkey"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Weasleys förtrollade Ford Anglia används för räddningen.",
+    "source": {
+      "type": "book",
+      "book": 2,
+      "chapter": 3
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-017",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 2,
+    "category": "characters",
+    "difficulty": "easy",
+    "question": "Vilken välkänd författare signerade böcker på Flourish and Blotts?",
+    "options": [
+      "Gilderoy Lockhart",
+      "Bathilda Bagshot",
+      "Rita Skeeter",
+      "Nicolas Flamel"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Lockhart är den nya stjärnan som Harry möter i bokhandeln.",
+    "source": {
+      "type": "book",
+      "book": 2,
+      "chapter": 4
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-018",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 2,
+    "category": "hogwarts",
+    "difficulty": "easy",
+    "question": "Vad är det som får bilen att krocka med skolområdet?",
+    "options": [
+      "Det piskande pilträdet",
+      "En svart dimma",
+      "En förtrollad mur",
+      "En rutten bro"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Bilen kör rakt in i det piskande pilträdet.",
+    "source": {
+      "type": "book",
+      "book": 2,
+      "chapter": 5
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-019",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 2,
+    "category": "herbology",
+    "difficulty": "medium",
+    "question": "Vad händer när alrunor dras upp ur sina krukor?",
+    "options": [
+      "De skriker högt",
+      "De lyser i mörkret",
+      "De blir osynliga",
+      "De spränger krukorna"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Alrunor skriker när de tas upp, därför behöver eleverna skydd.",
+    "source": {
+      "type": "book",
+      "book": 2,
+      "chapter": 6
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-020",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 2,
+    "category": "spells",
+    "difficulty": "medium",
+    "question": "Vad börjar Ron hosta upp efter sin misslyckade besvärjelse mot Draco?",
+    "options": [
+      "Sniglar",
+      "Fjädrar",
+      "Grodor",
+      "Marmorkulor"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Rons skadade trollstav får besvärjelsen att slå tillbaka, så att han börjar hosta upp sniglar.",
+    "source": {
+      "type": "book",
+      "book": 2,
+      "chapter": 7
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-021",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 2,
+    "category": "hogwarts",
+    "difficulty": "hard",
+    "question": "Vad kallas den fest som Nästan huvudlöse Nick ordnar?",
+    "options": [
+      "En dödsdagsfest",
+      "En julfest",
+      "En nattlig bal",
+      "En maskerad"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Nick bjuder in till sin femhundrade dödsdagsfest.",
+    "source": {
+      "type": "book",
+      "book": 2,
+      "chapter": 8
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-022",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 2,
+    "category": "history",
+    "difficulty": "medium",
+    "question": "Vilken av Hogwarts grundare kopplas till den hemliga kammaren?",
+    "options": [
+      "Salazar Slytherin",
+      "Godric Gryffindor",
+      "Helga Hufflepuff",
+      "Rowena Ravenclaw"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Legenden säger att Salazar Slytherin byggde kammaren.",
+    "source": {
+      "type": "book",
+      "book": 2,
+      "chapter": 9
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-023",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 2,
+    "category": "plot",
+    "difficulty": "medium",
+    "question": "Vad avslöjar den gamla dagboken för Ginny?",
+    "options": [
+      "Tom Riddle",
+      "Trelawney",
+      "Slughorn",
+      "Black"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Dagboken leder till Tom Riddle och hans gamla minnen.",
+    "source": {
+      "type": "book",
+      "book": 2,
+      "chapter": 10
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-024",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 2,
+    "category": "spells",
+    "difficulty": "medium",
+    "question": "Vem avväpnar Lockhart under duellklubben?",
+    "options": [
+      "Severus Snape",
+      "Gilderoy Lockhart",
+      "Harry Potter",
+      "Draco Malfoy"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Snape använder en enkel avväpningsbesvärjelse för att visa hur det går till.",
+    "source": {
+      "type": "book",
+      "book": 2,
+      "chapter": 11
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-025",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 2,
+    "category": "creatures",
+    "difficulty": "easy",
+    "question": "Vilken varelse gömmer sig längst nere i kammaren?",
+    "options": [
+      "Basilisk",
+      "Gryphon",
+      "Thestral",
+      "Acromantula"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Den enorma ormen är basilisken.",
+    "source": {
+      "type": "book",
+      "book": 2,
+      "chapter": 16
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-026",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 2,
+    "category": "plot",
+    "difficulty": "medium",
+    "question": "Vem dras ner i kammaren av arvtagaren till Slytherin?",
+    "options": [
+      "Ginny Weasley",
+      "Hermione Granger",
+      "Penelope Clearwater",
+      "Luna Lovegood"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Ginny blir den som förs bort i slutakten.",
+    "source": {
+      "type": "book",
+      "book": 2,
+      "chapter": 17
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-027",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 2,
+    "category": "characters",
+    "difficulty": "hard",
+    "question": "Vilken text står på väggen efter attacken i Hemligheternas kammare?",
+    "options": [
+      "The Chamber of Secrets has been opened",
+      "Beware the Dark Lord",
+      "The heir has returned",
+      "No one is safe"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Den varningen dyker upp efter att basiliskens attacker börjar.",
+    "source": {
+      "type": "book",
+      "book": 2,
+      "chapter": 17
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-028",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 2,
+    "category": "herbology",
+    "difficulty": "hard",
+    "question": "Vilken växt används som botemedel mot försteningen i bok 2?",
+    "options": [
+      "Alrunor",
+      "Gillyweed",
+      "Djävulssnara",
+      "Vissnande pil"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "De mogna alrunorna används för att brygga ett botemedel åt de förstenade eleverna.",
+    "source": { "type": "book", "book": 2, "chapter": 18 },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-029",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 3,
+    "category": "characters",
+    "difficulty": "hard",
+    "question": "Vem lyckas rymma från Azkaban i början av tredje boken?",
+    "options": [
+      "Sirius Black",
+      "Bellatrix Lestrange",
+      "Remus Lupin",
+      "Peter Pettigrew"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Det är Sirius Black som rymmer.",
+    "source": {
+      "type": "book",
+      "book": 3,
+      "chapter": 1
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-030",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 3,
+    "category": "transport",
+    "difficulty": "easy",
+    "question": "Vilket udda transportmedel tar Harry till London efter att han lämnat Dursleys?",
+    "options": [
+      "Knight Bus",
+      "Ford Anglia",
+      "Floo-nätverket",
+      "Hogwarts Express"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Knight Bus hämtar upp honom i nöden.",
+    "source": {
+      "type": "book",
+      "book": 3,
+      "chapter": 3
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-031",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 3,
+    "category": "creatures",
+    "difficulty": "easy",
+    "question": "Vilken sorts varelse är Buckbeak?",
+    "options": [
+      "Hippogriff",
+      "Thestral",
+      "Grindylow",
+      "Basilisk"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Buckbeak är en hippogriff.",
+    "source": {
+      "type": "book",
+      "book": 3,
+      "chapter": 4
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-032",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 3,
+    "category": "places",
+    "difficulty": "easy",
+    "question": "Var får eleverna för första gången besöka trollkarlsbyn?",
+    "options": [
+      "Hogsmeade",
+      "Diagongränden",
+      "Knockturn Alley",
+      "Ministry of Magic"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Hogsmeade är byn bredvid Hogwarts.",
+    "source": {
+      "type": "book",
+      "book": 3,
+      "chapter": 5
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-033",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 3,
+    "category": "creatures",
+    "difficulty": "easy",
+    "question": "Vilka varelser får Harry att svimma på tåget till Hogwarts?",
+    "options": [
+      "Dementorer",
+      "Troll",
+      "Vanliga spöken",
+      "House-elves"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Dementorerna på tåget skrämmer honom avsvimmad.",
+    "source": {
+      "type": "book",
+      "book": 3,
+      "chapter": 5
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-034",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 3,
+    "category": "pets",
+    "difficulty": "medium",
+    "question": "Vilket djur följer Hermione runt och beter sig ovanligt smart?",
+    "options": [
+      "Crookshanks",
+      "Hedwig",
+      "Fang",
+      "Scabbers"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Hermiones katt Crookshanks spelar en viktig roll.",
+    "source": {
+      "type": "book",
+      "book": 3,
+      "chapter": 4
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-035",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 3,
+    "category": "characters",
+    "difficulty": "medium",
+    "question": "Vilken form får Harrys första riktiga Patronus?",
+    "options": [
+      "En hjort",
+      "En hund",
+      "En örn",
+      "En varg"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Harrys Patronus tar formen av en hjort som liknar hans far.",
+    "source": {
+      "type": "book",
+      "book": 3,
+      "chapter": 3
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-036",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 3,
+    "category": "spells",
+    "difficulty": "medium",
+    "question": "Vilken besvärjelse lär Lupin ut som skydd mot dementorer?",
+    "options": [
+      "Expecto Patronum",
+      "Incendio",
+      "Stupefy",
+      "Accio"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Expecto Patronum är skyddet mot dementorer.",
+    "source": {
+      "type": "book",
+      "book": 3,
+      "chapter": 12
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-037",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 3,
+    "category": "objects",
+    "difficulty": "medium",
+    "question": "Vilket hjälpmedel visar hemliga fotspår och korridorer?",
+    "options": [
+      "Marodörkartan",
+      "Sorteringshatten",
+      "Eldbägaren",
+      "Ocklumensboken"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Marodörkartan avslöjar allt det där.",
+    "source": {
+      "type": "book",
+      "book": 3,
+      "chapter": 10
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-038",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 3,
+    "category": "creatures",
+    "difficulty": "medium",
+    "question": "Vad tar form för Harry under boggartlektionen?",
+    "options": [
+      "En dementor",
+      "En drake",
+      "En basilisk",
+      "En jätte"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Boggarten antar formen av en dementor.",
+    "source": {
+      "type": "book",
+      "book": 3,
+      "chapter": 7
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-039",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 3,
+    "category": "objects",
+    "difficulty": "hard",
+    "question": "Vem lånar Hermione tidsvändaren av?",
+    "options": [
+      "Professor McGonagall",
+      "Remus Lupin",
+      "Sybill Trelawney",
+      "Albus Dumbledore"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "McGonagall ordnar en tidsvändare så att Hermione kan följa flera ämnen.",
+    "source": {
+      "type": "book",
+      "book": 3,
+      "chapter": 21
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-040",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 3,
+    "category": "objects",
+    "difficulty": "hard",
+    "question": "Vilken kroppsdel lämnar Peter Pettigrew efter sig när han flyr?",
+    "options": [
+      "Ett finger",
+      "En öronlapp",
+      "En sko",
+      "En handske"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Pettigrew skär av sitt eget finger för att få det att se ut som om Sirius har dödat honom.",
+    "source": {
+      "type": "book",
+      "book": 3,
+      "chapter": 20
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-041",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 3,
+    "category": "characters",
+    "difficulty": "hard",
+    "question": "Vem är Harrys gudfar när sanningen om Sirius blir klar?",
+    "options": [
+      "Sirius Black",
+      "Remus Lupin",
+      "Arthur Weasley",
+      "Albus Dumbledore"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Sirius är Harrys gudfar.",
+    "source": {
+      "type": "book",
+      "book": 3,
+      "chapter": 17
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-042",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 3,
+    "category": "places",
+    "difficulty": "hard",
+    "question": "Vilken plats visar sig vara deras hemliga mötespunkt med varulvsförklaringen?",
+    "options": [
+      "Skrikande huset",
+      "Den läckande kitteln",
+      "Grimmauld Place",
+      "Det förbjudna skogen"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Skrikande huset är platsen som spelar en stor roll.",
+    "source": {
+      "type": "book",
+      "book": 3,
+      "chapter": 21
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-043",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 4,
+    "category": "characters",
+    "difficulty": "easy",
+    "question": "Vilken husalv hittas med en trollstav efter att Mörkrets märke har visats?",
+    "options": [
+      "Winky",
+      "Dobby",
+      "Kreacher",
+      "Hokey"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Winky hittas med Harrys trollstav efter uppståndelsen av Mörkrets märke på lägerplatsen.",
+    "source": {
+      "type": "book",
+      "book": 4,
+      "chapter": 9
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-044",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 4,
+    "category": "transport",
+    "difficulty": "easy",
+    "question": "Hur många skolor deltar i Triwizard Tournament?",
+    "options": [
+      "Tre",
+      "Fyra",
+      "Fem",
+      "Sex"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Tre skolor skickar varsitt lag till turneringen.",
+    "source": {
+      "type": "book",
+      "book": 4,
+      "chapter": 8
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-045",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 4,
+    "category": "objects",
+    "difficulty": "easy",
+    "question": "Vilket föremål måste Harry hämta från draken i trekampens första uppgift?",
+    "options": [
+      "Ett gyllene ägg",
+      "En kristallkula",
+      "En trollstav",
+      "En förtrollad sköld"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Varje förkämpe ska hämta ett gyllene ägg som vaktas av en drake.",
+    "source": {
+      "type": "book",
+      "book": 4,
+      "chapter": 20
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-046",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 4,
+    "category": "places",
+    "difficulty": "medium",
+    "question": "Vad avslöjar Hermione om Rita Skeeter i fjärde boken?",
+    "options": [
+      "Att hon är en oregistrerad animagus",
+      "Att hon är en vampyr",
+      "Att hon är en örn",
+      "Att hon är en förbannelsebärare"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Hermione avslöjar att Rita kan förvandla sig till en skalbagge.",
+    "source": {
+      "type": "book",
+      "book": 4,
+      "chapter": 23
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-047",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 4,
+    "category": "creatures",
+    "difficulty": "medium",
+    "question": "Vilken drakras möter Harry i första uppgiften?",
+    "options": [
+      "Hungarian Horntail",
+      "Norwegian Ridgeback",
+      "Common Welsh Green",
+      "Swedish Short-Snout"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Harrys drake är en Hungarian Horntail.",
+    "source": {
+      "type": "book",
+      "book": 4,
+      "chapter": 20
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-048",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 4,
+    "category": "plot",
+    "difficulty": "medium",
+    "question": "Vad måste Harry hitta för att kunna klara den andra uppgiften under ytan?",
+    "options": [
+      "Gillyweed",
+      "Felix Felicis",
+      "Basiliskgift",
+      "Mandrakejuice"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Gillyweed gör att han kan andas under vatten.",
+    "source": {
+      "type": "book",
+      "book": 4,
+      "chapter": 20
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-049",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 4,
+    "category": "characters",
+    "difficulty": "hard",
+    "question": "Vilken journalist visar sig i hemlighet vara en skalbagge?",
+    "options": [
+      "Rita Skeeter",
+      "Dolores Umbridge",
+      "Sybill Trelawney",
+      "Bathilda Bagshot"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Rita Skeeter är den osynliga spejaren.",
+    "source": {
+      "type": "book",
+      "book": 4,
+      "chapter": 24
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-050",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 4,
+    "category": "characters",
+    "difficulty": "hard",
+    "question": "Vem låtsas vara Alastor Moody under hela året?",
+    "options": [
+      "Barty Crouch Jr.",
+      "Cornelius Fudge",
+      "Sirius Black",
+      "Severus Snape"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Det är Barty Crouch Jr. som spelar Moody.",
+    "source": {
+      "type": "book",
+      "book": 4,
+      "chapter": 24
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-051",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 4,
+    "category": "plot",
+    "difficulty": "hard",
+    "question": "Vad återvänder i kyrkogården när trollkarlskampen når sin topp?",
+    "options": [
+      "Voldemort",
+      "Tom Riddle",
+      "Horace Slughorn",
+      "Gellert Grindelwald"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Voldemort återfår sin fulla form i kyrkogården.",
+    "source": {
+      "type": "book",
+      "book": 4,
+      "chapter": 34
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-052",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 4,
+    "category": "objects",
+    "difficulty": "hard",
+    "question": "Vilket föremål blir portnyckel och för bort Harry och Cedric?",
+    "options": [
+      "Triwizard Cup",
+      "Golden Egg",
+      "Deluminator",
+      "Sword of Gryffindor"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Triwizard Cup visar sig vara portnyckeln.",
+    "source": {
+      "type": "book",
+      "book": 4,
+      "chapter": 25
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-053",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 4,
+    "category": "characters",
+    "difficulty": "medium",
+    "question": "Vem dör i gravgården efter den sista uppgiften?",
+    "options": [
+      "Cedric Diggory",
+      "Viktor Krum",
+      "Barty Crouch Sr",
+      "Fleur Delacour"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Cedric är den som dödas där.",
+    "source": {
+      "type": "book",
+      "book": 4,
+      "chapter": 37
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-054",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 4,
+    "category": "places",
+    "difficulty": "medium",
+    "question": "Vilken del av den sista uppgiften leder genom en förtrollad labyrint?",
+    "options": [
+      "Labyrinten",
+      "Stora salen",
+      "Sjöbottnen",
+      "Kyrkogården"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Den sista delen av turneringen är en labyrint.",
+    "source": {
+      "type": "book",
+      "book": 4,
+      "chapter": 31
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-055",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 4,
+    "category": "characters",
+    "difficulty": "easy",
+    "question": "Vem når trekampspokalen samtidigt som Harry?",
+    "options": [
+      "Cedric Diggory",
+      "Viktor Krum",
+      "Fleur Delacour",
+      "Draco Malfoy"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Harry och Cedric bestämmer sig för att ta pokalen tillsammans efter att ha nått den samtidigt.",
+    "source": {
+      "type": "book",
+      "book": 4,
+      "chapter": 32
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-056",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 4,
+    "category": "plot",
+    "difficulty": "hard",
+    "question": "Vem tvingas in i turneringen trots att han inte borde vara med?",
+    "options": [
+      "Harry Potter",
+      "Draco Malfoy",
+      "Neville Longbottom",
+      "Dean Thomas"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Harry dras in som en oväntad fjärde deltagare.",
+    "source": {
+      "type": "book",
+      "book": 4,
+      "chapter": 16
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-057",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 5,
+    "category": "plot",
+    "difficulty": "easy",
+    "question": "Vilka varelser attackerar Harry och Dudley i början av femte boken?",
+    "options": [
+      "Dementorer",
+      "Centaurer",
+      "House-elves",
+      "Boggarts"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Dementorerna är de som slår till i Little Whinging.",
+    "source": {
+      "type": "book",
+      "book": 5,
+      "chapter": 1
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-058",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 5,
+    "category": "characters",
+    "difficulty": "medium",
+    "question": "Vem är hemlighetsväktare för Fenixordens högkvarter?",
+    "options": [
+      "Albus Dumbledore",
+      "Sirius Black",
+      "Arthur Weasley",
+      "Nymphadora Tonks"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Dumbledore är hemlighetsväktare för Fenixordens högkvarter på Grimmauld Place 12.",
+    "source": {
+      "type": "book",
+      "book": 5,
+      "chapter": 4
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-059",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 5,
+    "category": "objects",
+    "difficulty": "medium",
+    "question": "Vad gör Umbridges särskilda penna med Harrys hand?",
+    "options": [
+      "Skär in orden",
+      "Skiftar färg",
+      "Förvandlar bläcket",
+      "Tar bort minnet"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Pennan ristar in texten i huden.",
+    "source": {
+      "type": "book",
+      "book": 5,
+      "chapter": 13
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-060",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 5,
+    "category": "characters",
+    "difficulty": "easy",
+    "question": "Vem tar över försvar mot svartkonst när terminen börjar?",
+    "options": [
+      "Dolores Umbridge",
+      "Minerva McGonagall",
+      "Severus Snape",
+      "Filius Flitwick"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Umbridge kommer in som ny lärare.",
+    "source": {
+      "type": "book",
+      "book": 5,
+      "chapter": 8
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-061",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 5,
+    "category": "objects",
+    "difficulty": "easy",
+    "question": "Vilka mynt använder Dumbledores armé för att signalera nästa möte?",
+    "options": [
+      "Falska galleoner",
+      "Knuts",
+      "Sicklar",
+      "Chokladgrodemynt"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Hermione förtrollar falska galleoner så att deras datum ändras när nästa möte ska hållas.",
+    "source": {
+      "type": "book",
+      "book": 5,
+      "chapter": 19
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-062",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 5,
+    "category": "creatures",
+    "difficulty": "medium",
+    "question": "Vilka varelser blir synliga för Harry efter Cedrics död?",
+    "options": [
+      "Thestrals",
+      "Dementorer",
+      "Acromantuler",
+      "Hippogriffer"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Thestralerna syns först när man förstått döden.",
+    "source": {
+      "type": "book",
+      "book": 5,
+      "chapter": 21
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-063",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 5,
+    "category": "objects",
+    "difficulty": "medium",
+    "question": "Vad heter skämtbutiken som tvillingarna öppnar senare?",
+    "options": [
+      "Weasleys Wizard Wheezes",
+      "Quality Quidditch Supplies",
+      "Slug and Jiggers",
+      "Borgin and Burkes"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Butiken heter Weasleys Wizard Wheezes.",
+    "source": {
+      "type": "book",
+      "book": 5,
+      "chapter": 21
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-064",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 5,
+    "category": "characters",
+    "difficulty": "medium",
+    "question": "Vem hänger upp den unge Snape upp och ner i Harrys minne?",
+    "options": [
+      "James Potter",
+      "Remus Lupin",
+      "Peter Pettigrew",
+      "Sirius Black"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "James Potter använder Levicorpus på Snape medan Sirius och de andra ser på.",
+    "source": {
+      "type": "book",
+      "book": 5,
+      "chapter": 28
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-065",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 5,
+    "category": "places",
+    "difficulty": "hard",
+    "question": "Var förvaras profetian som alla jagar?",
+    "options": [
+      "Department of Mysteries",
+      "Ministry Atrium",
+      "Azkaban",
+      "Room of Requirement"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Profetian ligger i Department of Mysteries.",
+    "source": {
+      "type": "book",
+      "book": 5,
+      "chapter": 26
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-066",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 5,
+    "category": "creatures",
+    "difficulty": "hard",
+    "question": "Vilka varelser driver Umbridge och hennes följe djupare in i skogen?",
+    "options": [
+      "Centaurer",
+      "Drakar",
+      "Merpeople",
+      "Jättar"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Centaurerna är de som tar över mötet i skogen.",
+    "source": {
+      "type": "book",
+      "book": 5,
+      "chapter": 27
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-067",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 5,
+    "category": "plot",
+    "difficulty": "hard",
+    "question": "Vad händer med Sirius under striden i ministeriet?",
+    "options": [
+      "Han faller genom slöjan",
+      "Han blir förstenad",
+      "Han blir osynlig",
+      "Han förvandlas till råtta"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Sirius försvinner genom slöjan i slutet.",
+    "source": {
+      "type": "book",
+      "book": 5,
+      "chapter": 34
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-068",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 5,
+    "category": "plot",
+    "difficulty": "hard",
+    "question": "Vem tränger in i Harrys sinne under ministerieattacken?",
+    "options": [
+      "Voldemort",
+      "Quirrell",
+      "Grindelwald",
+      "Lockhart"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Voldemort lyckas bryta sig in i hans sinne.",
+    "source": {
+      "type": "book",
+      "book": 5,
+      "chapter": 34
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-069",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 5,
+    "category": "characters",
+    "difficulty": "medium",
+    "question": "Vad heter Hagrids jättehalvbror?",
+    "options": [
+      "Grawp",
+      "Fang",
+      "Fluffy",
+      "Kreacher"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Grawp är namnet på jätten.",
+    "source": {
+      "type": "book",
+      "book": 5,
+      "chapter": 28
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-070",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 5,
+    "category": "characters",
+    "difficulty": "medium",
+    "question": "Vem leder motståndet i hemlighet under läsåret?",
+    "options": [
+      "Dumbledore",
+      "Snape",
+      "Fudge",
+      "Lockhart"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Dumbledore fortsätter att dra i trådarna bakom kulisserna.",
+    "source": {
+      "type": "book",
+      "book": 5,
+      "chapter": 21
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-071",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 6,
+    "category": "characters",
+    "difficulty": "easy",
+    "question": "Vem kommer tillbaka som Hogwartslärare i bryggning?",
+    "options": [
+      "Horace Slughorn",
+      "Severus Snape",
+      "Gilderoy Lockhart",
+      "Igor Karkaroff"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Slughorn återvänder för att undervisa i potions.",
+    "source": {
+      "type": "book",
+      "book": 6,
+      "chapter": 4
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-072",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 6,
+    "category": "potions",
+    "difficulty": "easy",
+    "question": "Vilken dryck ger Harry ovanligt mycket tur?",
+    "options": [
+      "Felix Felicis",
+      "Polyjuice potion",
+      "Veritaserum",
+      "Pepperup Potion"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Felix Felicis är den berömda lyckodrycken.",
+    "source": {
+      "type": "book",
+      "book": 6,
+      "chapter": 6
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-073",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 6,
+    "category": "objects",
+    "difficulty": "medium",
+    "question": "Vilken lärobok använder Harry för att utmärka sig i potions?",
+    "options": [
+      "Half-Blood Princes bok",
+      "Trelawneys dagbok",
+      "Lockharts memoarer",
+      "Riddles journal"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Den gamla läroboken är märkt av Half-Blood Prince.",
+    "source": {
+      "type": "book",
+      "book": 6,
+      "chapter": 9
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-074",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 6,
+    "category": "quidditch",
+    "difficulty": "easy",
+    "question": "Vilken roll får Harry av McGonagall i quidditchlaget?",
+    "options": [
+      "Lagkapten",
+      "Jagare",
+      "Målvakt",
+      "Slagman"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Harry blir lagkapten för Gryffindor.",
+    "source": {
+      "type": "book",
+      "book": 6,
+      "chapter": 10
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-075",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 6,
+    "category": "plot",
+    "difficulty": "medium",
+    "question": "Vad är det som förbannar Katie Bell när hon återvänder till Hogwarts?",
+    "options": [
+      "Halsbandet",
+      "Ett brev",
+      "En kvast",
+      "En ring"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Det förbannade halsbandet är orsaken.",
+    "source": {
+      "type": "book",
+      "book": 6,
+      "chapter": 13
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-076",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 6,
+    "category": "characters",
+    "difficulty": "hard",
+    "question": "Vem reparerar det försvunna skåpet i hemlighet?",
+    "options": [
+      "Draco Malfoy",
+      "Harry Potter",
+      "Ron Weasley",
+      "Neville Longbottom"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Draco arbetar länge för att få skåpet att fungera igen.",
+    "source": {
+      "type": "book",
+      "book": 6,
+      "chapter": 14
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-077",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 6,
+    "category": "spells",
+    "difficulty": "hard",
+    "question": "Vilken förbjuden besvärjelse står skriven i den gamla läroboken?",
+    "options": [
+      "Sectumsempra",
+      "Expelliarmus",
+      "Aguamenti",
+      "Reducto"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Sectumsempra är den farliga besvärjelsen.",
+    "source": {
+      "type": "book",
+      "book": 6,
+      "chapter": 24
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-078",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 6,
+    "category": "objects",
+    "difficulty": "hard",
+    "question": "Vilket släktföremål visar sig vara en horrokrux i Gaunt-huset?",
+    "options": [
+      "Ringen",
+      "Medaljongen",
+      "Bägaren",
+      "Diademet"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Ringen från Gaunt-familjen är en horrokrux.",
+    "source": {
+      "type": "book",
+      "book": 6,
+      "chapter": 23
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-079",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 6,
+    "category": "creatures",
+    "difficulty": "hard",
+    "question": "Vilka väsen bevakar grottan där Harry och Dumbledore letar?",
+    "options": [
+      "Inferi",
+      "Thestrals",
+      "Centaurer",
+      "Merpeople"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Inferi ligger dolda i grottan.",
+    "source": {
+      "type": "book",
+      "book": 6,
+      "chapter": 26
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-080",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 6,
+    "category": "plot",
+    "difficulty": "hard",
+    "question": "Vad tvingas Dumbledore dricka i grottan?",
+    "options": [
+      "En trolldryck",
+      "Ett minne",
+      "Giftigt vatten",
+      "Felix Felicis"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Dumbledore måste dricka den fruktansvärda drycken i grottan.",
+    "source": {
+      "type": "book",
+      "book": 6,
+      "chapter": 26
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-081",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 6,
+    "category": "plot",
+    "difficulty": "medium",
+    "question": "Vad ger Harry Slughorn för att få fram minnet?",
+    "options": [
+      "Felix Felicis",
+      "En kvast",
+      "En uggla",
+      "En karta"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Harry använder turdrycken för att styra mötet.",
+    "source": {
+      "type": "book",
+      "book": 6,
+      "chapter": 18
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-082",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 6,
+    "category": "characters",
+    "difficulty": "hard",
+    "question": "Varför besöker Harry och Dumbledore Slughorn tidigt i boken?",
+    "options": [
+      "För att hämta ett minne",
+      "För att låna en kvast",
+      "För att rädda en uggla",
+      "För att köpa böcker"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "De behöver Slughorns verkliga minne om Voldemort.",
+    "source": {
+      "type": "book",
+      "book": 6,
+      "chapter": 14
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-083",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 6,
+    "category": "plot",
+    "difficulty": "hard",
+    "question": "Vad händer med Dumbledore efter attacken på Hogwarts?",
+    "options": [
+      "Han får en begravning på området",
+      "Han flyr till Azkaban",
+      "Han blir minister",
+      "Han reser till Beauxbatons"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Dumbledore får en stor begravning på Hogwarts.",
+    "source": {
+      "type": "book",
+      "book": 6,
+      "chapter": 27
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-084",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 6,
+    "category": "places",
+    "difficulty": "medium",
+    "question": "Var hålls den stora avskedsceremonin för Dumbledore?",
+    "options": [
+      "På Hogwarts",
+      "I Azkaban",
+      "På Grimmauld Place",
+      "I Diagongränden"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Ceremonin hålls på Hogwarts område.",
+    "source": {
+      "type": "book",
+      "book": 6,
+      "chapter": 30
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-085",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 6,
+    "category": "potions",
+    "difficulty": "extreme",
+    "question": "Vilken ovanligt lyckosam dryck får Harry prova på lektionen?",
+    "options": [
+      "Felix Felicis",
+      "Wiggenweld Potion",
+      "Skele-Gro",
+      "Amortentia"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Felix Felicis är extremt svår att lyckas med men ger enorm tur.",
+    "source": {
+      "type": "book",
+      "book": 6,
+      "chapter": 18
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-086",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 7,
+    "category": "potions",
+    "difficulty": "easy",
+    "question": "Hur tar sig Harrys grupp från Privet Drive utan att bli igenkänd?",
+    "options": [
+      "Genom polyjuice",
+      "Med en flygande bil",
+      "Med en portkey till London",
+      "Med en kärra från Hogwarts"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Polyjuice används för att skapa flera Harry-värdiga dubbelgångare.",
+    "source": {
+      "type": "book",
+      "book": 7,
+      "chapter": 4
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-087",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 7,
+    "category": "plot",
+    "difficulty": "easy",
+    "question": "Vilken händelse avbryter bröllopsfirandet i början av Deathly Hallows?",
+    "options": [
+      "En attack från dödsätare",
+      "En drakflykt",
+      "En quidditchmatch",
+      "Ett talande spegelmeddelande"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Bröllopet störs av en dödlig attack.",
+    "source": {
+      "type": "book",
+      "book": 7,
+      "chapter": 8
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-088",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 7,
+    "category": "creatures",
+    "difficulty": "medium",
+    "question": "Vilken husalv berättar för Harry vad som hände med Regulus Black?",
+    "options": [
+      "Kreacher",
+      "Dobby",
+      "Winky",
+      "Hokey"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Kreacher beskriver hur Regulus försökte förstöra Slytherins medaljong.",
+    "source": {
+      "type": "book",
+      "book": 7,
+      "chapter": 10
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-089",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 7,
+    "category": "objects",
+    "difficulty": "medium",
+    "question": "Vem bär Slytherins medaljong när den spåras upp av gruppen?",
+    "options": [
+      "Dolores Umbridge",
+      "Bellatrix Lestrange",
+      "Narcissa Malfoy",
+      "Petunia Dursley"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Umbridge bär medaljongen när Harrys grupp spårar den.",
+    "source": {
+      "type": "book",
+      "book": 7,
+      "chapter": 13
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-090",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 7,
+    "category": "places",
+    "difficulty": "medium",
+    "question": "Var åker Harry och Hermione för att leta efter ledtrådar om Dumbledore?",
+    "options": [
+      "Godric's Hollow",
+      "Little Whinging",
+      "Hogsmeade",
+      "Ottery St Catchpole"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Godric's Hollow ger dem fler svar om familjen Potter.",
+    "source": {
+      "type": "book",
+      "book": 7,
+      "chapter": 17
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-091",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 7,
+    "category": "characters",
+    "difficulty": "hard",
+    "question": "Vilken älskad varelse får ett tragiskt slut i båthuset vid havet?",
+    "options": [
+      "Dobby",
+      "Kreacher",
+      "Fang",
+      "Scabbers"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Dobby dör där efter räddningsinsatsen.",
+    "source": {
+      "type": "book",
+      "book": 7,
+      "chapter": 24
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-092",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 7,
+    "category": "objects",
+    "difficulty": "hard",
+    "question": "Hur tar sig Harry in i Gringotts under rånet?",
+    "options": [
+      "På ryggen av en drake",
+      "Med en osynlighetsmantel",
+      "Med en portkey",
+      "Med en trollkarlshiss"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Flykten från Gringotts sker ovanpå en drake.",
+    "source": {
+      "type": "book",
+      "book": 7,
+      "chapter": 26
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-093",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 7,
+    "category": "characters",
+    "difficulty": "medium",
+    "question": "Vem blir en symbol för motståndet när Hogwarts fortsätter kämpa?",
+    "options": [
+      "Neville Longbottom",
+      "Luna Lovegood",
+      "Seamus Finnigan",
+      "Dean Thomas"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Neville kliver fram som en central ledargestalt.",
+    "source": {
+      "type": "book",
+      "book": 7,
+      "chapter": 29
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-094",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 7,
+    "category": "objects",
+    "difficulty": "hard",
+    "question": "Vem ägde Fläderstaven innan Harry vann den?",
+    "options": [
+      "Draco Malfoy",
+      "Severus Snape",
+      "Bellatrix Lestrange",
+      "Rubeus Hagrid"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Draco är den som hade vunnit den före Harry.",
+    "source": {
+      "type": "book",
+      "book": 7,
+      "chapter": 19
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-095",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 7,
+    "category": "objects",
+    "difficulty": "hard",
+    "question": "Var är Uppståndelsestenen gömd innan Harry hittar den?",
+    "options": [
+      "I Snitchen",
+      "I en ring",
+      "I en bok",
+      "I Marodörkartan"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Stenen ligger gömd i den lilla Snitchen.",
+    "source": {
+      "type": "book",
+      "book": 7,
+      "chapter": 35
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-096",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 7,
+    "category": "plot",
+    "difficulty": "hard",
+    "question": "Vad gör Harry innan han går in i den förbjudna skogen?",
+    "options": [
+      "Han ger upp frivilligt",
+      "Han krossar sin trollstav",
+      "Han möter Voldemort på bron",
+      "Han räddar Snape"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Harry går dit frivilligt för att skydda andra.",
+    "source": {
+      "type": "book",
+      "book": 7,
+      "chapter": 34
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-097",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 7,
+    "category": "characters",
+    "difficulty": "hard",
+    "question": "Vilka minnen avslöjar varför Snape skyddade Harry?",
+    "options": [
+      "Hans minnen",
+      "Hans kvast",
+      "Hans hatt",
+      "Hans uggla"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Snapes minnen visar hela hans historia med Lily.",
+    "source": {
+      "type": "book",
+      "book": 7,
+      "chapter": 33
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-098",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 7,
+    "category": "characters",
+    "difficulty": "medium",
+    "question": "Vem säger till Voldemort att Harry är död i Förbjudna skogen?",
+    "options": [
+      "Narcissa Malfoy",
+      "Bellatrix Lestrange",
+      "Lucius Malfoy",
+      "Pansy Parkinson"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Narcissa kontrollerar att Harry lever, frågar efter Draco och säger sedan till Voldemort att Harry är död.",
+    "source": {
+      "type": "book",
+      "book": 7,
+      "chapter": 36
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-099",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 7,
+    "category": "objects",
+    "difficulty": "hard",
+    "question": "Vilket föremål hjälper till att få ut den bevakade draken ur Gringotts?",
+    "options": [
+      "Gryffindors svärd",
+      "Sorteringshatten",
+      "En quidditchkvast",
+      "Marodörkartan"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Flykten kopplas till den stulna draken och kassaskåpet.",
+    "source": {
+      "type": "book",
+      "book": 7,
+      "chapter": 26
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  },
+  {
+    "id": "book-extra-100",
+    "language": "sv",
+    "canon": "book",
+    "spoilerThroughBook": 7,
+    "category": "plot",
+    "difficulty": "hard",
+    "question": "Var utspelar sig den sista duellen mellan Harry och Voldemort?",
+    "options": [
+      "I Stora salen",
+      "I Svanesalen",
+      "I Fenixordens högkvarter",
+      "I Dursleys kök"
+    ],
+    "correctOptionIndex": 0,
+    "explanation": "Den avgörande uppgörelsen sker på Hogwarts.",
+    "source": {
+      "type": "book",
+      "book": 7,
+      "chapter": 35
+    },
+    "entities": [],
+    "reviewStatus": "draft"
+  }
+]

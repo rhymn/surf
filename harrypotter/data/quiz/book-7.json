@@ -28,10 +28,10 @@
     "entities": [], "reviewStatus": "draft"
   },
   {
-    "id": "book7-005", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "objects", "difficulty": "medium",
-    "question": "Vem förstör medaljongens horrokrux med Gryffindors svärd?",
-    "options": ["Harry Potter", "Hermione Granger", "Ron Weasley", "Neville Longbottom"], "correctOptionIndex": 2,
-    "explanation": "Efter att ha räddat Harry ur vattnet förstör Ron medaljongen med svärdet.", "source": {"type": "book", "book": 7, "chapter": 19, "verificationUrl": "https://www.hp-lexicon.org/event/ron-destroys-the-locket-horcrux/"},
+    "id": "book7-005", "language": "sv", "canon": "book", "spoilerThroughBook": 7, "category": "objects", "difficulty": "extreme",
+    "question": "Efter att Ron räddat Harry ur dammen, vilken kombination använder han för att förstöra en horrokrux?",
+    "options": ["Gryffindors svärd och Slytherins medaljong", "En basilisktand och Riddles dagbok", "Fläderstaven och Ravenclaws diadem", "En sten och Hufflepuffs bägare"], "correctOptionIndex": 0,
+    "explanation": "Ron använder Gryffindors svärd för att förstöra Slytherins medaljong efter att ha räddat Harry ur vattnet.", "source": {"type": "book", "book": 7, "chapter": 19, "verificationUrl": "https://www.hp-lexicon.org/event/ron-destroys-the-locket-horcrux/"},
     "entities": [{"type": "characters", "id": "ron"}], "reviewStatus": "reviewed"
   },
   {
