@@ -188,7 +188,7 @@ test('book batches cover all seven books with valid chapter bounds and spoiler l
     assert.equal(new Set(questions.map(question => question.correctOptionIndex)).size, 4, `Answer positions for book ${book}`);
     for (const question of questions) {
       assert.equal(question.canon, 'book', question.id);
-      assert.ok(question.id.startsWith(`book${book}-`) || question.id.startsWith('book-extra-'), question.id);
+      assert.ok(question.id.startsWith(`book${book}-`) || question.id.startsWith('book-extra-') || question.id.startsWith('book-next-'), question.id);
       assert.ok(question.source.chapter <= chapterCounts[book - 1], question.id);
       assert.ok(question.spoilerThroughBook >= book, question.id);
       if (question.reviewStatus === 'draft') assert.equal(playableIds.has(question.id), true, question.id);
@@ -311,12 +311,27 @@ test('200 extra questions extend the live bank without ID or prompt collisions',
   const filmExtra = bank.filter(question => question.id.startsWith('film-extra-'));
   assert.equal(bookExtra.length, 100);
   assert.equal(filmExtra.length, 100);
-  assert.equal(bank.length, 479);
+  assert.equal(bank.length, 579);
   assert.equal(new Set(bank.map(question => question.id)).size, bank.length);
   assert.equal(new Set(bank.map(question => question.question.trim())).size, bank.length);
   assert.ok(bookExtra.every(question => question.canon === 'book' && question.source.type === 'book' && question.reviewStatus === 'draft'));
   assert.ok(filmExtra.every(question => question.canon === 'film' && question.source.type === 'film' && question.reviewStatus === 'draft'));
   assert.deepEqual(Object.fromEntries([...Array(7)].map((_, index) => [index + 1, bookExtra.filter(question => question.source.book === index + 1).length])), { 1: 14, 2: 14, 3: 14, 4: 14, 5: 14, 6: 15, 7: 15 });
-  assert.equal(filterQuestions(bank, { canon: 'film' }).length, 205);
-  assert.equal(filterQuestions(bank, { canon: 'book' }).length, 266);
+  assert.equal(filterQuestions(bank, { canon: 'film' }).length, 255);
+  assert.equal(filterQuestions(bank, { canon: 'book' }).length, 316);
+});
+
+test('next batch adds 50 book and 50 film questions with corrected answers and sources', () => {
+  const bookNext = bank.filter(question => question.id.startsWith('book-next-'));
+  const filmNext = bank.filter(question => question.id.startsWith('film-next-'));
+  assert.equal(bookNext.length, 50);
+  assert.equal(filmNext.length, 50);
+  assert.ok([...bookNext, ...filmNext].every(question => question.language === 'sv' && question.reviewStatus === 'draft'));
+  assert.ok(bookNext.every(question => question.canon === 'book' && question.source.type === 'book'));
+  assert.ok(filmNext.every(question => question.canon === 'film' && question.source.type === 'film'));
+  assert.equal(bookNext.find(question => question.id === 'book-next-005').source.chapter, 9);
+  assert.equal(bookNext.find(question => question.id === 'book-next-031').options[0], 'Seniorundersekreterare');
+  assert.equal(bookNext.find(question => question.id === 'book-next-031').correctOptionIndex, 0);
+  assert.equal(filmNext.find(question => question.id === 'film-next-046').source.title, 'Dödsrelikerna del 1');
+  assert.equal(filmNext.find(question => question.id === 'film-next-046').options[0], 'Nick Moran');
 });

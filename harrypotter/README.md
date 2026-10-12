@@ -67,12 +67,14 @@ horrokruxer, Gryffindors svärd, dödsreliker och trollstavar.
 ### Frågebanken
 
 `data/quiz/manifest.json` listar JSON-filerna som ska laddas. Banken innehåller
-479 frågor: 205 filmfrågor i `films.json` och `films-extra.json`, 8 frågor i
-`cross-series.json` och 258 svenska bokfrågor i `book-1.json` till `book-7.json`
-samt `books-extra.json`, plus 8 expertfrågor i `universe.json`. De extra filerna innehåller 100 bokfrågor och 100
-filmfrågor. Filmfrågorna har scen- eller eftertexthänvisningar och täcker alla
-åtta filmer. De är spelbara utkast; filmfakta, rollistor, bokfakta och svenska
-formuleringar har inte genomgått extern faktagranskning.
+579 frågor: 255 filmfrågor, 316 bokfrågor och 8 expertfrågor i `universe.json`.
+`films.json` och `films-extra.json` utgör den tidigare filmserien; `films-next.json`
+lägger till 50 frågor. Bokfrågorna finns i `book-1.json` till `book-7.json`,
+`books-extra.json` och `books-next.json`; de två sistnämnda batcherna innehåller
+100 respektive 50 frågor. `cross-series.json` ingår i bokantalet. De nya frågorna
+har jämförts med den befintliga banken och granskats av en annan språkmodell,
+men är fortfarande spelbara utkast och har inte genomgått manuell faktagranskning.
+Filmfrågorna har scen- eller eftertexthänvisningar och täcker alla åtta filmer.
 
 `universe.json` är för utvidgad världskunskap som inte behöver komma från de
 huvudsakliga böckerna eller filmerna. Varje sådan fråga måste ha `canon` satt
