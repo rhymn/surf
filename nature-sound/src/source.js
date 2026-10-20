@@ -2,8 +2,9 @@ import { spawn } from 'node:child_process';
 import { BYTES_PER_FRAME, CHANNELS, SAMPLE_RATE } from './config.js';
 import { PcmRing } from './ring.js';
 
-// One microphone kit. The kit pushes an encoded stream (Ogg/Opus, FLAC, WebM, WAV...) over a
-// WebSocket; ffmpeg decodes it to raw PCM which lands in a ring buffer.
+// One microphone kit. The kit pushes an encoded stream (Ogg/Opus, FLAC, WebM, WAV...) as binary
+// WebSocket frames; ffmpeg decodes it to raw PCM which lands in a ring buffer. Text frames carry
+// JSON control messages, e.g. {"type":"power","low":true,"battery":0.12}.
 export class Source {
   constructor(id, { ringSeconds, staleAfterMs }) {
     this.id = id;
@@ -15,6 +16,9 @@ export class Source {
     this.analysisAt = 0;
     this.ffmpeg = null;
     this.carry = Buffer.alloc(0);
+    this.lowPower = false;
+    this.battery = null;
+    this.onPowerChange = () => {};
   }
 
   get online() {
@@ -25,6 +29,8 @@ export class Source {
     this.detach();
     this.connected = true;
     this.carry = Buffer.alloc(0);
+    this.lowPower = false; // a rebooted kit reports its state again
+    this.battery = null;
 
     const ff = spawn(
       'ffmpeg',
@@ -39,7 +45,10 @@ export class Source {
       if (this.ffmpeg === ff) this.connected = false;
     });
 
-    ws.on('message', (data) => ff.stdin.writable && ff.stdin.write(data));
+    ws.on('message', (data, isBinary) => {
+      if (isBinary) ff.stdin.writable && ff.stdin.write(data);
+      else this.onControl(data.toString());
+    });
     ws.on('close', () => {
       ff.stdin.end();
       if (this.ffmpeg === ff) console.log(`[${this.id}] kit disconnected`);
@@ -59,6 +68,20 @@ export class Source {
     this.connected = false;
   }
 
+  onControl(text) {
+    let msg;
+    try {
+      msg = JSON.parse(text);
+    } catch {
+      return;
+    }
+    if (msg?.type !== 'power') return;
+    this.lowPower = Boolean(msg.low);
+    this.battery = typeof msg.battery === 'number' ? msg.battery : null;
+    console.log(`[${this.id}] power: low=${this.lowPower} battery=${this.battery ?? '?'}`);
+    this.onPowerChange();
+  }
+
   onPcm(chunk) {
     const data = this.carry.length ? Buffer.concat([this.carry, chunk]) : chunk;
     const usable = data.length - (data.length % BYTES_PER_FRAME);
@@ -74,6 +97,8 @@ export class Source {
       online: this.online,
       active: this.id === activeId,
       bufferedSec: Math.min(this.ring.written, this.ring.size) / BYTES_PER_FRAME / SAMPLE_RATE,
+      lowPower: this.lowPower,
+      battery: this.battery,
       score: this.analysis?.score ?? null,
       flags: this.analysis?.flags ?? [],
       metrics: this.analysis?.metrics ?? null,

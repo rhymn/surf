@@ -11,7 +11,7 @@ This is a monorepo containing multiple web applications and services. The indivi
 - **contacts-and-cal/** - A WebDAV server for calendars and contacts with JSON storage, built with Express and TypeScript.
 - **simple-chat/** - A simple Node.js chat application using a basic database.
 - **monsters-and-trees/** - A Node.js web application.
-- **naturljud-live/** - Live nature-sound streaming service (Node.js, WebSocket ingest from microphone kits, ffmpeg in Docker). Picks the cleanest source every minute. See its README.
+- **nature-sound/** - Live nature-sound streaming service (Node.js, WebSocket ingest from microphone kits, ffmpeg in Docker). Picks the cleanest source every minute. See its README.
 - **unplastech/** - A static HTML5 website with no CSS or JavaScript - using semantic HTML only.
 
 ## Technology Stack

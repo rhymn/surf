@@ -1,12 +1,12 @@
 // Pretends to be a microphone kit: generates audio with ffmpeg and pushes it to the server.
-//   node scripts/simulate-kit.js --id forest-1 [--url ws://localhost:3000] [--kind good|wind|hum]
+//   node scripts/simulate-kit.js --id forest-1 [--url ws://localhost:3000] [--kind good|wind|hum] [--low-after seconds]
 import { spawn } from 'node:child_process';
 import { WebSocket } from 'ws';
 
 const args = Object.fromEntries(
   process.argv.slice(2).reduce((acc, a, i, all) => (a.startsWith('--') ? [...acc, [a.slice(2), all[i + 1]]] : acc), []),
 );
-const { id = 'forest-1', url = 'ws://localhost:3000', kind = 'good' } = args;
+const { id = 'forest-1', url = 'ws://localhost:3000', kind = 'good', 'low-after': lowAfter } = args;
 
 const sources = {
   // pink "forest" background plus a 4.5 kHz warble standing in for birdsong
@@ -23,6 +23,8 @@ ws.on('open', () => {
   console.log(`${id} (${kind}) connected, streaming...`);
   const ff = spawn('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-re', ...sources[kind], '-ar', '48000', '-ac', '2', '-c:a', 'libopus', '-b:a', '128k', '-f', 'ogg', 'pipe:1'], { stdio: ['ignore', 'pipe', 'inherit'] });
   ff.stdout.on('data', (chunk) => ws.send(chunk));
+  // Pretend the battery ran low: text frames are control messages, binary frames are audio.
+  if (lowAfter) setTimeout(() => ws.send(JSON.stringify({ type: 'power', low: true, battery: 0.1 })), lowAfter * 1000);
   ws.on('close', () => ff.kill());
 });
 ws.on('unexpected-response', (_req, res) => {

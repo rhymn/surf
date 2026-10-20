@@ -60,6 +60,7 @@ server.on('upgrade', (req, socket, head) => {
     let source = sources.get(id);
     if (!source) {
       source = new Source(id, config);
+      source.onPowerChange = reselect; // switch away from a low-power kit immediately
       sources.set(id, source);
     }
     console.log(`[${id}] kit connected`);
@@ -75,4 +76,4 @@ setInterval(() => {
   reselect();
 }, 2000);
 
-server.listen(config.port, () => console.log(`naturljud-live listening on :${config.port}`));
+server.listen(config.port, () => console.log(`nature-sound listening on :${config.port}`));

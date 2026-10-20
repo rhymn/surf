@@ -1,5 +1,6 @@
 // Picks which source to broadcast. Pure function of the sources' state and the clock, so it is
-// easy to test. Hysteresis (minimum dwell + score margin) avoids flapping between similar sources.
+// easy to test. A source reporting low power is never preferred and is replaced at once (no dwell
+// time); it is only kept as a last resort when nothing else is usable. Hysteresis (minimum dwell + score margin) avoids flapping between similar sources.
 export class Selector {
   constructor({ minScore, switchMargin, minDwellMs, maxAnalysisAgeMs }) {
     Object.assign(this, { minScore, switchMargin, minDwellMs, maxAnalysisAgeMs });
@@ -10,6 +11,7 @@ export class Selector {
   eligible(source, now) {
     return (
       source.online &&
+      !source.lowPower &&
       source.analysis &&
       now - source.analysisAt <= this.maxAnalysisAgeMs &&
       source.analysis.score >= this.minScore

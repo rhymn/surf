@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="680" height="240" viewBox="0 0 680 240" role="img" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
-  <title>Naturljud Live data flow</title>
+  <title>Nature Sound data flow</title>
   <desc>Microphone kits push audio to a per-source buffer. An analyzer checks a 10 second clip of each buffer every minute and tells the broadcaster which source to play. The broadcaster sends a crossfaded MP3 stream to listeners.</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">

@@ -83,10 +83,10 @@ services:
   # Always-on service (free web services spin down, which would drop the live streams).
   # Docker because audio decoding/encoding needs ffmpeg. Paths are relative to the repo root.
   - type: web
-    name: naturljud-live
+    name: nature-sound
     runtime: docker
-    dockerfilePath: ./naturljud-live/Dockerfile
-    dockerContext: ./naturljud-live
+    dockerfilePath: ./nature-sound/Dockerfile
+    dockerContext: ./nature-sound
     plan: starter
     branch: main
     healthCheckPath: /health
