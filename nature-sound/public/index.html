@@ -6,19 +6,25 @@
   <title>Nature Sound</title>
   <meta name="description" content="Lyssna live på ljudet från svenska skogar, direkt från mikrofoner som står ute i naturen.">
   <style>
-    :root { --bg: #f4f1ea; --fg: #1f2a1f; --accent: #2f5d3a; --muted: #5d6b5d; }
+    :root { --bg: #f4f1ea; --fg: #1f2a1f; --accent: #2f5d3a; --muted: #5d6b5d; --line: color-mix(in srgb, var(--fg) 18%, transparent); }
     @media (prefers-color-scheme: dark) { :root { --bg: #131a14; --fg: #e8eee6; --accent: #8fc79a; --muted: #9aa99b; } }
     * { box-sizing: border-box; }
     body { margin: 0; background: var(--bg); color: var(--fg); font: 18px/1.6 Georgia, "Times New Roman", serif; }
-    main { max-width: 38rem; margin: 0 auto; padding: 4rem 1.25rem 3rem; }
+    main { max-width: 44rem; margin: 0 auto; padding: 4rem 1.25rem 3rem; }
     h1 { font-size: clamp(2.2rem, 8vw, 3.4rem); line-height: 1.1; margin: 0 0 .5rem; font-weight: 600; }
     .lead { color: var(--muted); font-size: 1.15rem; margin: 0 0 2.5rem; }
-    .player { border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent); border-radius: 1rem; padding: 1.5rem; text-align: center; }
+    .player { border: 1px solid var(--line); border-radius: 1rem; padding: 1.5rem; text-align: center; }
     #play { font: inherit; font-size: 1.1rem; padding: .8rem 2rem; border-radius: 999px; border: 0; background: var(--accent); color: var(--bg); cursor: pointer; }
     #play:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
     #now { margin: 1rem 0 0; color: var(--muted); min-height: 1.6em; }
-    h2 { font-size: 1.25rem; margin: 3rem 0 .5rem; }
-    footer { margin-top: 3rem; color: var(--muted); font-size: .9rem; }
+    h2 { font-size: 1.5rem; margin: 4rem 0 .5rem; }
+    figure { margin: 1.5rem 0; }
+    figure img { display: block; width: 100%; height: auto; border-radius: .75rem; }
+    figcaption { color: var(--muted); font-size: .9rem; margin-top: .5rem; }
+    ul, ol { padding-left: 1.25rem; }
+    li { margin: .4rem 0; }
+    .note { color: var(--muted); font-size: .9rem; }
+    footer { margin-top: 4rem; color: var(--muted); font-size: .9rem; }
     a { color: var(--accent); }
   </style>
 </head>
@@ -34,7 +40,50 @@
     </div>
 
     <h2>Så fungerar det</h2>
-    <p>Små mikrofonkuber placeras ut i skogar och strömmar ljud i hög kvalitet till oss dygnet runt. Med jämna mellanrum lyssnar vi av varje källa efter störningar som vind, brus, brum och röster, och skickar vidare den renaste inspelningen till dig.</p>
+    <p>Små mikrofonkuber sitter uppe i träden i skogen och skickar ljud i hög kvalitet till vår server. Servern väljer ut den renaste inspelningen och skickar den vidare till dig.</p>
+    <figure>
+      <img src="img/data-flow.svg" alt="Flödesschema: mikrofonkuber skickar ljud till en buffert, en analys väljer bästa källan, och sändaren skickar en MP3-ström till lyssnarna.">
+      <figcaption>Heldragna pilar är ljud. Den streckade pilen är beslutet om vilken källa som ska sändas.</figcaption>
+    </figure>
+    <ol>
+      <li>Kuberna skickar ljudet över mobilnätet.</li>
+      <li>Servern sparar de senaste 30 sekunderna från varje kub.</li>
+      <li>Varje minut lyssnar vi av ett 10 sekunder långt klipp från varje kub efter vind, brus, brum, klippning, dunsar och röster.</li>
+      <li>Den renaste inspelningen sänds vidare till dig. Vi byter bara när en annan kub är tydligt bättre, och tonar över mjukt.</li>
+    </ol>
+
+    <h2>Mikrofonkuben</h2>
+    <p>Varje kub är cirka 30 cm och sitter fast på en trädstam.</p>
+    <figure>
+      <img src="img/forest-summer.svg" alt="Illustration: en mikrofonkub i ett stålbur med solpanel ovanpå, fastspänd på en stam i en granskog. En avbruten gren har landat på burens tak.">
+      <figcaption>Kuben på en stam i sommarskogen. Grenar som faller glider av burens sluttande tak.</figcaption>
+    </figure>
+    <figure>
+      <img src="img/kit-anatomy.svg" alt="Genomskärning av kuben: solpanel överst, ett stålbur runt, batteri, styrkort med modem och laddregulator inuti, och två mikrofoner med vindskydd i botten.">
+      <figcaption>Så är kuben byggd.</figcaption>
+    </figure>
+    <ul>
+      <li>Slagtålig låda inuti ett stålbur med sluttande tak, så att grenar glider av.</li>
+      <li>Två mikrofoner under kuben, bakom akustiskt tyg och pälsvindskydd, på skum så att regn och stötar inte hörs i ljudet.</li>
+      <li>Fastsatt med rostfria band runt stammen. Inga skruvar i trädet.</li>
+      <li>Går en kub sönder byter servern automatiskt till en annan.</li>
+    </ul>
+
+    <h2>Drivs av solen</h2>
+    <p>Kuberna drivs av en solpanel och ett batteri. De sover när ingen lyssnar på dem och strömmar bara när servern ber om det, normalt en kub åt gången.</p>
+    <figure>
+      <img src="img/seasons.svg" alt="Tolv månadsrutor. Maj till augusti är full drift, mars–april och september–oktober delad drift, november till februari vilolägen.">
+      <figcaption>Driftlägen under året.</figcaption>
+    </figure>
+    <figure>
+      <img src="img/forest-winter.svg" alt="Illustration: samma kub på en stam i snöklädd skog, med snö på burens tak.">
+      <figcaption>Samma kub i vinterskogen. Batterier kan inte laddas under noll grader, så kuberna går i vilolägen.</figcaption>
+    </figure>
+    <p>Börjar batteriet ta slut säger kuben till servern, som genast byter till en annan källa.</p>
+    <figure>
+      <img src="img/low-power.svg" alt="Kub A rapporterar att batteriet nästan är slut. Servern byter källa direkt, och Kub B tar över sändningen.">
+    </figure>
+    <p class="note">Siffror för panel och batteri är uppskattningar. Vi mäter i verklig drift.</p>
 
     <footer>Bara ljud, inga annonser.</footer>
   </main>
