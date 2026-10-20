@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="680" height="240" viewBox="0 0 680 240" role="img" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
-  <title>Nature Sound data flow</title>
-  <desc>Microphone kits push audio to a per-source buffer. An analyzer checks a 10 second clip of each buffer every minute and tells the broadcaster which source to play. The broadcaster sends a crossfaded MP3 stream to listeners.</desc>
+  <title>Dataflöde för Naturljud</title>
+  <desc>Mikrofonkuber skickar ljud till en buffert per källa. Varje minut analyseras ett 10 sekunders klipp från varje buffert, och sändaren får veta vilken källa som ska spelas. Sändaren skickar en mjukt övertonad MP3-ström till lyssnarna.</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M2 1L8 5L2 9" fill="none" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -8,24 +8,24 @@
   </defs>
   <g stroke-width="0.5" text-anchor="middle" dominant-baseline="central">
     <rect x="40" y="40" width="125" height="56" rx="8" fill="#F1EFE8" stroke="#5F5E5A"/>
-    <text x="102" y="59" font-size="14" font-weight="500" fill="#444441">Mic kits</text>
-    <text x="102" y="77" font-size="12" fill="#5F5E5A">WebSocket push</text>
+    <text x="102" y="59" font-size="14" font-weight="500" fill="#444441">Mikrofonkuber</text>
+    <text x="102" y="77" font-size="12" fill="#5F5E5A">Skickar via 4G</text>
 
     <rect x="195" y="40" width="125" height="56" rx="8" fill="#E1F5EE" stroke="#0F6E56"/>
-    <text x="257" y="59" font-size="14" font-weight="500" fill="#085041">Buffer</text>
-    <text x="257" y="77" font-size="12" fill="#0F6E56">Last 30 s each</text>
+    <text x="257" y="59" font-size="14" font-weight="500" fill="#085041">Buffert</text>
+    <text x="257" y="77" font-size="12" fill="#0F6E56">Senaste 30 s</text>
 
     <rect x="350" y="40" width="125" height="56" rx="8" fill="#E1F5EE" stroke="#0F6E56"/>
-    <text x="412" y="59" font-size="14" font-weight="500" fill="#085041">Broadcaster</text>
-    <text x="412" y="77" font-size="12" fill="#0F6E56">Crossfade, MP3</text>
+    <text x="412" y="59" font-size="14" font-weight="500" fill="#085041">Sändare</text>
+    <text x="412" y="77" font-size="12" fill="#0F6E56">Tonar över, MP3</text>
 
     <rect x="505" y="40" width="125" height="56" rx="8" fill="#F1EFE8" stroke="#5F5E5A"/>
-    <text x="567" y="59" font-size="14" font-weight="500" fill="#444441">Listeners</text>
-    <text x="567" y="77" font-size="12" fill="#5F5E5A">Browser player</text>
+    <text x="567" y="59" font-size="14" font-weight="500" fill="#444441">Lyssnare</text>
+    <text x="567" y="77" font-size="12" fill="#5F5E5A">Webbspelare</text>
 
     <rect x="245" y="150" width="190" height="56" rx="8" fill="#EEEDFE" stroke="#534AB7"/>
-    <text x="340" y="169" font-size="14" font-weight="500" fill="#3C3489">Analyze and pick</text>
-    <text x="340" y="187" font-size="12" fill="#534AB7">10 s clip every minute</text>
+    <text x="340" y="169" font-size="14" font-weight="500" fill="#3C3489">Analys och val</text>
+    <text x="340" y="187" font-size="12" fill="#534AB7">10 s-klipp varje minut</text>
   </g>
   <g stroke="#888780" stroke-width="1.5" fill="none">
     <line x1="165" y1="68" x2="193" y2="68" marker-end="url(#arrow)"/>
