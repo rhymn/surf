@@ -18,6 +18,7 @@
     #play:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
     #now { margin: 1rem 0 0; color: var(--muted); min-height: 1.6em; }
     h2 { font-size: 1.5rem; margin: 4rem 0 .5rem; }
+    h3 { font-size: 1.15rem; margin: 2rem 0 .25rem; }
     figure { margin: 1.5rem 0; }
     figure img { display: block; width: 100%; height: auto; border-radius: .75rem; }
     figcaption { color: var(--muted); font-size: .9rem; margin-top: .5rem; }
@@ -65,12 +66,34 @@
     <ul>
       <li>Slagtålig låda inuti ett stålbur med sluttande tak, så att grenar glider av.</li>
       <li>Två mikrofoner under kuben, bakom akustiskt tyg och pälsvindskydd, på skum så att regn och stötar inte hörs i ljudet.</li>
-      <li>Fastsatt med rostfria band runt stammen. Inga skruvar i trädet.</li>
+      <li>Fastsatt med breda, mjuka remmar runt stammen. Inga spikar, skruvar eller borrhål.</li>
       <li>Går en kub sönder byter servern automatiskt till en annan.</li>
+    </ul>
+
+    <h2>Skonsam mot träden</h2>
+    <p>Kuberna ska inte skada skogen de lyssnar på. Därför hänger de i remmar och sitter aldrig fast med spik eller skruv.</p>
+    <figure>
+      <img src="img/tree-mount.svg" alt="Stam sedd uppifrån med en bred mjuk rem runt, ett mjukt stamskydd mellan rem och bark, en elastisk spännare och kuben fäst på remmen.">
+      <figcaption>Så sitter kuben fast. Remmen ger efter när trädet växer.</figcaption>
+    </figure>
+    <ul>
+      <li>Breda, mjuka remmar fördelar trycket så att barken inte skärs eller skavs.</li>
+      <li>Ett skydd av filt eller gummi ligger mellan remmen och barken.</li>
+      <li>En elastisk spännare ger efter när stammen växer, så att remmen aldrig snör in trädet. Vi kontrollerar och lossar remmarna minst en gång om året.</li>
+      <li>Vi väljer friska, levande träd och undviker att sätta kuben under döda grenar.</li>
+      <li>Kuberna sätts bara upp med markägarens tillstånd, och kan tas bort utan att lämna några spår.</li>
     </ul>
 
     <h2>Drivs av solen</h2>
     <p>Kuberna drivs av en solpanel och ett batteri. De sover när ingen lyssnar på dem och strömmar bara när servern ber om det, normalt en kub åt gången.</p>
+    <h3>Så snål är kuben</h3>
+    <ul>
+      <li>En kub som sover drar bara några milliwatt, under en procent av vad den drar när den strömmar.</li>
+      <li>En kub som strömmar ljud drar ungefär 1 watt.</li>
+      <li>Eftersom bara en kub strömmar åt gången blir snittet ungefär 3–8 Wh per dygn och kub. Det motsvarar ungefär en halv mobilladdning.</li>
+      <li>Det räcker med en liten solpanel på cirka 20 W och ett batteri på cirka 64 Wh.</li>
+    </ul>
+    <p class="note">Uppskattningar för den slutliga kuben. Prototypen med Raspberry Pi drar betydligt mer, ungefär 1,5–2 W.</p>
     <figure>
       <img src="img/seasons.svg" alt="Tolv månadsrutor. Maj till augusti är full drift, mars–april och september–oktober delad drift, november till februari vilolägen.">
       <figcaption>Driftlägen under året.</figcaption>
