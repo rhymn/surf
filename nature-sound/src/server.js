@@ -1,4 +1,5 @@
 import { createServer } from 'node:http';
+import { timingSafeEqual } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import express from 'express';
@@ -12,6 +13,23 @@ import { analyze } from './analysis.js';
 const sources = new Map();
 const selector = new Selector(config);
 const broadcaster = new Broadcaster(config);
+
+function getSource(id) {
+  let source = sources.get(id);
+  if (!source) {
+    source = new Source(id, config);
+    source.onPowerChange = reselect; // switch away from a low-power kit immediately
+    sources.set(id, source);
+  }
+  return source;
+}
+
+function authorized(req) {
+  const header = req.headers.authorization ?? '';
+  const given = Buffer.from(header.startsWith('Bearer ') ? header.slice(7) : '');
+  const expected = Buffer.from(config.token);
+  return given.length === expected.length && timingSafeEqual(given, expected);
+}
 
 function analyzeSource(source) {
   const bytes = Math.floor(config.analysisWindowSec * SAMPLE_RATE) * BYTES_PER_FRAME;
@@ -40,6 +58,20 @@ app.get('/status', (_req, res) => {
   });
 });
 
+// Operator API: put a kit into (or out of) maintenance mode. A kit in maintenance is never chosen,
+// so listeners are faded over to another source straight away.
+app.put('/admin/sources/:id/maintenance', express.json(), (req, res) => {
+  if (!config.token) return res.status(503).json({ error: 'TOKEN is not set on the server' });
+  if (!authorized(req)) return res.status(401).json({ error: 'Unauthorized' });
+  if (!/^[A-Za-z0-9_-]{1,40}$/.test(req.params.id)) return res.status(400).json({ error: 'Invalid source id' });
+  if (typeof req.body?.value !== 'boolean') return res.status(400).json({ error: 'Body must be {"value": true|false}' });
+  const source = getSource(req.params.id);
+  source.maintenance = req.body.value;
+  console.log(`[${source.id}] maintenance=${source.maintenance}`);
+  reselect();
+  res.json({ id: source.id, maintenance: source.maintenance, active: broadcaster.activeId });
+});
+
 app.get('/listen', (_req, res) => {
   res.writeHead(200, { 'Content-Type': 'audio/mpeg', 'Cache-Control': 'no-store' });
   reselect();
@@ -56,14 +88,8 @@ server.on('upgrade', (req, socket, head) => {
     return socket.destroy();
   }
   wss.handleUpgrade(req, socket, head, (ws) => {
-    const id = match[1];
-    let source = sources.get(id);
-    if (!source) {
-      source = new Source(id, config);
-      source.onPowerChange = reselect; // switch away from a low-power kit immediately
-      sources.set(id, source);
-    }
-    console.log(`[${id}] kit connected`);
+    const source = getSource(match[1]);
+    console.log(`[${source.id}] kit connected`);
     source.attach(ws);
   });
 });

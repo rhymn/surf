@@ -18,6 +18,7 @@ export class Source {
     this.carry = Buffer.alloc(0);
     this.lowPower = false;
     this.battery = null;
+    this.maintenance = false; // set centrally by an operator; survives kit reconnects
     this.onPowerChange = () => {};
   }
 
@@ -97,6 +98,7 @@ export class Source {
       online: this.online,
       active: this.id === activeId,
       bufferedSec: Math.min(this.ring.written, this.ring.size) / BYTES_PER_FRAME / SAMPLE_RATE,
+      maintenance: this.maintenance,
       lowPower: this.lowPower,
       battery: this.battery,
       score: this.analysis?.score ?? null,

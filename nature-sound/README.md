@@ -11,12 +11,26 @@ Solid arrows carry audio; the dashed arrow carries the decision of which source 
 
 - `GET /` – public site with the live player
 - `GET /listen` – the live MP3 stream
+- `PUT /admin/sources/<id>/maintenance` – operator API (see below)
 - `GET /status` (per-source scores and flags as JSON), `GET /health`
 - `WS /ingest/<id>` – kits connect here. Binary frames carry the encoded stream (Ogg/Opus or FLAC recommended). Text frames are JSON control messages: `{"type":"power","low":true,"battery":0.12}` tells the server the kit is low on power, so it stops being chosen and the broadcast moves to another source straight away; send `"low":false` when it has recovered.
 
 ## Config
 
 All tunables are constants in `src/config.js` (only `PORT` comes from the environment).
+
+## Maintenance mode
+
+To service a kit, put it in maintenance so listeners are faded over to another source and it is never
+chosen until you clear it. Set `TOKEN` on the server first. Without it the endpoint is disabled.
+
+```
+curl -X PUT https://<host>/admin/sources/forest-1/maintenance \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"value": true}'
+```
+
+Send `{"value": false}` to bring it back. `/status` shows `maintenance` for every source. The flag is kept in
+memory, so a server restart clears it, and it does not stop the kit from streaming.
 
 ## Run locally
 

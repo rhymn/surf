@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { Selector } from '../src/selector.js';
 
 const opts = { minScore: 0.35, switchMargin: 0.1, minDwellMs: 1000, maxAnalysisAgeMs: 10000 };
-const src = (id, score, { online = true, at = 0, lowPower = false } = {}) => ({ id, online, lowPower, analysis: score == null ? null : { score }, analysisAt: at });
+const src = (id, score, { online = true, at = 0, lowPower = false, maintenance = false } = {}) => ({ id, online, lowPower, maintenance, analysis: score == null ? null : { score }, analysisAt: at });
 
 test('picks the best eligible source', () => {
   const s = new Selector(opts);
@@ -52,4 +52,21 @@ test('a low-power source is only a last resort', () => {
   const s = new Selector(opts);
   s.choose([src('a', 0.9)], 0);
   assert.equal(s.choose([src('a', 0.9, { lowPower: true })], 10).id, 'a');
+});
+
+test('a source in maintenance is never chosen, even if it scores best', () => {
+  const s = new Selector(opts);
+  assert.equal(s.choose([src('a', 1, { maintenance: true }), src('b', 0.5)], 0).id, 'b');
+});
+
+test('the current source is replaced at once when put into maintenance', () => {
+  const s = new Selector(opts);
+  s.choose([src('a', 0.9), src('b', 0.5)], 0);
+  assert.equal(s.choose([src('a', 0.9, { maintenance: true }), src('b', 0.5)], 10).id, 'b', 'no dwell wait');
+});
+
+test('a source in maintenance is not kept as a last resort', () => {
+  const s = new Selector(opts);
+  s.choose([src('a', 0.9)], 0);
+  assert.equal(s.choose([src('a', 0.9, { maintenance: true })], 10), null);
 });

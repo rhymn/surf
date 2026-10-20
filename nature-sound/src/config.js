@@ -4,6 +4,8 @@ export const BYTES_PER_FRAME = CHANNELS * 2; // s16le
 
 export const config = {
   port: Number(process.env.PORT) || 3000,
+  // Secret for the operator API. Without it the admin endpoints stay disabled.
+  token: process.env.TOKEN || '',
 
   // How often every source's latest clip is analysed and the best one re-chosen.
   analyzeIntervalSec: 60,

@@ -91,6 +91,9 @@ services:
     branch: main
     healthCheckPath: /health
     region: frankfurt
+    envVars:
+      - key: TOKEN
+        generateValue: true
 
 databases:
   - name: db
