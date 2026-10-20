@@ -88,12 +88,12 @@
     <p>Kuberna drivs av en solpanel och ett batteri. De sover när ingen lyssnar på dem och strömmar bara när servern ber om det, normalt en kub åt gången.</p>
     <h3>Så snål är kuben</h3>
     <ul>
-      <li>En kub som sover drar bara några milliwatt, under en procent av vad den drar när den strömmar.</li>
-      <li>En kub som strömmar ljud drar ungefär 1 watt.</li>
-      <li>Eftersom bara en kub strömmar åt gången blir snittet ungefär 3–8 Wh per dygn och kub. Det motsvarar ungefär en halv mobilladdning.</li>
-      <li>Det räcker med en liten solpanel på cirka 20 W och ett batteri på cirka 64 Wh.</li>
+      <li>En kub som vilar men kan nås av servern drar ungefär 0,03–0,06 W. Mest går åt till att modemet lyssnar efter beställningar.</li>
+      <li>En kub som strömmar ljud drar ungefär 0,7–1,3 W. Modemet står för mer än hälften.</li>
+      <li>Eftersom bara en kub strömmar åt gången, och minst tre kuber turas om, blir snittet ungefär 5–10 Wh per dygn och kub. Det motsvarar ungefär en halv mobilladdning.</li>
+      <li>Det räcker med en solpanel på cirka 20–30 W och ett batteri på cirka 64 Wh.</li>
     </ul>
-    <p class="note">Uppskattningar för den slutliga kuben. Prototypen med Raspberry Pi drar betydligt mer, ungefär 1,5–2 W.</p>
+    <p class="note">Uppskattningar för den slutliga kuben, byggda på databladsvärden för ESP32-S3 och 4G-moduler. Prototypen med Raspberry Pi drar mer, ungefär 1,5–2,3 W.</p>
     <figure>
       <img src="img/seasons.svg" alt="Tolv månadsrutor. Maj till augusti är full drift, mars–april och september–oktober delad drift, november till februari vilolägen.">
       <figcaption>Driftlägen under året.</figcaption>
