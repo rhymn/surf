@@ -80,6 +80,18 @@ services:
     branch: main
     rootDir: community
 
+  # Always-on service (free web services spin down, which would drop the live streams).
+  # Docker because audio decoding/encoding needs ffmpeg. Paths are relative to the repo root.
+  - type: web
+    name: naturljud-live
+    runtime: docker
+    dockerfilePath: ./naturljud-live/Dockerfile
+    dockerContext: ./naturljud-live
+    plan: starter
+    branch: main
+    healthCheckPath: /health
+    region: frankfurt
+
 databases:
   - name: db
     plan: basic-256mb

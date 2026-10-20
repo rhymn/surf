@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Naturljud Live</title>
+  <meta name="description" content="Lyssna live på ljudet från svenska skogar, direkt från mikrofoner som står ute i naturen.">
+  <style>
+    :root { --bg: #f4f1ea; --fg: #1f2a1f; --accent: #2f5d3a; --muted: #5d6b5d; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #131a14; --fg: #e8eee6; --accent: #8fc79a; --muted: #9aa99b; } }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font: 18px/1.6 Georgia, "Times New Roman", serif; }
+    main { max-width: 38rem; margin: 0 auto; padding: 4rem 1.25rem 3rem; }
+    h1 { font-size: clamp(2.2rem, 8vw, 3.4rem); line-height: 1.1; margin: 0 0 .5rem; font-weight: 600; }
+    .lead { color: var(--muted); font-size: 1.15rem; margin: 0 0 2.5rem; }
+    .player { border: 1px solid color-mix(in srgb, var(--fg) 18%, transparent); border-radius: 1rem; padding: 1.5rem; text-align: center; }
+    #play { font: inherit; font-size: 1.1rem; padding: .8rem 2rem; border-radius: 999px; border: 0; background: var(--accent); color: var(--bg); cursor: pointer; }
+    #play:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+    #now { margin: 1rem 0 0; color: var(--muted); min-height: 1.6em; }
+    h2 { font-size: 1.25rem; margin: 3rem 0 .5rem; }
+    footer { margin-top: 3rem; color: var(--muted); font-size: .9rem; }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Naturljud Live</h1>
+    <p class="lead">Skogen, just nu. Ljud i hög kvalitet från mikrofoner som står ute i naturen – vi väljer alltid den bästa platsen åt dig.</p>
+
+    <div class="player">
+      <button id="play" type="button">▶ Lyssna live</button>
+      <p id="now" aria-live="polite"></p>
+      <audio id="audio" preload="none"></audio>
+    </div>
+
+    <h2>Så fungerar det</h2>
+    <p>Små mikrofonkuber placeras ut i skogar och strömmar ljud i hög kvalitet till oss dygnet runt. Med jämna mellanrum lyssnar vi av varje källa efter störningar som vind, brus, brum och röster, och skickar vidare den renaste inspelningen till dig.</p>
+
+    <footer>Bara ljud, inga annonser.</footer>
+  </main>
+  <script>
+    const audio = document.getElementById('audio');
+    const button = document.getElementById('play');
+    const now = document.getElementById('now');
+
+    button.addEventListener('click', () => {
+      if (audio.paused) {
+        // Fresh connection each time so you hear live audio, not what was buffered when you paused.
+        audio.src = '/listen?t=' + Date.now();
+        audio.play().catch(() => { now.textContent = 'Kunde inte starta ljudet.'; });
+        button.textContent = '⏸ Pausa';
+      } else {
+        audio.pause();
+        audio.removeAttribute('src');
+        audio.load();
+        button.textContent = '▶ Lyssna live';
+      }
+    });
+
+    async function refresh() {
+      try {
+        const s = await (await fetch('/status')).json();
+        now.textContent = s.active ? 'Du hör: ' + s.active : 'Inga källor är uppkopplade just nu.';
+      } catch { now.textContent = ''; }
+    }
+    refresh();
+    setInterval(refresh, 10000);
+  </script>
+</body>
+</html>
