@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node src/server.js",
     "test": "node --test",
-    "simulate": "node scripts/simulate-kit.js"
+    "simulate": "node scripts/simulate-kit.js",
+    "test:coverage": "node --test --experimental-test-coverage --test-coverage-exclude='tests/**' --test-coverage-exclude='scripts/**' --test-coverage-lines=80 --test-coverage-branches=80 --test-coverage-functions=80"
   },
   "engines": {
     "node": ">=20"

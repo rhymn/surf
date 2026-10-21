@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Naturljud – admin</title>
+  <style>
+    :root { --bg: #f4f1ea; --fg: #1f2a1f; --accent: #2f5d3a; --muted: #5d6b5d; --warn: #9a5b00; --bad: #a32d2d; --line: color-mix(in srgb, var(--fg) 18%, transparent); }
+    @media (prefers-color-scheme: dark) { :root { --bg: #131a14; --fg: #e8eee6; --accent: #8fc79a; --muted: #9aa99b; --warn: #e0a64a; --bad: #f09595; } }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    main { max-width: 56rem; margin: 0 auto; padding: 2.5rem 1.25rem 3rem; }
+    h1 { font-size: 1.6rem; margin: 0 0 .25rem; }
+    h2 { font-size: 1.1rem; margin: 2rem 0 .5rem; }
+    .muted { color: var(--muted); }
+    .row { display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; }
+    input { font: inherit; padding: .45rem .6rem; border: 1px solid var(--line); border-radius: .4rem; background: transparent; color: var(--fg); }
+    button { font: inherit; padding: .45rem .9rem; border: 0; border-radius: .4rem; background: var(--accent); color: var(--bg); cursor: pointer; }
+    button.secondary { background: transparent; color: var(--fg); border: 1px solid var(--line); }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+    table { width: 100%; border-collapse: collapse; margin-top: .5rem; }
+    th, td { text-align: left; padding: .5rem .4rem; border-bottom: 1px solid var(--line); vertical-align: middle; }
+    th { font-weight: 500; color: var(--muted); font-size: .85rem; }
+    .scroll { overflow-x: auto; }
+    .live { font-weight: 600; color: var(--accent); }
+    .off { color: var(--muted); }
+    .maint { color: var(--warn); font-weight: 600; }
+    .err { color: var(--bad); min-height: 1.5em; margin: .5rem 0 0; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Admin</h1>
+    <p class="muted" id="summary">Laddar…</p>
+
+    <h2>Token</h2>
+    <form class="row" id="token-form">
+      <input id="token" type="password" placeholder="TOKEN" autocomplete="off" aria-label="Token" size="28">
+      <button type="submit">Spara</button>
+      <button type="button" class="secondary" id="forget">Glöm</button>
+    </form>
+    <p class="muted" id="token-state"></p>
+    <p class="err" id="error" role="alert"></p>
+
+    <h2>Kuber</h2>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Kub</th><th>Status</th><th>Poäng</th><th>Flaggor</th><th>Batteri</th><th>Underhåll</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <p class="muted" id="empty" hidden>Inga kuber har anslutit ännu.</p>
+
+    <h2>Sätt en kub i underhåll</h2>
+    <p class="muted">Fungerar även för en kub som inte är uppkopplad.</p>
+    <form class="row" id="add-form">
+      <input id="new-id" placeholder="kub-id, t.ex. forest-1" pattern="[A-Za-z0-9_\-]{1,40}" required aria-label="Kub-id">
+      <button type="submit" id="add-btn">Sätt i underhåll</button>
+    </form>
+  </main>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let token = '';
+    try { token = sessionStorage.getItem('token') || ''; } catch {}
+
+    const showError = (msg) => { $('error').textContent = msg || ''; };
+
+    function renderToken() {
+      $('token-state').textContent = token ? 'Token sparad för den här fliken.' : 'Ingen token sparad. Du kan se status men inte ändra något.';
+      document.querySelectorAll('button[data-id], #add-btn').forEach((b) => { b.disabled = !token; });
+    }
+
+    async function setMaintenance(id, value) {
+      showError('');
+      const res = await fetch('/admin/sources/' + encodeURIComponent(id) + '/maintenance', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ value }),
+      });
+      if (res.status === 401) showError('Fel token.');
+      else if (res.status === 503) showError('Servern saknar TOKEN, så admin är avstängt.');
+      else if (!res.ok) showError('Något gick fel (' + res.status + ').');
+      await refresh();
+    }
+
+    function cell(text, className) {
+      const td = document.createElement('td');
+      td.textContent = text;
+      if (className) td.className = className;
+      return td;
+    }
+
+    function statusOf(s) {
+      if (s.maintenance) return ['Underhåll', 'maint'];
+      if (s.active) return ['▶ Sänder', 'live'];
+      if (s.online) return ['Uppkopplad', ''];
+      return ['Offline', 'off'];
+    }
+
+    function render(data) {
+      $('summary').textContent = 'Sänder: ' + (data.active ?? 'ingen') + ' · ' + data.listeners + ' lyssnare';
+      $('empty').hidden = data.sources.length > 0;
+      const rows = $('rows');
+      rows.replaceChildren();
+      for (const s of data.sources) {
+        const tr = document.createElement('tr');
+        const [label, cls] = statusOf(s);
+        const battery = s.battery == null ? '–' : Math.round(s.battery * 100) + ' %';
+        tr.append(
+          cell(s.id),
+          cell(label, cls),
+          cell(s.score == null ? '–' : s.score.toFixed(2)),
+          cell(s.flags.join(', ') || '–'),
+          cell(s.lowPower ? battery + ' (lågt)' : battery, s.lowPower ? 'maint' : ''),
+        );
+        const td = document.createElement('td');
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = s.maintenance ? '' : 'secondary';
+        btn.dataset.id = s.id;
+        btn.textContent = s.maintenance ? 'Avsluta underhåll' : 'Sätt i underhåll';
+        btn.disabled = !token;
+        btn.addEventListener('click', () => setMaintenance(s.id, !s.maintenance));
+        td.append(btn);
+        tr.append(td);
+        rows.append(tr);
+      }
+    }
+
+    async function refresh() {
+      try {
+        const res = await fetch('/status');
+        render(await res.json());
+      } catch {
+        $('summary').textContent = 'Kunde inte hämta status.';
+      }
+    }
+
+    $('token-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      token = $('token').value.trim();
+      try { sessionStorage.setItem('token', token); } catch {}
+      $('token').value = '';
+      showError('');
+      renderToken();
+      refresh();
+    });
+    $('forget').addEventListener('click', () => {
+      token = '';
+      try { sessionStorage.removeItem('token'); } catch {}
+      renderToken();
+      refresh();
+    });
+    $('add-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = $('new-id').value.trim();
+      if (id) setMaintenance(id, true).then(() => { $('new-id').value = ''; });
+    });
+
+    renderToken();
+    refresh();
+    setInterval(refresh, 5000);
+  </script>
+</body>
+</html>

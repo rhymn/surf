@@ -95,11 +95,17 @@ server.on('upgrade', (req, socket, head) => {
 });
 
 // Analyse each online source when it is new or its last analysis is a full interval old, then re-choose.
-setInterval(() => {
+function tick() {
   for (const source of sources.values()) {
     if (source.online && Date.now() - source.analysisAt >= config.analyzeIntervalSec * 1000) analyzeSource(source);
   }
   reselect();
-}, 2000);
+}
 
-server.listen(config.port, () => console.log(`nature-sound listening on :${config.port}`));
+export { server, sources, broadcaster, tick };
+
+// Only start listening and ticking when run directly, so tests can import the app.
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  setInterval(tick, 2000);
+  server.listen(config.port, () => console.log(`nature-sound listening on :${config.port}`));
+}

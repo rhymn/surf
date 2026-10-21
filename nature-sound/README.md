@@ -11,6 +11,7 @@ Solid arrows carry audio; the dashed arrow carries the decision of which source 
 
 - `GET /` – public site with the live player
 - `GET /listen` – the live MP3 stream
+- `GET /admin.html` – admin page: kit status and maintenance toggles (needs `TOKEN` to change anything)
 - `PUT /admin/sources/<id>/maintenance` – operator API (see below)
 - `GET /status` (per-source scores and flags as JSON), `GET /health`
 - `WS /ingest/<id>` – kits connect here. Binary frames carry the encoded stream (Ogg/Opus or FLAC recommended). Text frames are JSON control messages: `{"type":"power","low":true,"battery":0.12}` tells the server the kit is low on power, so it stops being chosen and the broadcast moves to another source straight away; send `"low":false` when it has recovered.
