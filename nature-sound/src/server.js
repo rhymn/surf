@@ -9,6 +9,7 @@ import { Source } from './source.js';
 import { Selector } from './selector.js';
 import { Broadcaster } from './broadcaster.js';
 import { analyze } from './analysis.js';
+import { startDemoKits } from './demo.js';
 
 const sources = new Map();
 const selector = new Selector(config);
@@ -102,10 +103,11 @@ function tick() {
   reselect();
 }
 
-export { server, sources, broadcaster, tick };
+export { server, sources, broadcaster, tick, getSource };
 
 // Only start listening and ticking when run directly, so tests can import the app.
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   setInterval(tick, 2000);
+  if (config.demoKit) startDemoKits(getSource);
   server.listen(config.port, () => console.log(`nature-sound listening on :${config.port}`));
 }

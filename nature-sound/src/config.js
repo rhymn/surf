@@ -6,6 +6,10 @@ export const config = {
   port: Number(process.env.PORT) || 3000,
   // Secret for the operator API. Without it the admin endpoints stay disabled.
   token: process.env.TOKEN || '',
+  // Two simulated cubes (demo-1 clean, demo-2 windy) for trying the admin page and routing.
+  demoKit: process.env.DEMO_KIT === 'true',
+  // Whether the simulated audio may be chosen for the live stream. Off by default so listeners never hear it.
+  demoOnAir: process.env.DEMO_ON_AIR === 'true',
 
   // How often every source's latest clip is analysed and the best one re-chosen.
   analyzeIntervalSec: 60,

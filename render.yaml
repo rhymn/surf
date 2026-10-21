@@ -94,6 +94,8 @@ services:
     envVars:
       - key: TOKEN
         generateValue: true
+      - key: DEMO_KIT
+        value: "true"
 
 databases:
   - name: db

@@ -1,9 +1,9 @@
 // Picks which source to broadcast. Pure function of the sources' state and the clock, so it is
-// easy to test. A source in maintenance mode is never chosen, not even as a last resort. A source reporting low power is never preferred and is replaced at once (no dwell
+// easy to test. A simulated (demo) source is only used when demoOnAir is set. A source in maintenance mode is never chosen, not even as a last resort. A source reporting low power is never preferred and is replaced at once (no dwell
 // time); it is only kept as a last resort when nothing else is usable. Hysteresis (minimum dwell + score margin) avoids flapping between similar sources.
 export class Selector {
-  constructor({ minScore, switchMargin, minDwellMs, maxAnalysisAgeMs }) {
-    Object.assign(this, { minScore, switchMargin, minDwellMs, maxAnalysisAgeMs });
+  constructor({ minScore, switchMargin, minDwellMs, maxAnalysisAgeMs, demoOnAir = false }) {
+    Object.assign(this, { minScore, switchMargin, minDwellMs, maxAnalysisAgeMs, demoOnAir });
     this.currentId = null;
     this.since = 0;
   }
@@ -11,6 +11,7 @@ export class Selector {
   eligible(source, now) {
     return (
       source.online &&
+      (!source.demo || this.demoOnAir) &&
       !source.maintenance &&
       !source.lowPower &&
       source.analysis &&
@@ -26,7 +27,7 @@ export class Selector {
 
     if (!best) {
       // Nothing good enough: keep playing the current source if it is at least alive.
-      if (current?.online && !current.maintenance) return current;
+      if (current?.online && !current.maintenance && (!current.demo || this.demoOnAir)) return current;
       this.set(null, now);
       return null;
     }

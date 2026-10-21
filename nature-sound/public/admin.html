@@ -109,7 +109,7 @@
         const [label, cls] = statusOf(s);
         const battery = s.battery == null ? '–' : Math.round(s.battery * 100) + ' %';
         tr.append(
-          cell(s.id),
+          cell(s.demo ? s.id + ' (demo)' : s.id),
           cell(label, cls),
           cell(s.score == null ? '–' : s.score.toFixed(2)),
           cell(s.flags.join(', ') || '–'),

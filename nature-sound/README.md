@@ -33,6 +33,13 @@ curl -X PUT https://<host>/admin/sources/forest-1/maintenance \
 Send `{"value": false}` to bring it back. `/status` shows `maintenance` for every source. The flag is kept in
 memory, so a server restart clears it, and it does not stop the kit from streaming.
 
+## Demo cubes
+
+With `DEMO_KIT=true` the server runs two simulated cubes, `demo-1` (clean) and `demo-2` (windy), as
+ordinary sources. They show up on the admin page marked "(demo)", get scored, and can be put in
+maintenance. By default their audio is never chosen for the live stream, so listeners never hear it.
+Set `DEMO_ON_AIR=true` to let them be chosen too, which is handy for seeing a switch happen.
+
 ## Run locally
 
 Needs Node 20+ and `ffmpeg` (with libopus and libmp3lame) on the PATH.

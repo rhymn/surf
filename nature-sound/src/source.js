@@ -18,6 +18,7 @@ export class Source {
     this.carry = Buffer.alloc(0);
     this.lowPower = false;
     this.battery = null;
+    this.demo = false; // simulated cube, see demo.js
     this.maintenance = false; // set centrally by an operator; survives kit reconnects
     this.onPowerChange = () => {};
   }
@@ -98,6 +99,7 @@ export class Source {
       online: this.online,
       active: this.id === activeId,
       bufferedSec: Math.min(this.ring.written, this.ring.size) / BYTES_PER_FRAME / SAMPLE_RATE,
+      demo: this.demo,
       maintenance: this.maintenance,
       lowPower: this.lowPower,
       battery: this.battery,
